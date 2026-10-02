@@ -43,7 +43,7 @@ export default function SettingsManager({
   // ── Calendar connect state ──────────────────────────────────────────────────
   const [showCalendarConnect, setShowCalendarConnect] = useState(false);
   const [calendarConnectLabel, setCalendarConnectLabel] = useState('');
-  const [calendarClientId, setCalendarClientId] = useState('');
+  const [calendarClientId, setCalendarClientId] = useState(() => process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '');
   const [availableCalendars, setAvailableCalendars] = useState<{ id: string; summary: string }[]>([]);
   const [selectedCalendarId, setSelectedCalendarId] = useState('');
   const [connectingCalendar, setConnectingCalendar] = useState(false);
@@ -300,7 +300,7 @@ export default function SettingsManager({
                 setPendingAccessToken('');
                 setPendingEmail('');
                 setCalendarConnectLabel('');
-                setCalendarClientId('');
+                setCalendarClientId(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '');
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-200 transition"
             >
@@ -548,7 +548,7 @@ export default function SettingsManager({
                         // Reset panel
                         setShowCalendarConnect(false);
                         setCalendarConnectLabel('');
-                        setCalendarClientId('');
+                        setCalendarClientId(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '');
                         setAvailableCalendars([]);
                         setSelectedCalendarId('');
                         setPendingAccessToken('');
