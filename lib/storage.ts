@@ -1,12 +1,15 @@
 import { useSyncExternalStore } from 'react';
-import { Itinerary, Hotel, Destination, Attraction, VehicleOption, AppSettings } from '@/types';
+import { Itinerary, Hotel, Destination, Attraction, VehicleOption, AppSettings, FleetVehicle, Driver, OperationalBooking, OperationalBookingStatus } from '@/types';
 import {
   DEFAULT_SETTINGS,
   INITIAL_VEHICLES,
   INITIAL_DESTINATIONS,
   INITIAL_ATTRACTIONS,
   INITIAL_HOTELS,
-  INITIAL_ITINERARIES
+  INITIAL_ITINERARIES,
+  INITIAL_FLEET,
+  INITIAL_DRIVERS,
+  INITIAL_OPERATIONAL_BOOKINGS
 } from './mock-data';
 
 const STORAGE_KEYS = {
@@ -17,6 +20,9 @@ const STORAGE_KEYS = {
   HOTELS: 'lobo_hotels_v1',
   ITINERARIES: 'lobo_itineraries_v3',
   NEXT_REF: 'lobo_next_ref_v1',
+  FLEET: 'lobo_fleet_v1',
+  DRIVERS: 'lobo_drivers_v1',
+  BOOKINGS: 'lobo_bookings_v1',
 };
 
 // In-memory cache for synchronous snapshots
@@ -26,6 +32,9 @@ let destinationsCache: Destination[] | null = null;
 let attractionsCache: Attraction[] | null = null;
 let vehiclesCache: VehicleOption[] | null = null;
 let settingsCache: AppSettings | null = null;
+let fleetCache: FleetVehicle[] | null = null;
+let driversCache: Driver[] | null = null;
+let bookingsCache: OperationalBooking[] | null = null;
 
 function getStorageItem<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
@@ -81,7 +90,15 @@ function refreshAllCaches(): void {
   attractionsCache = Array.from(attMap.values());
 
   vehiclesCache = getStorageItem<VehicleOption[]>(STORAGE_KEYS.VEHICLES, INITIAL_VEHICLES);
-  settingsCache = getStorageItem<AppSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
+  const rawSettings = getStorageItem<AppSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
+  // Migrate: replace old GitHub-hosted logo with local /logo.png
+  if (rawSettings.logoUrl && rawSettings.logoUrl.includes('github.com/VensonLobo')) {
+    rawSettings.logoUrl = '/logo.png';
+  }
+  settingsCache = rawSettings;
+  fleetCache = getStorageItem<FleetVehicle[]>(STORAGE_KEYS.FLEET, INITIAL_FLEET);
+  driversCache = getStorageItem<Driver[]>(STORAGE_KEYS.DRIVERS, INITIAL_DRIVERS);
+  bookingsCache = getStorageItem<OperationalBooking[]>(STORAGE_KEYS.BOOKINGS, INITIAL_OPERATIONAL_BOOKINGS);
 }
 
 // Convert Itinerary Ref (e.g. LT-2026-0001) to Voucher Ref (LTV-2026-0001)
@@ -361,6 +378,144 @@ export function resetAllToDefaults(): void {
   localStorage.removeItem(STORAGE_KEYS.HOTELS);
   localStorage.removeItem(STORAGE_KEYS.ITINERARIES);
   localStorage.removeItem(STORAGE_KEYS.NEXT_REF);
+  localStorage.removeItem(STORAGE_KEYS.FLEET);
+  localStorage.removeItem(STORAGE_KEYS.DRIVERS);
+  localStorage.removeItem(STORAGE_KEYS.BOOKINGS);
   refreshAllCaches();
   window.dispatchEvent(new Event('lobo_storage_updated'));
+}
+
+// ===================== ADD-ON MODULE: FLEET VEHICLES =====================
+
+export function useFleet(): FleetVehicle[] {
+  return useSyncExternalStore(
+    subscribeStorage,
+    () => {
+      if (!fleetCache) refreshAllCaches();
+      return fleetCache || INITIAL_FLEET;
+    },
+    () => INITIAL_FLEET
+  );
+}
+
+export function getFleet(): FleetVehicle[] {
+  return getStorageItem<FleetVehicle[]>(STORAGE_KEYS.FLEET, INITIAL_FLEET);
+}
+
+export function saveFleetVehicle(vehicle: FleetVehicle): void {
+  const current = getFleet();
+  const index = current.findIndex(v => v.id === vehicle.id);
+  let updated: FleetVehicle[];
+  if (index >= 0) {
+    updated = [...current];
+    updated[index] = vehicle;
+  } else {
+    updated = [vehicle, ...current];
+  }
+  setStorageItem(STORAGE_KEYS.FLEET, updated);
+}
+
+export function deleteFleetVehicle(id: string): void {
+  const bookings = getOperationalBookings();
+  const referenced = bookings.some(b => b.ownVehicleId === id && b.status !== 'cancelled');
+  if (referenced) {
+    throw new Error('Cannot delete vehicle: it is referenced by one or more active bookings. Cancel the bookings first.');
+  }
+  const current = getFleet();
+  setStorageItem(STORAGE_KEYS.FLEET, current.filter(v => v.id !== id));
+}
+
+// ===================== ADD-ON MODULE: DRIVERS =====================
+
+export function useDrivers(): Driver[] {
+  return useSyncExternalStore(
+    subscribeStorage,
+    () => {
+      if (!driversCache) refreshAllCaches();
+      return driversCache || INITIAL_DRIVERS;
+    },
+    () => INITIAL_DRIVERS
+  );
+}
+
+export function getDrivers(): Driver[] {
+  return getStorageItem<Driver[]>(STORAGE_KEYS.DRIVERS, INITIAL_DRIVERS);
+}
+
+export function saveDriver(driver: Driver): void {
+  const current = getDrivers();
+  const index = current.findIndex(d => d.id === driver.id);
+  let updated: Driver[];
+  if (index >= 0) {
+    updated = [...current];
+    updated[index] = driver;
+  } else {
+    updated = [driver, ...current];
+  }
+  setStorageItem(STORAGE_KEYS.DRIVERS, updated);
+}
+
+export function deleteDriver(id: string): void {
+  const bookings = getOperationalBookings();
+  const referenced = bookings.some(b => b.ownDriverId === id && b.status !== 'cancelled');
+  if (referenced) {
+    throw new Error('Cannot delete driver: they are referenced by one or more active bookings. Cancel the bookings first.');
+  }
+  const current = getDrivers();
+  setStorageItem(STORAGE_KEYS.DRIVERS, current.filter(d => d.id !== id));
+}
+
+// ===================== ADD-ON MODULE: OPERATIONAL BOOKINGS =====================
+
+export function useOperationalBookings(): OperationalBooking[] {
+  return useSyncExternalStore(
+    subscribeStorage,
+    () => {
+      if (!bookingsCache) refreshAllCaches();
+      return bookingsCache || INITIAL_OPERATIONAL_BOOKINGS;
+    },
+    () => INITIAL_OPERATIONAL_BOOKINGS
+  );
+}
+
+export function getOperationalBookings(): OperationalBooking[] {
+  return getStorageItem<OperationalBooking[]>(STORAGE_KEYS.BOOKINGS, INITIAL_OPERATIONAL_BOOKINGS);
+}
+
+export function getOperationalBookingByVoucherNo(voucherNo: string): OperationalBooking | undefined {
+  return getOperationalBookings().find(b => b.voucherNo === voucherNo);
+}
+
+export function saveOperationalBooking(booking: OperationalBooking): void {
+  const current = getOperationalBookings();
+  const index = current.findIndex(b => b.id === booking.id);
+  const now = new Date().toISOString();
+  const updatedRecord: OperationalBooking = { ...booking, updatedAt: now };
+  let updated: OperationalBooking[];
+  if (index >= 0) {
+    updated = [...current];
+    updated[index] = updatedRecord;
+  } else {
+    updatedRecord.createdAt = updatedRecord.createdAt || now;
+    updated = [updatedRecord, ...current];
+  }
+  setStorageItem(STORAGE_KEYS.BOOKINGS, updated);
+}
+
+export function deleteOperationalBooking(id: string): void {
+  const current = getOperationalBookings();
+  setStorageItem(STORAGE_KEYS.BOOKINGS, current.filter(b => b.id !== id));
+}
+
+// ===================== HELPERS =====================
+
+export function computeBookingStatus(booking: OperationalBooking): OperationalBookingStatus {
+  if (booking.status === 'cancelled') return 'cancelled';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(booking.startDate);
+  const end = new Date(booking.endDate);
+  if (today < start) return 'scheduled';
+  if (today > end) return 'completed';
+  return 'active';
 }

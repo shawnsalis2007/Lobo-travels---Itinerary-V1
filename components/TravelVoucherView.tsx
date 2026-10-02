@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { 
   Printer, 
   Download, 
@@ -22,9 +22,10 @@ import {
   Clock
 } from 'lucide-react';
 import { exportElementToPdf } from '@/lib/pdf-export';
-import { getVoucherReferenceNumber } from '@/lib/storage';
+import { getVoucherReferenceNumber, getOperationalBookingByVoucherNo, saveOperationalBooking } from '@/lib/storage';
 import { formatDateDMY } from '@/lib/utils';
-import { Itinerary, AppSettings } from '@/types';
+import { Itinerary, AppSettings, OperationalBooking } from '@/types';
+import BookingCreationModal from '@/components/BookingCreationModal';
 
 interface TravelVoucherViewProps {
   itinerary: Itinerary;
@@ -38,10 +39,19 @@ export default function TravelVoucherView({
   onBack
 }: TravelVoucherViewProps) {
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
   const voucherRef = useRef<HTMLDivElement>(null);
 
   // Voucher reference number with LTV prefix (e.g. LT-2026-0001 -> LTV-2026-0001)
   const voucherReference = getVoucherReferenceNumber(itinerary.referenceNumber);
+
+  // Show booking creation modal once if no booking exists for this voucher yet
+  useEffect(() => {
+    const existing = getOperationalBookingByVoucherNo(voucherReference);
+    if (!existing) {
+      setShowBookingModal(true);
+    }
+  }, [voucherReference]);
 
   const handlePrint = () => {
     window.print();
@@ -530,6 +540,15 @@ export default function TravelVoucherView({
         </div>
       </div>
 
+      {showBookingModal && (
+        <BookingCreationModal
+          itinerary={itinerary}
+          voucherNo={voucherReference}
+          settings={settings}
+          onComplete={(_booking: OperationalBooking) => setShowBookingModal(false)}
+          onDismiss={() => setShowBookingModal(false)}
+        />
+      )}
     </div>
   );
 }

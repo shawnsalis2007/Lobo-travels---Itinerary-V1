@@ -12,7 +12,11 @@ import {
   CheckCircle2, 
   Menu, 
   X,
-  PhoneCall
+  PhoneCall,
+  CalendarClock,
+  BarChart3,
+  Truck,
+  UserCheck
 } from 'lucide-react';
 import { AppSettings } from '@/types';
 
@@ -40,6 +44,10 @@ export default function Navbar({
     { id: 'itineraries', label: 'Itineraries', icon: FileText },
     { id: 'hotels', label: 'Hotels', icon: Building2 },
     { id: 'destinations', label: 'Destinations', icon: MapPin },
+    { id: 'reminders', label: 'Reminders', icon: CalendarClock },
+    { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'fleet', label: 'Fleet', icon: Truck },
+    { id: 'drivers', label: 'Drivers', icon: UserCheck },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -145,7 +153,7 @@ export default function Navbar({
 
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-3 border-t border-[#26214F] space-y-2">
+          <div className="md:hidden py-3 border-t border-[#26214F] space-y-2 overflow-y-auto max-h-[70vh]">
             <div className="relative mb-3">
               <Search className="w-4 h-4 text-[#9899A1] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input

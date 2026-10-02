@@ -14,9 +14,17 @@ import {
   ShieldCheck, 
   AlertCircle,
   FileText,
-  CheckCircle2
+  CheckCircle2,
+  CalendarClock,
+  Star,
+  StarOff,
+  Wifi,
+  WifiOff,
+  Plus,
+  Trash2
 } from 'lucide-react';
-import { AppSettings } from '@/types';
+import { AppSettings, GoogleCalendarAccount } from '@/types';
+import { initGoogleCalendarAuth, listUserCalendars } from '@/lib/calendar';
 
 interface SettingsManagerProps {
   settings: AppSettings;
@@ -31,6 +39,19 @@ export default function SettingsManager({
 }: SettingsManagerProps) {
   const [formData, setFormData] = useState<AppSettings>(initialSettings);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // ── Calendar connect state ──────────────────────────────────────────────────
+  const [showCalendarConnect, setShowCalendarConnect] = useState(false);
+  const [calendarConnectLabel, setCalendarConnectLabel] = useState('');
+  const [calendarClientId, setCalendarClientId] = useState('');
+  const [availableCalendars, setAvailableCalendars] = useState<{ id: string; summary: string }[]>([]);
+  const [selectedCalendarId, setSelectedCalendarId] = useState('');
+  const [connectingCalendar, setConnectingCalendar] = useState(false);
+  // Stores the live access token returned by GIS (session-scoped)
+  const [pendingAccessToken, setPendingAccessToken] = useState('');
+  // Stores the Google email (decoded from token hint or entered by user)
+  const [pendingEmail, setPendingEmail] = useState('');
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -259,6 +280,304 @@ export default function SettingsManager({
               className="w-full px-3 py-2 border border-slate-200 rounded-lg leading-relaxed"
             />
           </div>
+        </div>
+
+
+        {/* ── Connected Google Calendars ──────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+          {/* Section header */}
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <CalendarClock className="w-4 h-4 text-indigo-500" />
+              Connected Google Calendars
+            </h2>
+            <button
+              type="button"
+              onClick={() => {
+                setShowCalendarConnect((v) => !v);
+                setAvailableCalendars([]);
+                setSelectedCalendarId('');
+                setPendingAccessToken('');
+                setPendingEmail('');
+                setCalendarConnectLabel('');
+                setCalendarClientId('');
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-200 transition"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Connect Google Calendar
+            </button>
+          </div>
+
+          {/* Helper note */}
+          <p className="text-[11px] text-slate-500 leading-relaxed">
+            Connect Google accounts to sync bookings and reminders. Events are created in
+            real-time while you&apos;re logged in (session-based). For reminders that fire
+            even when the app is closed, a backend OAuth flow is recommended.
+          </p>
+
+          {/* ── Connected calendar rows ── */}
+          {(formData.connectedCalendars ?? []).length === 0 && (
+            <p className="text-xs text-slate-400 italic py-2">No calendars connected yet.</p>
+          )}
+
+          <div className="space-y-2">
+            {(formData.connectedCalendars ?? []).map((cal, idx) => {
+              const others = (formData.connectedCalendars ?? []).filter((_, i) => i !== idx);
+              return (
+                <div
+                  key={cal.id}
+                  className="flex flex-wrap items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs"
+                >
+                  {/* Editable label */}
+                  <input
+                    type="text"
+                    value={cal.label}
+                    onChange={(e) => {
+                      const updated = (formData.connectedCalendars ?? []).map((c, i) =>
+                        i === idx ? { ...c, label: e.target.value } : c,
+                      );
+                      setFormData({ ...formData, connectedCalendars: updated });
+                    }}
+                    className="flex-1 min-w-[120px] px-2 py-1 border border-slate-200 rounded-md font-semibold text-slate-800 bg-white"
+                    placeholder="Label"
+                  />
+
+                  {/* Google email (read-only) */}
+                  <span className="text-slate-500 font-mono">{cal.googleEmail}</span>
+
+                  {/* Calendar ID (read-only, truncated) */}
+                  <span
+                    className="text-slate-400 hidden sm:block truncate max-w-[180px]"
+                    title={cal.calendarId}
+                  >
+                    {cal.calendarId}
+                  </span>
+
+                  {/* Status badge */}
+                  {cal.connectionStatus === 'connected' ? (
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+                      <Wifi className="w-3 h-3" /> Connected
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">
+                      <WifiOff className="w-3 h-3" /> Needs Reconnect
+                    </span>
+                  )}
+
+                  {/* Set as Default */}
+                  <button
+                    type="button"
+                    title={cal.isDefault ? 'Default calendar' : 'Set as default'}
+                    onClick={() => {
+                      const updated = (formData.connectedCalendars ?? []).map((c, i) => ({
+                        ...c,
+                        isDefault: i === idx,
+                      }));
+                      setFormData({ ...formData, connectedCalendars: updated });
+                    }}
+                    className="text-amber-400 hover:text-amber-600 transition"
+                  >
+                    {cal.isDefault ? (
+                      <Star className="w-4 h-4 fill-amber-400" />
+                    ) : (
+                      <StarOff className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  {/* Disconnect */}
+                  <button
+                    type="button"
+                    title="Disconnect calendar"
+                    onClick={() =>
+                      setFormData({ ...formData, connectedCalendars: others })
+                    }
+                    className="text-slate-400 hover:text-rose-600 transition"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Inline connect panel ── */}
+          {showCalendarConnect && (
+            <div className="mt-2 p-4 bg-indigo-50 border border-indigo-200 rounded-xl space-y-3 text-xs">
+              <p className="font-bold text-indigo-800 text-sm">Connect a Google Account</p>
+
+              {/* GIS script warning */}
+              {(typeof window === 'undefined' ||
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                !(window as any)?.google?.accounts?.oauth2) && (
+                <div className="p-3 bg-amber-50 border border-amber-300 rounded-lg text-amber-800 text-[11px] leading-relaxed">
+                  ⚠️ Google Identity Services not detected. Add{' '}
+                  <code className="font-mono bg-amber-100 px-1 rounded">
+                    {'<script src="https://accounts.google.com/gsi/client"></script>'}
+                  </code>{' '}
+                  to your{' '}
+                  <code className="font-mono bg-amber-100 px-1 rounded">app/layout.tsx</code>{' '}
+                  for calendar connection.
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Label */}
+                <div>
+                  <label className="block font-semibold text-indigo-900 mb-1">
+                    Label (e.g. &quot;Ravi — Dispatch&quot;)
+                  </label>
+                  <input
+                    type="text"
+                    value={calendarConnectLabel}
+                    onChange={(e) => setCalendarConnectLabel(e.target.value)}
+                    placeholder="Ravi — Dispatch"
+                    className="w-full px-3 py-2 border border-indigo-200 rounded-lg bg-white text-slate-800"
+                  />
+                </div>
+
+                {/* Client ID */}
+                <div>
+                  <label className="block font-semibold text-indigo-900 mb-1">
+                    Google OAuth Client ID
+                  </label>
+                  <input
+                    type="text"
+                    value={calendarClientId}
+                    onChange={(e) => setCalendarClientId(e.target.value)}
+                    placeholder="xxxx.apps.googleusercontent.com"
+                    className="w-full px-3 py-2 border border-indigo-200 rounded-lg bg-white font-mono text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* Google email hint (optional) */}
+              {pendingAccessToken && (
+                <div>
+                  <label className="block font-semibold text-indigo-900 mb-1">
+                    Google Account Email (for display)
+                  </label>
+                  <input
+                    type="email"
+                    value={pendingEmail}
+                    onChange={(e) => setPendingEmail(e.target.value)}
+                    placeholder="staff@gmail.com"
+                    className="w-full px-3 py-2 border border-indigo-200 rounded-lg bg-white text-slate-800"
+                  />
+                </div>
+              )}
+
+              {/* Step 1 — Authorise button */}
+              {!pendingAccessToken && (
+                <button
+                  type="button"
+                  disabled={connectingCalendar || !calendarClientId.trim()}
+                  onClick={() => {
+                    setConnectingCalendar(true);
+                    initGoogleCalendarAuth(calendarClientId.trim(), async (token) => {
+                      setPendingAccessToken(token);
+                      try {
+                        const cals = await listUserCalendars(token);
+                        setAvailableCalendars(cals);
+                        // Pre-select primary calendar if available
+                        const primary = cals.find((c) => c.primary);
+                        if (primary) setSelectedCalendarId(primary.id);
+                      } catch (err) {
+                        console.error('[calendar] listUserCalendars error:', err);
+                      } finally {
+                        setConnectingCalendar(false);
+                      }
+                    });
+                  }}
+                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition"
+                >
+                  {connectingCalendar ? (
+                    'Connecting…'
+                  ) : (
+                    <>
+                      <Wifi className="w-3.5 h-3.5" />
+                      Authorise with Google
+                    </>
+                  )}
+                </button>
+              )}
+
+              {/* Step 2 — Pick calendar + confirm */}
+              {pendingAccessToken && availableCalendars.length > 0 && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block font-semibold text-indigo-900 mb-1">
+                      Select Calendar to Sync
+                    </label>
+                    <select
+                      value={selectedCalendarId}
+                      onChange={(e) => setSelectedCalendarId(e.target.value)}
+                      className="w-full px-3 py-2 border border-indigo-200 rounded-lg bg-white text-slate-800"
+                    >
+                      <option value="">— Choose a calendar —</option>
+                      {availableCalendars.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.summary}
+                          {c.id.endsWith('@gmail.com') || c.id === 'primary' ? ' (primary)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={!selectedCalendarId || !calendarConnectLabel.trim()}
+                      onClick={() => {
+                        const newCal: GoogleCalendarAccount = {
+                          id: `gcal-${Date.now()}`,
+                          label: calendarConnectLabel.trim() || 'Google Calendar',
+                          googleEmail: pendingEmail.trim() || 'unknown@google.com',
+                          calendarId: selectedCalendarId,
+                          isDefault: (formData.connectedCalendars ?? []).length === 0,
+                          connectionStatus: 'connected',
+                          accessToken: pendingAccessToken,
+                        };
+                        setFormData({
+                          ...formData,
+                          connectedCalendars: [
+                            ...(formData.connectedCalendars ?? []),
+                            newCal,
+                          ],
+                        });
+                        // Reset panel
+                        setShowCalendarConnect(false);
+                        setCalendarConnectLabel('');
+                        setCalendarClientId('');
+                        setAvailableCalendars([]);
+                        setSelectedCalendarId('');
+                        setPendingAccessToken('');
+                        setPendingEmail('');
+                      }}
+                      className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-lg transition"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Save Calendar Connection
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCalendarConnect(false);
+                        setAvailableCalendars([]);
+                        setSelectedCalendarId('');
+                        setPendingAccessToken('');
+                        setPendingEmail('');
+                      }}
+                      className="px-3 py-2 text-xs text-slate-500 hover:text-slate-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end pt-4">

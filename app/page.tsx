@@ -9,6 +9,10 @@ import TravelVoucherView from '@/components/TravelVoucherView';
 import HotelsManager from '@/components/HotelsManager';
 import DestinationsManager from '@/components/DestinationsManager';
 import SettingsManager from '@/components/SettingsManager';
+import FleetManager from '@/components/FleetManager';
+import DriversManager from '@/components/DriversManager';
+import ReportsDashboard from '@/components/ReportsDashboard';
+import RemindersScheduling from '@/components/RemindersScheduling';
 
 import {
   Itinerary,
@@ -21,6 +25,8 @@ import {
   useDestinations,
   useAttractions,
   useVehicles,
+  useFleet,
+  useDrivers,
   useSettings,
   saveItinerary,
   deleteItinerary,
@@ -32,9 +38,15 @@ import {
   deleteDestination,
   saveAttraction,
   deleteAttraction,
+  saveFleetVehicle,
+  deleteFleetVehicle,
+  saveDriver,
+  deleteDriver,
   saveSettings,
   resetAllToDefaults,
-  getItineraryById
+  getItineraryById,
+  useOperationalBookings,
+  saveOperationalBooking
 } from '@/lib/storage';
 
 export default function Home() {
@@ -47,7 +59,18 @@ export default function Home() {
   const destinations = useDestinations();
   const attractions = useAttractions();
   const vehicles = useVehicles();
+  const fleet = useFleet();
+  const drivers = useDrivers();
   const settings = useSettings();
+  const operationalBookings = useOperationalBookings();
+
+  // Guarded delete handlers that surface storage errors to the user
+  const handleDeleteFleetVehicle = (id: string) => {
+    try { deleteFleetVehicle(id); } catch (e: any) { alert(e.message); }
+  };
+  const handleDeleteDriver = (id: string) => {
+    try { deleteDriver(id); } catch (e: any) { alert(e.message); }
+  };
 
   // Active Itinerary for Builder, Preview, or Voucher
   const [selectedItinerary, setSelectedItinerary] = useState<Itinerary | null>(null);
@@ -369,6 +392,49 @@ export default function Home() {
             onDeleteAttraction={(id) => {
               deleteAttraction(id);
             }}
+          />
+        )}
+
+        {/* REMINDERS TAB */}
+        {activeTab === 'reminders' && (
+          <RemindersScheduling
+            bookings={operationalBookings}
+            fleet={fleet}
+            drivers={drivers}
+            settings={settings}
+            onSaveBooking={(b) => { saveOperationalBooking(b); }}
+            itineraries={itineraries}
+            onViewVoucher={handleGenerateVoucher}
+          />
+        )}
+
+        {/* REPORTS TAB */}
+        {activeTab === 'reports' && (
+          <ReportsDashboard
+            bookings={operationalBookings}
+            fleet={fleet}
+            drivers={drivers}
+          />
+        )}
+
+        {/* FLEET TAB */}
+        {activeTab === 'fleet' && (
+          <FleetManager
+            vehicles={vehicles}
+            drivers={drivers}
+            fleet={fleet}
+            onSaveVehicle={(v) => { saveFleetVehicle(v); }}
+            onDeleteVehicle={handleDeleteFleetVehicle}
+          />
+        )}
+
+        {/* DRIVERS TAB */}
+        {activeTab === 'drivers' && (
+          <DriversManager
+            drivers={drivers}
+            fleet={fleet}
+            onSaveDriver={(d) => { saveDriver(d); }}
+            onDeleteDriver={handleDeleteDriver}
           />
         )}
 

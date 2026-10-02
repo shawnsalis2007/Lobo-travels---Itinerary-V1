@@ -254,6 +254,110 @@ export interface VehicleOption {
   category: string;
 }
 
+// ===================== ADD-ON TYPES =====================
+
+export interface GoogleCalendarAccount {
+  id: string;
+  label: string;           // e.g. "Ravi — Dispatch"
+  googleEmail: string;
+  calendarId: string;      // specific Google Calendar ID within the account
+  isDefault: boolean;      // default for new bookings
+  connectionStatus: 'connected' | 'needs_reconnect';
+  accessToken?: string;    // session token (GIS token client)
+}
+
+export interface Driver {
+  id: string;
+  name: string;
+  phone: string;
+  licenseNumber?: string;
+  defaultVehicleId?: string;
+  status: 'active' | 'inactive';
+  createdAt: string;
+}
+
+export interface FleetVehicle {
+  id: string;
+  plateNumber: string;     // unique, required
+  brand: string;           // from Vehicle Catalogue
+  model: string;           // from Vehicle Catalogue
+  seats?: number;
+  type?: string;
+  colour?: string;
+  year?: number;
+  photo?: string;
+  defaultDriverId?: string;
+  status: 'active' | 'maintenance' | 'inactive';
+  rcExpiry?: string;        // YYYY-MM-DD
+  insuranceExpiry?: string; // YYYY-MM-DD
+  pucExpiry?: string;       // YYYY-MM-DD
+  createdAt: string;
+  addedDate: string;        // date vehicle was added — for idle-day calculation
+}
+
+export interface BookingReminder {
+  id: string;
+  type: 'offset' | 'custom';
+  offsetDays?: number;     // e.g. 7, 5, 2 — N days before tour start
+  customDateTime?: string; // ISO string for exact date/time
+  calendarAccountIds: string[];
+  status: 'scheduled' | 'sent' | 'failed';
+}
+
+export interface BookingDayLocation {
+  dayNo: number;
+  date?: string;
+  place: string;
+  overridden: boolean;     // true if manually overridden from itinerary plan
+}
+
+export interface OutsourcedVehicleInfo {
+  vendorCompanyName: string;
+  vendorContactNumber: string;
+  bookingConfirmed: boolean;
+  vehicleDescription?: string;
+  driverName?: string;
+  driverPhone?: string;
+}
+
+export type OperationalBookingStatus = 'scheduled' | 'active' | 'completed' | 'cancelled';
+
+export interface CalendarEventRef {
+  calendarAccountId: string;
+  eventId: string;
+}
+
+export interface OperationalBooking {
+  id: string;
+  voucherNo: string;           // LTV-XXXX-XXXX
+  itineraryRef: string;        // LT-XXXX-XXXX
+  itineraryId: string;         // links to Itinerary.id
+  tourPackageName: string;
+  client: {
+    name: string;
+    phone?: string;
+    email?: string;
+  };
+  startDate: string;           // YYYY-MM-DD (may be prompted at voucher time)
+  endDate: string;             // YYYY-MM-DD
+  flightOrArrivalDetails?: string;  // auto from Day 1 arrivalDetails
+  tourCost?: number;
+  profit?: number;
+  profitNote?: string;
+  vehicleDisplay?: string;     // e.g. "Kia Carens"
+  vehicleSource: 'own' | 'outsourced';
+  ownVehicleId?: string;
+  ownDriverId?: string;
+  outsourced?: OutsourcedVehicleInfo;
+  dayLocations: BookingDayLocation[];
+  reminders: BookingReminder[];
+  calendarEventIds: CalendarEventRef[];
+  calendarAccountIds: string[];  // which calendars this booking is synced to
+  status: OperationalBookingStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppSettings {
   companyName: string;
   tagline: string;
@@ -270,4 +374,5 @@ export interface AppSettings {
   brandColorPrimary: string;
   brandColorSecondary: string;
   brandColorAccent: string;
+  connectedCalendars?: GoogleCalendarAccount[];
 }

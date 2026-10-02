@@ -1,10 +1,10 @@
-import { Destination, Attraction, Hotel, VehicleOption, AppSettings, Itinerary } from '@/types';
+import { Destination, Attraction, Hotel, VehicleOption, AppSettings, Itinerary, FleetVehicle, Driver, OperationalBooking } from '@/types';
 import { COMPREHENSIVE_DESTINATIONS, COMPREHENSIVE_ATTRACTIONS } from './catalog-data';
 
 export const DEFAULT_SETTINGS: AppSettings = {
   companyName: 'Lobo Travels',
   tagline: 'Travel packages, fleet operations, and all travel related solutions.',
-  logoUrl: 'https://github.com/VensonLobo/Logo-hoasting/blob/main/Untitled%20design%20(10).png?raw=true',
+  logoUrl: '/logo.png',
   phones: ['9811240072', '9891240072', '9312640072'],
   email: 'info@lobotravels.com',
   address: 'Shop No. 12, NDMC Market Near CNG Pump, Mandir Marg, New Delhi - 110001',
@@ -33,7 +33,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   ],
   brandColorPrimary: '#151521',
   brandColorSecondary: '#26214F',
-  brandColorAccent: '#9899A1'
+  brandColorAccent: '#9899A1',
+  connectedCalendars: []
 };
 
 export const INITIAL_VEHICLES: VehicleOption[] = [
@@ -678,3 +679,192 @@ export const INITIAL_ITINERARIES: Itinerary[] = [
     ]
   }
 ];
+
+export const INITIAL_DRIVERS: Driver[] = [
+  {
+    id: 'dr-1',
+    name: 'Ramesh Kumar',
+    phone: '9811240072',
+    licenseNumber: 'DL-0420180012345',
+    defaultVehicleId: 'veh-1',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'dr-2',
+    name: 'Rajesh Sharma',
+    phone: '9891240072',
+    licenseNumber: 'DL-0420190054321',
+    defaultVehicleId: 'veh-2',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'dr-3',
+    name: 'Vikram Singh',
+    phone: '9312640072',
+    licenseNumber: 'DL-0420200098765',
+    defaultVehicleId: 'veh-3',
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00Z'
+  }
+];
+
+export const INITIAL_FLEET: FleetVehicle[] = [
+  {
+    id: 'veh-1',
+    plateNumber: 'DL 1ZA 4072',
+    brand: 'Kia',
+    model: 'Carens',
+    seats: 7,
+    type: 'MUV',
+    colour: 'Glacier White Pearl',
+    year: 2024,
+    defaultDriverId: 'dr-1',
+    status: 'active',
+    rcExpiry: '2039-01-10',
+    insuranceExpiry: '2027-01-10',
+    pucExpiry: '2027-01-10',
+    createdAt: '2026-01-10T00:00:00Z',
+    addedDate: '2026-01-10'
+  },
+  {
+    id: 'veh-2',
+    plateNumber: 'DL 2CB 9811',
+    brand: 'Toyota',
+    model: 'Innova Crysta',
+    seats: 7,
+    type: 'MUV',
+    colour: 'Silver Metallic',
+    year: 2023,
+    defaultDriverId: 'dr-2',
+    status: 'active',
+    rcExpiry: '2038-01-15',
+    insuranceExpiry: '2027-01-15',
+    pucExpiry: '2026-11-20',
+    createdAt: '2026-01-15T00:00:00Z',
+    addedDate: '2026-01-15'
+  },
+  {
+    id: 'veh-3',
+    plateNumber: 'DL 3CA 1240',
+    brand: 'Force',
+    model: 'Urbania',
+    seats: 12,
+    type: 'Tempo Traveller',
+    colour: 'Pure White',
+    year: 2024,
+    defaultDriverId: 'dr-3',
+    status: 'active',
+    rcExpiry: '2039-02-01',
+    insuranceExpiry: '2027-02-01',
+    pucExpiry: '2027-02-01',
+    createdAt: '2026-02-01T00:00:00Z',
+    addedDate: '2026-02-01'
+  }
+];
+
+export const INITIAL_OPERATIONAL_BOOKINGS: OperationalBooking[] = [
+  {
+    id: 'bk-1',
+    voucherNo: 'LTV-2026-0001',
+    itineraryRef: 'LT-2026-0001',
+    itineraryId: 'itn-1',
+    tourPackageName: 'Golden Triangle Classic Journey – Delhi, Agra & Jaipur',
+    client: {
+      name: 'Dr. Alistair & Margaret Vance',
+      phone: '+44 7700 900123',
+      email: 'a.vance@edinburgh-med.ac.uk'
+    },
+    startDate: '2026-10-15',
+    endDate: '2026-10-20',
+    flightOrArrivalDetails: 'IndiGo 6E-204 from London Heathrow / Mumbai (09:30 AM)',
+    tourCost: 68500,
+    profit: 14200,
+    profitNote: 'Fuel & toll ₹6,500; Hotels ₹42,000; Guides ₹5,800',
+    vehicleDisplay: 'Kia Carens – Private Air-Conditioned Vehicle',
+    vehicleSource: 'own',
+    ownVehicleId: 'veh-1',
+    ownDriverId: 'dr-1',
+    dayLocations: [
+      { dayNo: 1, date: '2026-10-15', place: 'Delhi', overridden: false },
+      { dayNo: 2, date: '2026-10-16', place: 'Delhi', overridden: false },
+      { dayNo: 3, date: '2026-10-17', place: 'Agra', overridden: false },
+      { dayNo: 4, date: '2026-10-18', place: 'Jaipur', overridden: false },
+      { dayNo: 5, date: '2026-10-19', place: 'Jaipur', overridden: false },
+      { dayNo: 6, date: '2026-10-20', place: 'Delhi Departure', overridden: false }
+    ],
+    reminders: [
+      {
+        id: 'rem-1',
+        type: 'offset',
+        offsetDays: 7,
+        calendarAccountIds: [],
+        status: 'scheduled'
+      },
+      {
+        id: 'rem-2',
+        type: 'offset',
+        offsetDays: 2,
+        calendarAccountIds: [],
+        status: 'scheduled'
+      }
+    ],
+    calendarEventIds: [],
+    calendarAccountIds: [],
+    status: 'scheduled',
+    createdAt: '2026-09-28T09:00:00Z',
+    updatedAt: '2026-09-28T09:00:00Z'
+  },
+  {
+    id: 'bk-2',
+    voucherNo: 'LTV-2026-0002',
+    itineraryRef: 'LT-2026-0002',
+    itineraryId: 'itn-2',
+    tourPackageName: 'Kashmir Paradise & Dal Lake Experience',
+    client: {
+      name: 'Rajesh & Sunita Mehra',
+      phone: '+91 98200 12345',
+      email: 'rajesh.mehra@corporategroup.in'
+    },
+    startDate: '2026-10-01',
+    endDate: '2026-10-06',
+    flightOrArrivalDetails: 'Air India AI-825 landing Srinagar (11:15 AM)',
+    tourCost: 84000,
+    profit: 18500,
+    profitNote: 'Outsourced local Kashmir Innova fleet; confirmed with Peer Travels',
+    vehicleDisplay: 'Toyota Innova Crysta',
+    vehicleSource: 'outsourced',
+    outsourced: {
+      vendorCompanyName: 'Valley Peer Travels Pvt Ltd',
+      vendorContactNumber: '+91 194 245 8899',
+      bookingConfirmed: true,
+      vehicleDescription: 'Innova Crysta JK 01 AK 9988',
+      driverName: 'Bashir Ahmed',
+      driverPhone: '+91 94190 55443'
+    },
+    dayLocations: [
+      { dayNo: 1, date: '2026-10-01', place: 'Srinagar Dal Lake', overridden: false },
+      { dayNo: 2, date: '2026-10-02', place: 'Gulmarg Gondola Stop', overridden: false },
+      { dayNo: 3, date: '2026-10-03', place: 'Pahalgam Valley', overridden: false },
+      { dayNo: 4, date: '2026-10-04', place: 'Pahalgam', overridden: false },
+      { dayNo: 5, date: '2026-10-05', place: 'Srinagar Houseboat', overridden: false },
+      { dayNo: 6, date: '2026-10-06', place: 'Srinagar Airport', overridden: false }
+    ],
+    reminders: [
+      {
+        id: 'rem-3',
+        type: 'offset',
+        offsetDays: 5,
+        calendarAccountIds: [],
+        status: 'scheduled'
+      }
+    ],
+    calendarEventIds: [],
+    calendarAccountIds: [],
+    status: 'active',
+    createdAt: '2026-09-27T14:00:00Z',
+    updatedAt: '2026-09-27T14:00:00Z'
+  }
+];
+
