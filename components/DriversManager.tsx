@@ -217,7 +217,66 @@ export default function DriversManager({
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* ── Mobile Card View (sm:hidden) ── */}
+          <div className="sm:hidden divide-y divide-slate-100">
+            {filteredDrivers.map((d) => {
+              const assignedVehicle = fleet.find((v) => v.id === d.defaultVehicleId);
+              return (
+                <div key={d.id} className="p-3.5 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-semibold text-sm text-slate-900">{d.name}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${STATUS_BADGE[d.status]}`}>
+                          {d.status}
+                        </span>
+                      </div>
+                      <a
+                        href={`tel:${d.phone}`}
+                        className="inline-flex items-center gap-1.5 text-xs text-amber-700 font-mono font-medium hover:underline py-0.5"
+                      >
+                        <Phone className="w-3 h-3 text-amber-600" />
+                        {d.phone}
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => openEdit(d)}
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 transition"
+                        title="Edit Driver"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(d)}
+                        className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 active:scale-95 transition"
+                        title="Delete Driver"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="text-[11px] text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    {assignedVehicle ? (
+                      <span className="flex items-center gap-1 text-slate-700 font-medium">
+                        <Car className="w-3 h-3 text-slate-400" />
+                        <span className="font-mono">{assignedVehicle.plateNumber}</span> ({assignedVehicle.brand} {assignedVehicle.model})
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 italic">No vehicle assigned</span>
+                    )}
+                    {d.licenseNumber && (
+                      <span className="font-mono text-slate-500">Lic: {d.licenseNumber}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Desktop Table View (hidden sm:block) ── */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
@@ -303,8 +362,8 @@ export default function DriversManager({
 
       {/* ── Add / Edit Modal ── */}
       {isFormOpen && editingDriver && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto text-xs">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">

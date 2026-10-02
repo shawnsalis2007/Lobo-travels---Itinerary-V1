@@ -295,7 +295,76 @@ export default function FleetManager({
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* ── Mobile Card View (sm:hidden) ── */}
+          <div className="sm:hidden divide-y divide-slate-100">
+            {filteredFleet.map((v) => {
+              const assignedDriver = drivers.find((d) => d.id === v.defaultDriverId);
+              const hasDocWarning =
+                isExpiringSoon(v.rcExpiry) ||
+                isExpiringSoon(v.insuranceExpiry) ||
+                isExpiringSoon(v.pucExpiry) ||
+                isExpired(v.rcExpiry) ||
+                isExpired(v.insuranceExpiry) ||
+                isExpired(v.pucExpiry);
+
+              return (
+                <div key={v.id} className="p-3.5 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-mono font-bold text-sm text-slate-900 tracking-wide">
+                          {v.plateNumber}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${STATUS_BADGE[v.status]}`}>
+                          {STATUS_LABELS[v.status]}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-800 font-medium">
+                        {v.brand} {v.model} {v.colour ? `• ${v.colour}` : ''}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => openEdit(v)}
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 transition"
+                        title="Edit Vehicle"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(v)}
+                        className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 active:scale-95 transition"
+                        title="Delete Vehicle"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="text-[11px] text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span>{v.type || 'Vehicle'} {v.seats ? `• ${v.seats} Seats` : ''}</span>
+                    <span>
+                      Chauffeur:{' '}
+                      <strong className="text-slate-700">
+                        {assignedDriver ? assignedDriver.name : '—'}
+                      </strong>
+                    </span>
+                  </div>
+
+                  {hasDocWarning && (
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      <DocWarning label="RC" date={v.rcExpiry} />
+                      <DocWarning label="Insurance" date={v.insuranceExpiry} />
+                      <DocWarning label="PUC" date={v.pucExpiry} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Desktop Table View (hidden sm:block) ── */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
@@ -408,8 +477,8 @@ export default function FleetManager({
 
       {/* ── Add / Edit Modal ── */}
       {isFormOpen && editingVehicle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[92vh] overflow-y-auto text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[92vh] overflow-y-auto text-xs">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -490,7 +559,7 @@ export default function FleetManager({
               </div>
 
               {/* Type, Seats, Year */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Type</label>
                   <select
@@ -539,7 +608,7 @@ export default function FleetManager({
               </div>
 
               {/* Colour & Status */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Colour</label>
                   <input
@@ -589,7 +658,7 @@ export default function FleetManager({
                   <Shield className="w-3.5 h-3.5 text-amber-500" />
                   Document Expiry Dates
                 </p>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-slate-500 mb-1">RC Expiry</label>
                     <input

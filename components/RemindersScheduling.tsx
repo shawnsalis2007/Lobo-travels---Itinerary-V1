@@ -92,6 +92,7 @@ export default function RemindersScheduling({
 
   // Calendar State
   const [currentMonth, setCurrentMonth] = useState(() => startOfDay(new Date()));
+  const [selectedDayDate, setSelectedDayDate] = useState<Date | null>(() => startOfDay(new Date()));
 
   // Timeline State
   const [rangeStart, setRangeStart] = useState(() => {
@@ -145,12 +146,56 @@ export default function RemindersScheduling({
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(year, month, d);
       const isToday = date.toISOString() === todayStr;
+      const isSelectedDay = selectedDayDate && date.toISOString() === selectedDayDate.toISOString();
       const dayBookings = getBookingsForDate(date, bookings);
 
       days.push(
-        <div key={`day-${d}`} className={`min-h-[120px] p-2 border border-slate-200 bg-white ${isToday ? 'ring-2 ring-inset ring-amber-400' : ''}`}>
-          <div className="text-sm font-semibold text-slate-500 mb-1">{d}</div>
-          <div className="space-y-1">
+        <div
+          key={`day-${d}`}
+          onClick={() => setSelectedDayDate(date)}
+          className={`min-h-[60px] sm:min-h-[120px] p-1 sm:p-2 border border-slate-200 bg-white cursor-pointer transition-colors ${
+            isSelectedDay ? 'ring-2 ring-amber-500 bg-amber-50/40 z-10' : isToday ? 'ring-2 ring-inset ring-amber-400' : 'hover:bg-slate-50/80'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className={`text-xs sm:text-sm font-semibold ${isToday ? 'text-amber-700 font-extrabold' : 'text-slate-600'}`}>
+              {d}
+            </span>
+            {/* Mobile active indicator */}
+            {dayBookings.length > 0 && (
+              <span className="sm:hidden text-[9px] font-bold text-slate-500 bg-slate-100 rounded-full px-1">
+                {dayBookings.length}
+              </span>
+            )}
+          </div>
+
+          {/* Mobile colored dots preview */}
+          <div className="flex sm:hidden flex-wrap gap-1 mt-0.5">
+            {dayBookings.slice(0, 3).map((b) => {
+              const status = computeBookingStatus(b);
+              const dotColor =
+                status === 'active'
+                  ? 'bg-emerald-500'
+                  : status === 'scheduled'
+                  ? 'bg-blue-500'
+                  : status === 'cancelled'
+                  ? 'bg-rose-400'
+                  : 'bg-slate-400';
+              return (
+                <span
+                  key={b.id}
+                  title={`${b.voucherNo} (${status})`}
+                  className={`w-1.5 h-1.5 rounded-full ${dotColor}`}
+                />
+              );
+            })}
+            {dayBookings.some((b) => computeBookingStatus(b) === 'active' && isToday) && (
+              <span className="text-[8px] leading-none">📍</span>
+            )}
+          </div>
+
+          {/* Desktop full chips */}
+          <div className="hidden sm:block space-y-1">
             {dayBookings.slice(0, 2).map((b) => {
               const status = computeBookingStatus(b);
               const colors = getStatusColors(status);
@@ -158,8 +203,11 @@ export default function RemindersScheduling({
               return (
                 <div
                   key={b.id}
-                  onClick={() => handleBookingClick(b)}
-                  className={`text-xs px-1.5 py-1 rounded border cursor-pointer truncate ${colors}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBookingClick(b);
+                  }}
+                  className={`text-xs px-1.5 py-1 rounded border cursor-pointer truncate ${colors} hover:opacity-90`}
                 >
                   {isTodayActive && <span className="mr-1">📍</span>}
                   {b.voucherNo} {b.client.name.split(' ')[0]}
@@ -178,18 +226,18 @@ export default function RemindersScheduling({
 
     return (
       <div className="flex flex-col h-full space-y-4">
-        <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <h2 className="text-xl font-bold text-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm">
+          <h2 className="text-lg sm:text-xl font-bold text-slate-800">
             {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
           </h2>
           <div className="flex items-center space-x-2">
-            <button onClick={handlePrevMonth} className="p-2 rounded hover:bg-slate-100 text-slate-600">
+            <button onClick={handlePrevMonth} className="p-1.5 sm:p-2 rounded hover:bg-slate-100 text-slate-600">
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <button onClick={handleToday} className="px-3 py-1.5 rounded bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700">
+            <button onClick={handleToday} className="px-3 py-1.5 rounded bg-slate-100 hover:bg-slate-200 text-xs sm:text-sm font-medium text-slate-700">
               Today
             </button>
-            <button onClick={handleNextMonth} className="p-2 rounded hover:bg-slate-100 text-slate-600">
+            <button onClick={handleNextMonth} className="p-1.5 sm:p-2 rounded hover:bg-slate-100 text-slate-600">
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
@@ -197,7 +245,7 @@ export default function RemindersScheduling({
 
         <div className="grid grid-cols-7 gap-px bg-slate-200 rounded-xl overflow-hidden shadow-sm border border-slate-200">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="bg-slate-50 p-3 text-center text-sm font-medium text-slate-600">
+            <div key={day} className="bg-slate-50 p-2 sm:p-3 text-center text-xs sm:text-sm font-medium text-slate-600">
               {day}
             </div>
           ))}
@@ -205,6 +253,48 @@ export default function RemindersScheduling({
             {days}
           </div>
         </div>
+
+        {/* Mobile Day Tours Inspector */}
+        {selectedDayDate && (
+          <div className="bg-white rounded-xl border border-slate-200 p-3.5 shadow-sm sm:hidden mt-2">
+            <div className="flex items-center justify-between mb-2.5 border-b border-slate-100 pb-2">
+              <h3 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <CalendarIcon className="w-3.5 h-3.5 text-amber-500" />
+                Tours on {selectedDayDate.toLocaleDateString('default', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </h3>
+              <span className="text-[10px] text-slate-500 font-semibold">
+                {getBookingsForDate(selectedDayDate, bookings).length} booking(s)
+              </span>
+            </div>
+            {getBookingsForDate(selectedDayDate, bookings).length === 0 ? (
+              <p className="text-xs text-slate-400 italic py-2 text-center">No tours scheduled for this date.</p>
+            ) : (
+              <div className="space-y-2">
+                {getBookingsForDate(selectedDayDate, bookings).map(b => {
+                  const status = computeBookingStatus(b);
+                  const colors = getStatusColors(status);
+                  return (
+                    <div
+                      key={b.id}
+                      onClick={() => handleBookingClick(b)}
+                      className="p-2.5 rounded-lg border border-slate-200 bg-slate-50 active:bg-slate-100 cursor-pointer flex items-center justify-between gap-2 transition"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="font-bold text-xs text-slate-900">{b.voucherNo}</span>
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded border ${colors} capitalize`}>{status}</span>
+                        </div>
+                        <p className="text-xs font-medium text-slate-800 truncate">{b.tourPackageName}</p>
+                        <p className="text-[11px] text-slate-500 truncate">{b.client.name} • {b.vehicleDisplay}</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -233,35 +323,38 @@ export default function RemindersScheduling({
     }
 
     return (
-      <div className="flex flex-col space-y-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 overflow-hidden h-[calc(100vh-200px)]">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center bg-slate-100 p-1 rounded-lg">
+      <div className="flex flex-col space-y-4 bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-[500px] h-[calc(100vh-200px)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+          <div className="flex items-center bg-slate-100 p-1 rounded-lg self-start sm:self-auto">
             {(['vehicle', 'driver', 'voucher'] as const).map(type => (
               <button
                 key={type}
                 onClick={() => setGroupBy(type)}
-                className={`px-4 py-1.5 text-sm font-medium rounded-md capitalize transition-colors ${groupBy === type ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-md capitalize transition-colors ${groupBy === type ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 {type}
               </button>
             ))}
           </div>
-          <div className="flex items-center space-x-3 text-sm">
-            <span className="text-slate-500">From</span>
+          <div className="flex items-center gap-2 text-xs sm:text-sm flex-wrap">
+            <span className="text-slate-500 font-medium">From:</span>
             <input 
               type="date" 
               value={rangeStart.toISOString().split('T')[0]} 
               onChange={e => setRangeStart(startOfDay(new Date(e.target.value)))}
-              className="border border-slate-300 rounded px-2 py-1 text-slate-700"
+              className="border border-slate-300 rounded px-2 py-1 text-slate-700 text-xs sm:text-sm"
             />
-            <span className="text-slate-500">To</span>
+            <span className="text-slate-500 font-medium">To:</span>
             <input 
               type="date" 
               value={rangeEnd.toISOString().split('T')[0]} 
               onChange={e => setRangeEnd(startOfDay(new Date(e.target.value)))}
-              className="border border-slate-300 rounded px-2 py-1 text-slate-700"
+              className="border border-slate-300 rounded px-2 py-1 text-slate-700 text-xs sm:text-sm"
             />
           </div>
+        </div>
+        <div className="text-[11px] text-slate-400 sm:hidden flex items-center gap-1">
+          <span>👉 Swipe timeline horizontally to view all date columns</span>
         </div>
 
         <div className="flex-1 overflow-auto border border-slate-200 rounded-lg">
@@ -388,7 +481,7 @@ export default function RemindersScheduling({
     return (
       <>
         <div className="fixed inset-0 bg-black/40 z-40" onClick={closeDrawer} />
-        <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl z-50 flex flex-col">
+        <div className="fixed inset-y-0 right-0 w-full sm:w-96 max-w-full bg-white shadow-2xl z-50 flex flex-col">
           <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
             <h3 className="font-bold text-slate-800">Booking Details</h3>
             <button onClick={closeDrawer} className="p-1 hover:bg-slate-200 rounded text-slate-500">
@@ -848,9 +941,9 @@ export default function RemindersScheduling({
   };
 
   return (
-    <div className="h-full flex flex-col p-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Reminders & Scheduling</h1>
+    <div className="h-full flex flex-col p-3 sm:p-6 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Reminders & Scheduling</h1>
         
         {/* Tabs */}
         <div className="flex space-x-6 border-b border-slate-200">

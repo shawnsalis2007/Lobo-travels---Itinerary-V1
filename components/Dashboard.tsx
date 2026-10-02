@@ -410,10 +410,96 @@ export default function Dashboard({
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
-                <tr>
+          <div>
+            {/* ── Mobile Card View (md:hidden) ── */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {filteredItineraries.map((itn) => (
+                <div key={itn.id} className="p-4 space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <button
+                          onClick={() => onViewItinerary(itn.id)}
+                          className="font-mono font-bold text-sm text-slate-900 hover:text-indigo-600 hover:underline"
+                        >
+                          {itn.referenceNumber}
+                        </button>
+                        {getStatusBadge(itn.status)}
+                      </div>
+                      <h4 className="font-semibold text-sm text-slate-800 line-clamp-1">{itn.tourName}</h4>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="font-bold text-sm text-slate-900">
+                        ₹{(itn.totalCost || 0).toLocaleString('en-IN')}
+                      </div>
+                      {itn.advancePaid > 0 && (
+                        <div className="text-[10px] text-emerald-600 font-medium">
+                          Adv: ₹{itn.advancePaid.toLocaleString('en-IN')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Client</span>
+                      <strong className="text-slate-800 font-medium">{itn.clientName}</strong>
+                      {itn.clientPhone && (
+                        <span className="block text-slate-500 font-mono text-[10px]">{itn.clientPhone}</span>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Dates & Vehicle</span>
+                      <span className="block text-slate-700">
+                        {itn.datesNotConfirmed
+                          ? 'Dates unconfirmed'
+                          : `${formatDateDMY(itn.startDate)} → ${formatDateDMY(itn.endDate)}`}
+                      </span>
+                      <span className="block text-slate-500 truncate">{itn.vehicleModel || itn.vehicleDisplay}</span>
+                    </div>
+                  </div>
+
+                  {/* Mobile Action Buttons */}
+                  <div className="flex items-center justify-between pt-1 gap-2">
+                    <button
+                      onClick={() => onViewItinerary(itn.id)}
+                      className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs flex items-center justify-center gap-1 active:scale-95 transition"
+                    >
+                      <Eye className="w-3.5 h-3.5" /> View
+                    </button>
+                    <button
+                      onClick={() => onEditItinerary(itn.id)}
+                      className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs flex items-center justify-center gap-1 active:scale-95 transition"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" /> Edit
+                    </button>
+                    <button
+                      onClick={() => onGenerateVoucher(itn.id)}
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition ${
+                        itn.status === 'Confirmed'
+                          ? 'bg-amber-500 text-slate-950 hover:bg-amber-400'
+                          : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                      }`}
+                    >
+                      <Ticket className="w-3.5 h-3.5" /> Voucher
+                    </button>
+                    <button
+                      onClick={() => onDuplicateItinerary(itn.id)}
+                      title="Duplicate"
+                      className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── Desktop Table View (hidden md:block) ── */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                  <tr>
                   <th className="py-3 px-4">Reference No.</th>
                   <th className="py-3 px-4">Tour Name</th>
                   <th className="py-3 px-4">Client Details</th>
@@ -571,7 +657,8 @@ export default function Dashboard({
               </tbody>
             </table>
           </div>
-        )}
+        </div>
+      )}
 
       </div>
 

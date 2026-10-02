@@ -120,14 +120,21 @@ export default function TravelVoucherView({
         </div>
       </div>
 
+      {/* Mobile Swipe Hint */}
+      <div className="sm:hidden px-4 text-center">
+        <p className="text-[11px] text-slate-500 bg-amber-50 border border-amber-200 rounded-lg py-1.5 px-3">
+          💡 Swipe horizontally to preview A4 pages, or tap <strong>Download Voucher PDF</strong> above.
+        </p>
+      </div>
+
       {/* ========================================================================= */}
       {/* FIXED A4 VOUCHER CONTAINER (794px × 1123px - Standard A4 96 DPI) */}
       {/* ========================================================================= */}
-      <div className="flex justify-center overflow-x-auto p-1 sm:p-4">
+      <div className="flex justify-start sm:justify-center overflow-x-auto p-1 sm:p-4">
         <div 
           ref={voucherRef}
           style={{ width: '794px' }}
-          className="bg-slate-100 shadow-2xl transition-transform space-y-6 print:space-y-0 print:shadow-none print:transform-none"
+          className="bg-slate-100 shadow-2xl transition-transform space-y-6 print:space-y-0 print:shadow-none print:transform-none shrink-0"
         >
           
           {/* ===================================================================== */}

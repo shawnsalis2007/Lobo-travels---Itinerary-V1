@@ -116,10 +116,10 @@ function StepIndicator({ current }: { current: number }) {
 
 function InfoRow({ icon, label, value }: { icon?: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex items-start gap-2.5 py-1.5 border-b border-slate-100 last:border-0">
+    <div className="flex items-start gap-2 sm:gap-2.5 py-1.5 border-b border-slate-100 last:border-0">
       {icon && <span className="mt-0.5 text-amber-600 shrink-0">{icon}</span>}
-      <span className="text-xs text-slate-500 w-32 shrink-0">{label}</span>
-      <span className="text-xs font-semibold text-slate-800 flex-1">{value || '—'}</span>
+      <span className="text-xs text-slate-500 w-24 sm:w-32 shrink-0">{label}</span>
+      <span className="text-xs font-semibold text-slate-800 flex-1 break-words">{value || '—'}</span>
     </div>
   );
 }
@@ -308,14 +308,14 @@ export default function BookingCreationModal({
     .join('\n');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="bg-[#151521] px-6 pt-6 pb-4">
+        <div className="bg-[#151521] px-4 sm:px-6 pt-5 pb-4 shrink-0">
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <CalendarCheck className="w-5 h-5 text-amber-400" />
+                <CalendarCheck className="w-5 h-5 text-amber-400 shrink-0" />
                 <span className="text-amber-300 font-bold text-sm tracking-wide">Create Operational Booking</span>
               </div>
               <p className="text-slate-400 text-xs">
@@ -325,7 +325,7 @@ export default function BookingCreationModal({
             </div>
             <button
               onClick={onDismiss}
-              className="text-slate-400 hover:text-white transition mt-0.5 shrink-0"
+              className="text-slate-400 hover:text-white transition mt-0.5 shrink-0 p-1"
               aria-label="Dismiss"
             >
               <X className="w-5 h-5" />
@@ -334,13 +334,13 @@ export default function BookingCreationModal({
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5">
+        <div className="px-4 sm:px-6 py-5 overflow-y-auto flex-1">
           <StepIndicator current={step} />
 
           {/* ── STEP 0: Confirm Details ── */}
           {step === 0 && (
             <div className="space-y-4">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 space-y-0.5">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 sm:px-4 py-3 space-y-0.5">
                 <InfoRow icon={<Car className="w-3.5 h-3.5" />} label="Voucher No." value={voucherNo} />
                 <InfoRow label="Itinerary Ref" value={itinerary.referenceNumber} />
                 <InfoRow label="Tour Package" value={itinerary.tourName} />
@@ -375,14 +375,14 @@ export default function BookingCreationModal({
 
               {/* Date prompt if dates not confirmed */}
               {needsDates && (
-                <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 space-y-3">
+                <div className="rounded-xl border border-amber-300 bg-amber-50 p-3.5 sm:p-4 space-y-3">
                   <div className="flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <p className="text-xs text-amber-800 font-medium">
                       Tour dates were not confirmed. Please set the start date to schedule this booking:
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[11px] font-semibold text-slate-600 mb-1">
                         Start Date <span className="text-rose-500">*</span>
@@ -421,7 +421,7 @@ export default function BookingCreationModal({
               <button
                 onClick={handleCreateBooking}
                 disabled={needsDates && !bookingStartDate}
-                className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-bold text-sm rounded-xl py-3 transition active:scale-95"
+                className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-bold text-sm rounded-xl py-3 transition active:scale-95 shadow-md"
               >
                 Create Booking
                 <ChevronRight className="w-4 h-4" />

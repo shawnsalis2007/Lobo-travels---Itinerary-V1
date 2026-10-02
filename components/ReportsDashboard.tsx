@@ -244,10 +244,10 @@ export default function ReportsDashboard({ bookings, fleet, drivers }: ReportsDa
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-amber-100 text-amber-600 rounded-lg">
-            <BarChart3 className="w-6 h-6" />
+          <div className="p-2 bg-amber-100 text-amber-600 rounded-lg shrink-0">
+            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">Reports</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Reports Dashboard</h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -255,27 +255,27 @@ export default function ReportsDashboard({ bookings, fleet, drivers }: ReportsDa
             <button
               key={p}
               onClick={() => setDatePreset(p as DatePreset)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                datePreset === p ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
+                datePreset === p ? 'bg-amber-500 text-slate-950 font-semibold shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
               }`}
             >
               {p.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
             </button>
           ))}
           {datePreset === 'custom' && (
-            <div className="flex items-center gap-2 ml-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
               <input
                 type="date"
                 value={customStart}
                 onChange={e => setCustomStart(e.target.value)}
-                className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                className="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500 outline-none w-full sm:w-auto"
               />
-              <span className="text-slate-400">to</span>
+              <span className="text-slate-400 text-xs">to</span>
               <input
                 type="date"
                 value={customEnd}
                 onChange={e => setCustomEnd(e.target.value)}
-                className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                className="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500 outline-none w-full sm:w-auto"
               />
             </div>
           )}
@@ -283,11 +283,11 @@ export default function ReportsDashboard({ bookings, fleet, drivers }: ReportsDa
       </div>
 
       {/* TABS */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('vehicle')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition-colors ${
-            activeTab === 'vehicle' ? 'bg-[#151521] text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-t-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+            activeTab === 'vehicle' ? 'bg-[#151521] text-amber-300' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
           }`}
         >
           <Car className="w-4 h-4" />
@@ -295,8 +295,8 @@ export default function ReportsDashboard({ bookings, fleet, drivers }: ReportsDa
         </button>
         <button
           onClick={() => setActiveTab('driver')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition-colors ${
-            activeTab === 'driver' ? 'bg-[#151521] text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-t-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+            activeTab === 'driver' ? 'bg-[#151521] text-amber-300' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
           }`}
         >
           <User className="w-4 h-4" />
@@ -304,8 +304,8 @@ export default function ReportsDashboard({ bookings, fleet, drivers }: ReportsDa
         </button>
         <button
           onClick={() => setActiveTab('outsourced')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition-colors ${
-            activeTab === 'outsourced' ? 'bg-[#151521] text-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-t-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+            activeTab === 'outsourced' ? 'bg-[#151521] text-amber-300' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
           }`}
         >
           <Building2 className="w-4 h-4" />
@@ -316,11 +316,15 @@ export default function ReportsDashboard({ bookings, fleet, drivers }: ReportsDa
       {/* CONTENT */}
       {activeTab === 'vehicle' && (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-4 flex justify-between items-center bg-[#151521] text-white">
-            <h2 className="font-semibold flex items-center gap-2"><Car className="w-5 h-5 text-amber-400" /> Vehicle Utilisation Report</h2>
-            <button onClick={exportVehicle} className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors">
-              <Download className="w-4 h-4" /> Export CSV
+          <div className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#151521] text-white">
+            <h2 className="font-semibold text-sm sm:text-base flex items-center gap-2"><Car className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" /> Vehicle Utilisation Report</h2>
+            <button onClick={exportVehicle} className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs sm:text-sm transition-colors font-medium">
+              <Download className="w-3.5 h-3.5" /> Export CSV
             </button>
+          </div>
+          <div className="sm:hidden bg-slate-50 px-3 py-1.5 text-[10px] text-slate-500 border-b border-slate-200 flex items-center justify-between">
+            <span>👉 Swipe table horizontally to view full metrics</span>
+            <span>⇄</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">
@@ -387,11 +391,15 @@ export default function ReportsDashboard({ bookings, fleet, drivers }: ReportsDa
 
       {activeTab === 'driver' && (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-4 flex justify-between items-center bg-[#151521] text-white">
-            <h2 className="font-semibold flex items-center gap-2"><User className="w-5 h-5 text-amber-400" /> Driver Performance Report</h2>
-            <button onClick={exportDriver} className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors">
-              <Download className="w-4 h-4" /> Export CSV
+          <div className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#151521] text-white">
+            <h2 className="font-semibold text-sm sm:text-base flex items-center gap-2"><User className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" /> Driver Performance Report</h2>
+            <button onClick={exportDriver} className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs sm:text-sm transition-colors font-medium">
+              <Download className="w-3.5 h-3.5" /> Export CSV
             </button>
+          </div>
+          <div className="sm:hidden bg-slate-50 px-3 py-1.5 text-[10px] text-slate-500 border-b border-slate-200 flex items-center justify-between">
+            <span>👉 Swipe table horizontally to view full metrics</span>
+            <span>⇄</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">
@@ -442,41 +450,41 @@ export default function ReportsDashboard({ bookings, fleet, drivers }: ReportsDa
 
       {activeTab === 'outsourced' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
-                <Building2 className="w-6 h-6" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3.5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 shrink-0">
+                <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <p className="text-sm text-slate-500 font-medium">Total Outsourced Bookings</p>
-                <p className="text-2xl font-bold text-slate-800">{outsourcedData.totalBookings}</p>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium">Total Outsourced Bookings</p>
+                <p className="text-xl sm:text-2xl font-bold text-slate-800">{outsourcedData.totalBookings}</p>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-amber-600">
-                <IndianRupee className="w-6 h-6" />
+            <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3.5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-full flex items-center justify-center text-amber-600 shrink-0">
+                <IndianRupee className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <p className="text-sm text-slate-500 font-medium">Total Revenue</p>
-                <p className="text-2xl font-bold text-slate-800">₹{formatINR(outsourcedData.totalRevenue)}</p>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium">Total Revenue</p>
+                <p className="text-xl sm:text-2xl font-bold text-slate-800">₹{formatINR(outsourcedData.totalRevenue)}</p>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
-                <TrendingUp className="w-6 h-6" />
+            <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3.5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 shrink-0">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <p className="text-sm text-slate-500 font-medium">Total Profit</p>
-                <p className="text-2xl font-bold text-slate-800">₹{formatINR(outsourcedData.totalProfit)}</p>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium">Total Profit</p>
+                <p className="text-xl sm:text-2xl font-bold text-slate-800">₹{formatINR(outsourcedData.totalProfit)}</p>
               </div>
             </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-4 flex justify-between items-center bg-[#151521] text-white">
-              <h2 className="font-semibold flex items-center gap-2"><Building2 className="w-5 h-5 text-amber-400" /> Vendor Breakdown</h2>
-              <button onClick={exportOutsourced} className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors">
-                <Download className="w-4 h-4" /> Export CSV
+            <div className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#151521] text-white">
+              <h2 className="font-semibold text-sm sm:text-base flex items-center gap-2"><Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" /> Vendor Breakdown Report</h2>
+              <button onClick={exportOutsourced} className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs sm:text-sm transition-colors font-medium">
+                <Download className="w-3.5 h-3.5" /> Export CSV
               </button>
             </div>
             <div className="overflow-x-auto">
