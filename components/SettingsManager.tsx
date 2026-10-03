@@ -24,7 +24,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { AppSettings, GoogleCalendarAccount } from '@/types';
-import { initGoogleCalendarAuth, listUserCalendars } from '@/lib/calendar';
+import { initGoogleCalendarAuth, listUserCalendars, openGoogleOAuthPopup, startGoogleOAuthRedirect } from '@/lib/calendar';
 
 interface SettingsManagerProps {
   settings: AppSettings;
@@ -52,6 +52,28 @@ export default function SettingsManager({
   // Stores the Google email (decoded from token hint or entered by user)
   const [pendingEmail, setPendingEmail] = useState('');
 
+  // Handle OAuth callback communication
+  React.useEffect(() => {
+    const handleMsg = (event: MessageEvent) => {
+      if (event.data?.type === 'LOBO_GCAL_CONNECTED' && event.data?.account) {
+        const newAccount: GoogleCalendarAccount = event.data.account;
+        setFormData((prev) => {
+          const existing = (prev.connectedCalendars ?? []).filter(
+            (c) => c.googleEmail !== newAccount.googleEmail && c.calendarId !== newAccount.calendarId
+          );
+          if (existing.length === 0) newAccount.isDefault = true;
+          const updated = [...existing, newAccount];
+          onSaveSettings({ ...prev, connectedCalendars: updated });
+          return { ...prev, connectedCalendars: updated };
+        });
+        setShowCalendarConnect(false);
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      }
+    };
+    window.addEventListener('message', handleMsg);
+    return () => window.removeEventListener('message', handleMsg);
+  }, [onSaveSettings]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -467,39 +489,65 @@ export default function SettingsManager({
                 </div>
               )}
 
-              {/* Step 1 — Authorise button */}
+              {/* Step 1 — Authorise buttons */}
               {!pendingAccessToken && (
-                <button
-                  type="button"
-                  disabled={connectingCalendar || !calendarClientId.trim()}
-                  onClick={() => {
-                    setConnectingCalendar(true);
-                    initGoogleCalendarAuth(calendarClientId.trim(), async (token) => {
-                      setPendingAccessToken(token);
-                      try {
-                        const cals = await listUserCalendars(token);
-                        setAvailableCalendars(cals);
-                        // Pre-select primary calendar if available
-                        const primary = cals.find((c) => c.primary);
-                        if (primary) setSelectedCalendarId(primary.id);
-                      } catch (err) {
-                        console.error('[calendar] listUserCalendars error:', err);
-                      } finally {
-                        setConnectingCalendar(false);
-                      }
-                    });
-                  }}
-                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition"
-                >
-                  {connectingCalendar ? (
-                    'Connecting…'
-                  ) : (
-                    <>
-                      <Wifi className="w-3.5 h-3.5" />
-                      Authorise with Google
-                    </>
-                  )}
-                </button>
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      openGoogleOAuthPopup(calendarConnectLabel, (account) => {
+                        setFormData((prev) => {
+                          const existing = (prev.connectedCalendars ?? []).filter(
+                            (c) => c.googleEmail !== account.googleEmail && c.calendarId !== account.calendarId
+                          );
+                          if (existing.length === 0) account.isDefault = true;
+                          const updated = [...existing, account];
+                          onSaveSettings({ ...prev, connectedCalendars: updated });
+                          return { ...prev, connectedCalendars: updated };
+                        });
+                        setShowCalendarConnect(false);
+                        setSaveSuccess(true);
+                        setTimeout(() => setSaveSuccess(false), 3000);
+                      });
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-sm transition active:scale-95"
+                  >
+                    <Globe className="w-4 h-4 text-slate-950" />
+                    Connect via Google OAuth (Production Sync)
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={connectingCalendar || !calendarClientId.trim()}
+                    onClick={() => {
+                      setConnectingCalendar(true);
+                      initGoogleCalendarAuth(calendarClientId.trim(), async (token) => {
+                        setPendingAccessToken(token);
+                        try {
+                          const cals = await listUserCalendars(token);
+                          setAvailableCalendars(cals);
+                          // Pre-select primary calendar if available
+                          const primary = cals.find((c) => c.primary);
+                          if (primary) setSelectedCalendarId(primary.id);
+                        } catch (err) {
+                          console.error('[calendar] listUserCalendars error:', err);
+                        } finally {
+                          setConnectingCalendar(false);
+                        }
+                      });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-indigo-700 bg-white border border-indigo-300 hover:bg-indigo-50 disabled:opacity-50 rounded-lg transition"
+                  >
+                    {connectingCalendar ? (
+                      'Connecting…'
+                    ) : (
+                      <>
+                        <Wifi className="w-3.5 h-3.5" />
+                        Session Login (GIS)
+                      </>
+                    )}
+                  </button>
+                </div>
               )}
 
               {/* Step 2 — Pick calendar + confirm */}

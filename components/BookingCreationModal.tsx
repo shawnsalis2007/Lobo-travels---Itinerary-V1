@@ -20,6 +20,7 @@ import {
 import { Itinerary, AppSettings, OperationalBooking, BookingDayLocation, GoogleCalendarAccount } from '@/types';
 import { saveOperationalBooking } from '@/lib/storage';
 import { formatDateDMY } from '@/lib/utils';
+import { getValidAccessToken } from '@/lib/calendar';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -245,10 +246,11 @@ export default function BookingCreationModal({
     );
 
     for (const calAccount of selectedCalendars) {
-      if (calAccount.connectionStatus !== 'connected' || !calAccount.accessToken) continue;
+      const activeToken = await getValidAccessToken(calAccount);
+      if (!activeToken) continue;
       try {
         const eventId = await createCalendarEvent(
-          calAccount.accessToken,
+          activeToken,
           calAccount.calendarId,
           {
             summary: `[${voucherNo}] ${itinerary.tourName} — ${itinerary.clientName}`,

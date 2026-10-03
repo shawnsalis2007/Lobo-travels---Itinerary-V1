@@ -62,6 +62,85 @@ export function initGoogleCalendarAuth(
   }
 }
 
+// ─── Production OAuth Code Flow ──────────────────────────────────────────────
+
+/**
+ * Initiates production OAuth Authorization Code flow via redirect or popup.
+ * Scopes: calendar.events, calendar.readonly, userinfo.email.
+ * Redirects to /api/auth/callback/google which exchanges code with Google using GOOGLE_CLIENT_SECRET.
+ */
+export function openGoogleOAuthPopup(
+  label: string,
+  onConnected: (account: any) => void
+): void {
+  const width = 500;
+  const height = 650;
+  const left = window.screenX + (window.outerWidth - width) / 2;
+  const top = window.screenY + (window.outerHeight - height) / 2;
+
+  const url = `/api/auth/google?label=${encodeURIComponent(label || 'Google Calendar')}`;
+  const popup = window.open(
+    url,
+    'GoogleCalendarOAuth',
+    `width=${width},height=${height},left=${left},top=${top},status=no,toolbar=no,menubar=no`
+  );
+
+  const handleMessage = (event: MessageEvent) => {
+    if (event.data?.type === 'LOBO_GCAL_CONNECTED' && event.data?.account) {
+      window.removeEventListener('message', handleMessage);
+      onConnected(event.data.account);
+    }
+  };
+
+  window.addEventListener('message', handleMessage);
+}
+
+export function startGoogleOAuthRedirect(label: string): void {
+  window.location.href = `/api/auth/google?label=${encodeURIComponent(label || 'Google Calendar')}`;
+}
+
+/**
+ * Refreshes an expired access token using the backend refresh endpoint.
+ */
+export async function refreshCalendarAccessToken(refreshToken: string): Promise<{ accessToken: string; tokenExpiresAt: number }> {
+  const res = await fetch('/api/auth/refresh', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || 'Failed to refresh token');
+  }
+  return res.json();
+}
+
+/**
+ * Returns a valid access token for a GoogleCalendarAccount, refreshing it if needed.
+ */
+export async function getValidAccessToken(account: any): Promise<string | null> {
+  if (account.connectionStatus !== 'connected') return null;
+
+  const isExpired = account.tokenExpiresAt ? Date.now() > account.tokenExpiresAt - 60000 : false;
+  if (account.accessToken && !isExpired) {
+    return account.accessToken;
+  }
+
+  if (account.refreshToken) {
+    try {
+      const refreshed = await refreshCalendarAccessToken(account.refreshToken);
+      account.accessToken = refreshed.accessToken;
+      account.tokenExpiresAt = refreshed.tokenExpiresAt;
+      return refreshed.accessToken;
+    } catch (e) {
+      console.error('[calendar] Token refresh failed:', e);
+      return account.accessToken || null;
+    }
+  }
+
+  return account.accessToken || null;
+}
+
 // ─── Calendar List ────────────────────────────────────────────────────────────
 
 /**

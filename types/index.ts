@@ -263,7 +263,9 @@ export interface GoogleCalendarAccount {
   calendarId: string;      // specific Google Calendar ID within the account
   isDefault: boolean;      // default for new bookings
   connectionStatus: 'connected' | 'needs_reconnect';
-  accessToken?: string;    // session token (GIS token client)
+  accessToken?: string;    // session token or active access token
+  refreshToken?: string;   // persistent refresh token from OAuth auth code flow
+  tokenExpiresAt?: number; // timestamp ms when accessToken expires
 }
 
 export interface Driver {
