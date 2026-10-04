@@ -14,6 +14,7 @@ import {
   Check
 } from 'lucide-react';
 import { Destination, Attraction } from '@/types';
+import { SafeImage } from './SafeImage';
 
 interface DestinationsManagerProps {
   destinations: Destination[];
@@ -205,7 +206,7 @@ export default function DestinationsManager({
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-200 flex-shrink-0">
-                      <img src={dest.heroImage} alt={dest.name} className="w-full h-full object-cover" />
+                      <SafeImage src={dest.heroImage} alt={dest.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="min-w-0">
                       <div className="font-bold truncate">{dest.name}</div>
@@ -233,11 +234,7 @@ export default function DestinationsManager({
             <>
               {/* Destination Hero Banner */}
               <div className="relative rounded-2xl overflow-hidden shadow-sm border border-slate-200 h-52 bg-slate-900 text-white flex flex-col justify-end p-6">
-                <img
-                  src={activeDestination.heroImage}
-                  alt={activeDestination.name}
-                  className="absolute inset-0 w-full h-full object-cover opacity-60"
-                />
+                <SafeImage src={activeDestination.heroImage} alt={activeDestination.name} className="absolute inset-0 w-full h-full object-cover opacity-60" />
                 <div className="relative z-10">
                   <div className="inline-block px-2.5 py-0.5 rounded bg-amber-400 text-slate-950 font-bold text-[10px] uppercase mb-1">
                     {activeDestination.state}
@@ -282,7 +279,7 @@ export default function DestinationsManager({
                         className="p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:shadow-xs transition flex gap-3 text-xs"
                       >
                         <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-200 flex-shrink-0">
-                          <img src={att.image} alt={att.name} className="w-full h-full object-cover" />
+                          <SafeImage src={att.image} alt={att.name} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 min-w-0 space-y-1">
                           <div className="flex items-start justify-between gap-1">
@@ -499,14 +496,7 @@ export default function DestinationsManager({
                 {editingAttraction.image && (
                   <div className="mt-2 flex items-center gap-3 p-2 bg-slate-50 rounded-lg border border-slate-200">
                     <div className="w-14 h-14 rounded bg-slate-200 overflow-hidden flex-shrink-0">
-                      <img 
-                        src={editingAttraction.image} 
-                        alt="Preview" 
-                        className="w-full h-full object-cover" 
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=600&q=80';
-                        }}
-                      />
+                      <SafeImage src={editingAttraction.image} alt="Preview" className="w-full h-full object-cover" />
                     </div>
                     <span className="text-[11px] text-slate-500">Live Image Preview</span>
                   </div>

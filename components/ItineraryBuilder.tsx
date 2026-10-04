@@ -58,6 +58,7 @@ import {
 import { PRESET_ROUTES } from '@/lib/mock-data';
 import { INTERCITY_ROUTES } from '@/lib/catalog-data';
 import { saveAttraction as persistAttraction } from '@/lib/storage';
+import { SafeImage } from './SafeImage';
 
 export const COVER_IMAGE_PRESETS = [
   { name: 'Taj Mahal (Agra)', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80' },
@@ -3498,11 +3499,7 @@ export default function ItineraryBuilder({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
               {/* Preview Box */}
               <div className="relative rounded-xl overflow-hidden border-2 border-slate-300 bg-slate-900 shadow-sm aspect-video group flex flex-col justify-end">
-                <img
-                  src={itinerary.coverImage || 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80'}
-                  alt="Cover Hero Preview"
-                  className="w-full h-full object-cover transition duration-300 group-hover:scale-105 absolute inset-0"
-                />
+                <SafeImage src={itinerary.coverImage} alt="Cover Hero Preview" className="w-full h-full object-cover transition duration-300 group-hover:scale-105 absolute inset-0" />
                 <div className="relative z-10 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3 pt-6">
                   <span className="text-[9px] font-extrabold text-amber-300 tracking-wider uppercase block">
                     Page 1 Main Cover Image
@@ -3571,7 +3568,7 @@ export default function ItineraryBuilder({
                                 : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                             }`}
                           >
-                            <img src={att.image} alt={att.name} className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                            <SafeImage src={att.image} alt={att.name} className="w-8 h-8 rounded object-cover flex-shrink-0" />
                             <div className="truncate max-w-[130px]">
                               <span className="block text-[10px] font-bold text-slate-800 truncate">{att.name}</span>
                               <span className="block text-[9px] text-slate-500 truncate">{att.destinationName}</span>
@@ -3731,12 +3728,7 @@ export default function ItineraryBuilder({
                               }`}
                             >
                               <div className="relative aspect-video w-full bg-slate-100 overflow-hidden">
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  loading="lazy"
-                                  className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
-                                />
+                                <SafeImage src={item.image} alt={item.name} loading="lazy" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
                                 {item.unesco && (
                                   <span className="absolute top-1 left-1 bg-amber-500 text-slate-950 font-black text-[7px] px-1 py-0.5 rounded shadow-2xs leading-none">
                                     UNESCO
@@ -4019,14 +4011,7 @@ export default function ItineraryBuilder({
                 />
                 {editingAttraction.image && (
                   <div className="mt-2 h-36 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
-                    <img
-                      src={editingAttraction.image}
-                      alt={editingAttraction.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80';
-                      }}
-                    />
+                    <SafeImage src={editingAttraction.image} alt={editingAttraction.name} className="w-full h-full object-cover" />
                   </div>
                 )}
               </div>
@@ -4224,12 +4209,7 @@ export default function ItineraryBuilder({
                         }`}
                       >
                         <div className="relative aspect-video w-full bg-slate-100 overflow-hidden">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            loading="lazy"
-                            className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
-                          />
+                          <SafeImage src={item.image} alt={item.name} loading="lazy" className="w-full h-full object-cover transition duration-300 group-hover:scale-105" />
                           {item.unesco && (
                             <span className="absolute top-1.5 left-1.5 bg-amber-500 text-slate-950 font-black text-[8px] px-1.5 py-0.5 rounded shadow-2xs leading-none">
                               UNESCO

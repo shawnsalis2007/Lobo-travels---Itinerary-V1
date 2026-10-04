@@ -38,6 +38,7 @@ import { getVoucherReferenceNumber } from '@/lib/storage';
 import { COMPREHENSIVE_ATTRACTIONS, COMPREHENSIVE_DESTINATIONS } from '@/lib/catalog-data';
 import { formatDateDMY } from '@/lib/utils';
 import { Itinerary, AppSettings, ItineraryDay, Destination, Attraction } from '@/types';
+import { SafeImage } from './SafeImage';
 
 interface ItineraryPreviewProps {
   itinerary: Itinerary;
@@ -536,11 +537,7 @@ export default function ItineraryPreview({
               <div className={`rounded-xl overflow-hidden shadow-md border border-slate-200 mb-4 relative group ${
                 itinerary.flightBookings?.flightsBookedByUs && itinerary.flightBookings.flights?.length ? 'h-60' : 'h-80'
               }`}>
-                <img
-                  src={smartCoverImage}
-                  alt={itinerary.tourName || 'Tour Destination'}
-                  className="w-full h-full object-cover"
-                />
+                <SafeImage src={smartCoverImage} alt={itinerary.tourName || "Tour Destination"} className="w-full h-full object-cover" />
                 {isInlineEditMode && (
                   <div className="absolute bottom-2 right-2 bg-slate-900/90 backdrop-blur-xs text-white text-[10px] px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-md border border-slate-700">
                     <span className="font-semibold text-amber-300">Cover URL:</span>
@@ -968,11 +965,7 @@ export default function ItineraryPreview({
                                         maxHeight: `${photoDim}px`
                                       }}
                                     >
-                                      <img 
-                                        src={photo.image} 
-                                        alt={photo.name} 
-                                        loading="eager"
-                                        className="w-full h-full object-cover block transition duration-300 group-hover:scale-105" 
+                                      <SafeImage src={photo.image} alt={photo.name} loading="eager" className="w-full h-full object-cover block transition duration-300 group-hover:scale-105" 
                                         style={{ 
                                           width: `${photoDim}px`, 
                                           height: `${photoDim}px`,

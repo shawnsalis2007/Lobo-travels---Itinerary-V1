@@ -33,7 +33,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Emperor Akbar’s magnificent red sandstone ghost capital and the towering Buland Darwaza.',
     detailedDescription: 'Founded in 1571 by Emperor Akbar, this UNESCO World Heritage city features palatial courtyards, the white marble tomb of Sufi saint Salim Chishti, and the world’s highest ceremonial gateway.',
     recommendedDuration: 'Half Day / En Route',
-    heroImage: 'https://images.unsplash.com/photo-1600100397608-f010f44383a1?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=600&auto=format&fit=crop&q=60',
     gallery: []
   },
   {
@@ -55,7 +55,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Sacred birthplace of Lord Krishna along the Yamuna with centuries of bhakti devotion and illuminated temples.',
     detailedDescription: 'One of Hinduism’s holiest twin pilgrimage towns, featuring Krishna Janmabhoomi, the ornate Italian marble Prem Mandir, and Banke Bihari Temple.',
     recommendedDuration: '1 Day',
-    heroImage: 'https://images.unsplash.com/photo-1609137144822-26d9c6c21e35?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=600&auto=format&fit=crop&q=60',
     gallery: []
   },
   {
@@ -105,7 +105,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'World-famous Royal Bengal Tiger sanctuary with 10th-century jungle fortress ruins.',
     detailedDescription: 'One of Northern India’s largest national parks, offering thrilling open-top 4x4 Gypsy safaris to spot wild Bengal tigers, leopards, crocodiles, and exotic birds.',
     recommendedDuration: '2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1547970810-dc1eac8161a7?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1534177616072-ef7dc120449d?w=600&auto=format&fit=crop&q=60',
     gallery: []
   },
   {

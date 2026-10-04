@@ -19,6 +19,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { Hotel } from '@/types';
+import { SafeImage } from './SafeImage';
 
 interface HotelsManagerProps {
   hotels: Hotel[];
@@ -225,11 +226,7 @@ export default function HotelsManager({
             <div>
               {/* Hotel Image */}
               <div className="h-44 w-full relative overflow-hidden bg-slate-100">
-                <img
-                  src={hotel.image}
-                  alt={hotel.name}
-                  className="w-full h-full object-cover"
-                />
+                <SafeImage src={hotel.image} alt={hotel.name} className="w-full h-full object-cover" />
                 <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-amber-300 text-[11px] font-bold flex items-center gap-1">
                   <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                   <span>{hotel.rating} ({hotel.reviewCount})</span>
