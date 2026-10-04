@@ -8,7 +8,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'India’s historic capital blending imperial Mughal architecture with wide neoclassical avenues.',
     detailedDescription: 'Delhi bridges ancient and modern India: the 17th-century walled city of Shahjahanabad with its red sandstone fortresses, and New Delhi designed with stately government boulevards and landscaped gardens.',
     recommendedDuration: '2–3 Days',
-    heroImage: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/India_Gate_front.jpg/1280px-India_Gate_front.jpg',
     gallery: [
       'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?auto=format&fit=crop&w=800&q=80'
@@ -21,7 +21,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'City of the immortal Taj Mahal, Agra Fort, and sublime Mughal royal gardens along the Yamuna.',
     detailedDescription: 'The former seat of the Mughal Empire at its zenith, renowned for white marble inlay pietra dura craftsmanship, imperial fortresses, and romantic riverside pavilions.',
     recommendedDuration: '1–2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/1280px-Taj_Mahal_%28Edited%29.jpeg',
     gallery: [
       'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80'
     ]
@@ -33,7 +33,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Emperor Akbar’s magnificent red sandstone ghost capital and the towering Buland Darwaza.',
     detailedDescription: 'Founded in 1571 by Emperor Akbar, this UNESCO World Heritage city features palatial courtyards, the white marble tomb of Sufi saint Salim Chishti, and the world’s highest ceremonial gateway.',
     recommendedDuration: 'Half Day / En Route',
-    heroImage: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=1200&auto=format&fit=crop&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg',
     gallery: []
   },
   {
@@ -43,7 +43,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'The royal Pink City of palaces, hilltop fortresses, and colorful artisan bazaars.',
     detailedDescription: 'Capital of Rajasthan founded in 1727 by Maharaja Sawai Jai Singh II. Famous for Amber Fort, Hawa Mahal, City Palace, astronomical Jantar Mantar, and vibrant textile handicrafts.',
     recommendedDuration: '2–3 Days',
-    heroImage: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/East_facade_Hawa_Mahal_Jaipur_from_ground_level_%28July_2022%29_-_img_01.jpg/1280px-East_facade_Hawa_Mahal_Jaipur_from_ground_level_%28July_2022%29_-_img_01.jpg',
     gallery: [
       'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80'
     ]
@@ -55,7 +55,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Sacred birthplace of Lord Krishna along the Yamuna with centuries of bhakti devotion and illuminated temples.',
     detailedDescription: 'One of Hinduism’s holiest twin pilgrimage towns, featuring Krishna Janmabhoomi, the ornate Italian marble Prem Mandir, and Banke Bihari Temple.',
     recommendedDuration: '1 Day',
-    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Prem_Mandir_Vrindavan.jpg/1280px-Prem_Mandir_Vrindavan.jpg',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/PremMandirSideViewFromCanteen.jpg/1280px-PremMandirSideViewFromCanteen.jpg',
     gallery: []
   },
   {
@@ -65,7 +65,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'The majestic Blue City crowned by the towering cliffside ramparts of Mehrangarh Fort.',
     detailedDescription: 'Known for indigo-hued houses, the sprawling Mehrangarh Fort museum, cenotaphs of Jaswant Thada, and royal art deco Umaid Bhawan Palace.',
     recommendedDuration: '1–2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1574950578143-858c6fc58922?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Mehrangarh_Fort_sanhita.jpg/1280px-Mehrangarh_Fort_sanhita.jpg',
     gallery: []
   },
   {
@@ -75,7 +75,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'The Venice of the East, famed for shimmering Lake Pichola and white marble island palaces.',
     detailedDescription: 'Set against the ancient Aravalli Hills, Udaipur offers spectacular palaces, tranquil sunset boat cruises, and royal Mewar heritage.',
     recommendedDuration: '2–3 Days',
-    heroImage: 'https://images.unsplash.com/photo-1615836245337-f5b9b2303f10?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Udaipur_City_Palace.jpg/1280px-Udaipur_City_Palace.jpg',
     gallery: []
   },
   {
@@ -85,7 +85,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'The Golden City rising out of the Thar Desert with its living fort and rolling sand dunes.',
     detailedDescription: 'Famous for Sonar Qila, carved sandstone havelis, desert camps under starlit skies, and camel safaris across the Sam sand dunes.',
     recommendedDuration: '2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1713349881676-594b95a5742b?w=1200&auto=format&fit=crop&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Jaisalmer_forteresse.jpg/1280px-Jaisalmer_forteresse.jpg',
     gallery: []
   },
   {
@@ -95,7 +95,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Spiritual oasis centered around the holy Pushkar Lake and the rare 14th-century Lord Brahma Temple.',
     detailedDescription: 'A pilgrimage destination nestled around a sacred lake with 52 bathing ghats, rose flower plantations, vibrant bazaars, and scenic desert hills.',
     recommendedDuration: '1–2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1606214174585-fe31582dc6ee?w=1200&auto=format&fit=crop&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Evening_lights_by_the_Pushkar_Lake%2C_Pushkar.jpg/1280px-Evening_lights_by_the_Pushkar_Lake%2C_Pushkar.jpg',
     gallery: []
   },
   {
@@ -105,7 +105,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'World-famous Royal Bengal Tiger sanctuary with 10th-century jungle fortress ruins.',
     detailedDescription: 'One of Northern India’s largest national parks, offering thrilling open-top 4x4 Gypsy safaris to spot wild Bengal tigers, leopards, crocodiles, and exotic birds.',
     recommendedDuration: '2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1534177616072-ef7dc120449d?w=1200&auto=format&fit=crop&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Ranthambore_National_Park.JPG/1280px-Ranthambore_National_Park.JPG',
     gallery: []
   },
   {
@@ -125,7 +125,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Spiritual capital of India on the sacred Ganges with mystical evening aarti ceremonies.',
     detailedDescription: 'One of the world’s oldest continuously inhabited cities, celebrated for Dashashwamedh Ghat aarti, sunrise boat rides, Kashi Vishwanath temple, and silk weaving.',
     recommendedDuration: '2–3 Days',
-    heroImage: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=1200&auto=format&fit=crop&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Dasaswamedh_ghat-varanasi_india-andres_larin.jpg/1280px-Dasaswamedh_ghat-varanasi_india-andres_larin.jpg',
     gallery: []
   },
   {
@@ -135,7 +135,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Spiritual heart of Sikhism with the resplendent Golden Temple and patriotic Wagah Border ceremony.',
     detailedDescription: 'Home to Sri Harmandir Sahib, communal langar dining serving tens of thousands daily, Jallianwala Bagh, and vibrant Punjabi culture.',
     recommendedDuration: '2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1514222134-b57cbb8ce073?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/The_Golden_Temple_of_Amrithsar_7.jpg/1280px-The_Golden_Temple_of_Amrithsar_7.jpg',
     gallery: []
   },
   {
@@ -145,7 +145,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'The Queen of Hills, former summer capital of British India surrounded by pine and cedar forests.',
     detailedDescription: 'Charming colonial pedestrian avenues on the Ridge and Mall Road, panoramic Himalayan vistas, Jakhoo Hill, and the toy train railway.',
     recommendedDuration: '2–3 Days',
-    heroImage: 'https://images.unsplash.com/photo-1648830802584-ec070946e591?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/The_Ridge_Shimla_5.jpg/1280px-The_Ridge_Shimla_5.jpg',
     gallery: []
   },
   {
@@ -155,7 +155,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Alpine adventure haven along the Beas River, gateway to Solang Valley, Rohtang Pass, and Atal Tunnel.',
     detailedDescription: 'Famous for snow sports, pine forests, apple orchards, river rafting, ancient Hadimba Temple, and high-altitude mountain passes.',
     recommendedDuration: '3–4 Days',
-    heroImage: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Kullu_Valley_from_Rohtang_Pass%2C_India.jpg/1280px-Kullu_Valley_from_Rohtang_Pass%2C_India.jpg',
     gallery: []
   },
   {
@@ -165,7 +165,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Gateway to the Kangra Valley, home to the Dalai Lama and scenic Dhauladhar pine hills.',
     detailedDescription: 'Center of Tibetan culture with peaceful monasteries, meditation retreats, mountain hiking trails, and the picturesque HPCA cricket stadium.',
     recommendedDuration: '2–3 Days',
-    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Dharamshala_03_%2814881077750%29.jpg/1280px-Dharamshala_03_%2814881077750%29.jpg',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Dharamshala_stadium%2Chimachal_pradesh.jpg/1280px-Dharamshala_stadium%2Chimachal_pradesh.jpg',
     gallery: []
   },
   {
@@ -175,7 +175,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Paradise on Earth with luxury Dal Lake houseboats, terraced Mughal gardens, and snow-capped peaks.',
     detailedDescription: 'Experience serene wooden Shikara cruises, floating vegetable markets, century-old Mughal pleasure gardens, and exquisite Kashmiri pashmina handicrafts.',
     recommendedDuration: '3–4 Days',
-    heroImage: 'https://images.unsplash.com/photo-1595815771614-ade9d652a65d?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Dal_Lake_Hazratbal_Srinagar.jpg/1280px-Dal_Lake_Hazratbal_Srinagar.jpg',
     gallery: []
   },
   {
@@ -195,7 +195,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Valley of Shepherds with gushing Lidder River, pine forests, and scenic Betaab and Aru valleys.',
     detailedDescription: 'Pristine mountain valley celebrated for trout fishing, pony treks to Baisaran Meadow (Mini Switzerland), and scenic alpine meadows.',
     recommendedDuration: '1–2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Betaab_Valley.jpg/1280px-Betaab_Valley.jpg',
     gallery: []
   },
   {
@@ -205,7 +205,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Yoga capital of the world on the emerald banks of the holy Ganges at the Himalayan foothills.',
     detailedDescription: 'World-renowned destination for spiritual yoga ashrams, suspension footbridges, evening Ganga Aarti at Triveni Ghat, and white-water river rafting.',
     recommendedDuration: '2 Days',
-    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Triveni_Ghat_Krishna_Aarti.jpg/1280px-Triveni_Ghat_Krishna_Aarti.jpg',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Triveni_Ghat_Krishna_Arjun_Rath.jpg/1280px-Triveni_Ghat_Krishna_Arjun_Rath.jpg',
     gallery: []
   },
   {
@@ -215,7 +215,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Ancient holy gateway where the sacred River Ganges emerges from the Himalayas onto the Indo-Gangetic plains.',
     detailedDescription: 'Famous for the spectacular evening Maha Aarti at Har Ki Pauri where thousands of illuminated leaf diyas float down the swift Ganges currents.',
     recommendedDuration: '1 Day',
-    heroImage: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Evening_view_of_Har-ki-Pauri%2C_Haridwar.jpg/1280px-Evening_view_of_Har-ki-Pauri%2C_Haridwar.jpg',
     gallery: []
   },
   {
@@ -235,7 +235,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'The vibrant City of Dreams, financial hub of India featuring colonial Victorian Gothic heritage and Marine Drive.',
     detailedDescription: 'From the Gateway of India to the grand Chhatrapati Shivaji Maharaj Terminus, Bollywood studios, and sunset strolls along the Arabian Sea.',
     recommendedDuration: '2–3 Days',
-    heroImage: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Mumbai_03-2016_30_Gateway_of_India.jpg/1280px-Mumbai_03-2016_30_Gateway_of_India.jpg',
     gallery: []
   },
   {
@@ -245,7 +245,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Sun-drenched coastal haven of golden beaches, Portuguese heritage churches, and tropical susegad lifestyle.',
     detailedDescription: 'Featuring UNESCO-listed Old Goa cathedrals, seaside forts, thrilling water sports, and tranquil coconut palm-fringed backwaters.',
     recommendedDuration: '3–4 Days',
-    heroImage: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Front_Elevation_of_Basilica_of_Bom_Jesus.jpg/1280px-Front_Elevation_of_Basilica_of_Bom_Jesus.jpg',
     gallery: []
   },
   {
@@ -255,7 +255,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'God’s Own Country with misty Munnar tea plantations and serene Alleppey backwater houseboats.',
     detailedDescription: 'Experience rolling emerald tea estates, spice gardens, Ayurvedic rejuvenation, and leisurely overnight cruises aboard traditional thatched Kettuvallam houseboats.',
     recommendedDuration: '3–5 Days',
-    heroImage: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Alappuzha_Boat_Beauty_W.jpg/1280px-Alappuzha_Boat_Beauty_W.jpg',
     gallery: []
   },
   {
@@ -265,7 +265,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Quaint colonial hill station perched on five hills with pine-scented trails and Khajjiar meadow.',
     detailedDescription: 'Colonial-era architecture, serene mountain walks, Dainkund Peak, and the famous saucer-shaped green meadow of Khajjiar known as Mini Switzerland.',
     recommendedDuration: '2–3 Days',
-    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Nature_of_Khajjiar.jpg/1280px-Nature_of_Khajjiar.jpg',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Khajjiar.jpg/1280px-Khajjiar.jpg',
     gallery: []
   },
   {
@@ -275,7 +275,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Little Lhasa of India and residence of the Dalai Lama surrounded by majestic cedar forests.',
     detailedDescription: 'High-altitude Tibetan refuge featuring the Tsuglagkhang Temple complex, Buddhist monasteries, Bhagsunag waterfall, and vibrant cafes overlooking the Kangra valley.',
     recommendedDuration: '2 Days',
-    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Namgyal_Monastery%2C_Dharamshala.jpg/1280px-Namgyal_Monastery%2C_Dharamshala.jpg',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Namgyal_Monastery_India_Himachal_Pradesh_Mc_Leod_Ganj.jpg/1280px-Namgyal_Monastery_India_Himachal_Pradesh_Mc_Leod_Ganj.jpg',
     gallery: []
   },
   {
@@ -295,7 +295,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Ancient holy city on the Falgu River renowned for ancestral Pind Daan and sacred shrines.',
     detailedDescription: 'Deeply revered Hindu pilgrimage center featuring the historic Vishnupad Temple housing Lord Vishnu’s footprint and Mangla Gauri Shakti Peetha.',
     recommendedDuration: '1 Day',
-    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Vishnupad_Temple%2C_Gaya.JPG/1280px-Vishnupad_Temple%2C_Gaya.JPG',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Vishnupad_Temple%2CUpdated.jpg/1280px-Vishnupad_Temple%2CUpdated.jpg',
     gallery: []
   },
   {
@@ -325,7 +325,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Holy confluence of the Ganga, Yamuna, and Saraswati rivers, host to the sacred Kumbh Mela.',
     detailedDescription: 'World-famous Triveni Sangam for holy dips, the historic subterranean Bade Hanuman Ji Mandir, Anand Bhavan, and rich colonial-era cultural heritage.',
     recommendedDuration: '1–2 Days',
-    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/NorthIndiaCircuit_Prayag_confluence.JPG/1280px-NorthIndiaCircuit_Prayag_confluence.JPG',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/NorthIndiaCircuit_250.jpg/1280px-NorthIndiaCircuit_250.jpg',
     gallery: []
   },
 ];
