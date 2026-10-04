@@ -274,7 +274,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5–2 Hours',
     category: 'Monument & Heritage',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/17348001/pexels-photo-17348001.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'delhi-humayun',
@@ -286,7 +286,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Mughal Monument',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/13256094/pexels-photo-13256094.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'delhi-india-gate',
@@ -298,7 +298,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '45 Minutes',
     category: 'National Memorial',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1592635196078-9fdc757f27f4?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/16952108/pexels-photo-16952108.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'delhi-red-fort',
@@ -310,7 +310,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Historic Fortress',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1598324789736-4861f89564a0?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/14094276/pexels-photo-14094276.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'delhi-lotus',
@@ -322,7 +322,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Architectural Shrine',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/4727066/pexels-photo-4727066.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'delhi-akshardham',
@@ -334,7 +334,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Spiritual Complex',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1609137144822-26d9c6c21e35?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/33971089/pexels-photo-33971089.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'delhi-chandni-chowk',
@@ -346,7 +346,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Cultural Activity',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/20795328/pexels-photo-20795328.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'delhi-jama-masjid',
@@ -358,7 +358,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Historic Monument',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/20083843/pexels-photo-20083843.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -374,7 +374,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5–3 Hours',
     category: 'World Wonder & Monument',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/11948442/pexels-photo-11948442.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'agra-fort',
@@ -386,7 +386,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Imperial Fortress',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/31301782/pexels-photo-31301782.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'agra-mehtab-bagh',
@@ -410,7 +410,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Mughal Mausoleum',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1603228254119-e6a4d095dc59?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/2869141/pexels-photo-2869141.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'agra-sikandra',
@@ -422,7 +422,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Historic Monument',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/19149610/pexels-photo-19149610.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -438,7 +438,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'UNESCO Monumental Gate',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1600100397608-f010f44383a1?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/36061407/pexels-photo-36061407.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'fs-palace-complex',
@@ -450,7 +450,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Historic Palace Complex',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/36132711/pexels-photo-36132711.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -466,7 +466,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Hill Fortress & Palace',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/19446861/pexels-photo-19446861.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'jaipur-hawa-mahal',
@@ -478,7 +478,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '45 Minutes',
     category: 'Palace Facade & Monument',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1603228254119-e6a4d095dc59?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/19867647/pexels-photo-19867647.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'jaipur-city-palace',
@@ -490,7 +490,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Royal Palace Complex',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/32261804/pexels-photo-32261804.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'jaipur-jantar-mantar',
@@ -502,7 +502,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Astronomical Monument',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/37967925/pexels-photo-37967925.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'jaipur-jal-mahal',
@@ -514,7 +514,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '30 Minutes',
     category: 'Lake Palace',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1615836245337-f5b9b2303f10?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/19867655/pexels-photo-19867655.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'jaipur-nahargarh',
@@ -526,7 +526,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Fort & Panoramic View',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1574950578143-858c6fc58922?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/13612812/pexels-photo-13612812.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'jaipur-chokhi-dhani',
@@ -538,7 +538,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Cultural Evening & Dinner',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/15634342/pexels-photo-15634342.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'jaipur-patrika-gate',
@@ -550,7 +550,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Heritage & Museum',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1603228254119-e6a4d095dc59?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/19149592/pexels-photo-19149592.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -566,7 +566,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Pilgrimage Shrine',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1609137144822-26d9c6c21e35?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/12455914/pexels-photo-12455914.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'mv-prem-mandir',
@@ -578,7 +578,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Spiritual Monument',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/35960313/pexels-photo-35960313.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'mv-banke-bihari',
@@ -590,7 +590,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Sacred Temple',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1609137144822-26d9c6c21e35?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/24862859/pexels-photo-24862859.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'mv-iskcon',
@@ -602,7 +602,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Pilgrimage Temple',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1609137144822-26d9c6c21e35?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/17853055/pexels-photo-17853055.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -618,7 +618,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Hill Fortress & Museum',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1574950578143-858c6fc58922?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/15774210/pexels-photo-15774210.png?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'jodhpur-jaswant-thada',
@@ -630,7 +630,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Royal Memorial',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/19160104/pexels-photo-19160104.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'jodhpur-umaid-bhawan',
@@ -642,7 +642,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Palace Museum',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1574950578143-858c6fc58922?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/31654971/pexels-photo-31654971.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'jodhpur-mandore',
@@ -654,7 +654,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Heritage Gardens',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1574950578143-858c6fc58922?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/36454346/pexels-photo-36454346.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'jodhpur-blue-city-walk',
@@ -666,7 +666,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Cultural Walk',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1574950578143-858c6fc58922?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/19160108/pexels-photo-19160108.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -682,7 +682,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Palace Complex',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1615836245337-f5b9b2303f10?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/39037457/pexels-photo-39037457.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'udaipur-pichola-boat',
@@ -694,7 +694,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Scenic Boat Cruise',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1615836245337-f5b9b2303f10?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/21382502/pexels-photo-21382502.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'udaipur-saheliyon-ki-bari',
@@ -706,7 +706,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Historic Gardens',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/37310832/pexels-photo-37310832.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'udaipur-bagore-ki-haveli',
@@ -718,7 +718,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Cultural Dance Show',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/19160074/pexels-photo-19160074.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'udaipur-monsoon-palace',
@@ -730,7 +730,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Hilltop Palace & Sunset',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1615836245337-f5b9b2303f10?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/29981180/pexels-photo-29981180.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -746,7 +746,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Living Hill Fort',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1713349881676-594b95a5742b?w=600&auto=format&fit=crop&q=60'
   },
   {
     id: 'jaisalmer-sam-dunes',
@@ -758,7 +758,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '4 Hours',
     category: 'Desert Adventure & Camp',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80'
+    image: 'https://plus.unsplash.com/premium_photo-1661936495413-875706d59696?w=600&auto=format&fit=crop&q=60'
   },
   {
     id: 'jaisalmer-patwon-haveli',
@@ -770,7 +770,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Heritage Haveli',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1677649117932-4c8abf3e27bb?w=600&auto=format&fit=crop&q=60'
   },
   {
     id: 'jaisalmer-gadisar-lake',
@@ -782,7 +782,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Scenic Lake & Shrines',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/1721637/pexels-photo-1721637.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -798,7 +798,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Rare Pilgrim Temple',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/19160125/pexels-photo-19160125.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'pushkar-lake-ghats',
@@ -810,7 +810,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Sacred Water Shrine',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/19160123/pexels-photo-19160123.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'pushkar-savitri-temple',
@@ -822,7 +822,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Hilltop Temple & Cable Car',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/36737801/pexels-photo-36737801.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -838,7 +838,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3.5 Hours',
     category: 'Wildlife Tiger Safari',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1547970810-dc1eac8161a7?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/27960753/pexels-photo-27960753.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'ranthambore-fort',
@@ -850,7 +850,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'UNESCO Forest Fort',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1547970810-dc1eac8161a7?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/16007596/pexels-photo-16007596.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -866,7 +866,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Unconquered Fortress',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/36545457/pexels-photo-36545457.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'bikaner-karni-mata',
@@ -878,7 +878,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Sacred Pilgrimage',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/35734312/pexels-photo-35734312.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'bikaner-camel-research',
@@ -890,7 +890,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Desert Wildlife Activity',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/4249070/pexels-photo-4249070.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'bikaner-rampuria-havelis',
@@ -902,7 +902,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Heritage Architecture',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/30673013/pexels-photo-30673013.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -918,7 +918,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Spiritual River Ritual',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/27670662/pexels-photo-27670662.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'varanasi-sunrise-boat',
@@ -930,7 +930,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Scenic Boat Journey',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/34741292/pexels-photo-34741292.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'varanasi-kashi-vishwanath',
@@ -942,7 +942,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Jyotirlinga Temple',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/30854355/pexels-photo-30854355.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'varanasi-sarnath',
@@ -954,7 +954,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Buddhist Heritage',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/38186505/pexels-photo-38186505.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'varanasi-silk-weaving',
@@ -966,7 +966,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Artisan Workshop',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/17777833/pexels-photo-17777833.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -982,7 +982,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Sacred Sikh Shrine',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1514222134-b57cbb8ce073?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/14890717/pexels-photo-14890717.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'amritsar-wagah-border',
@@ -994,7 +994,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Patriotic Military Ceremony',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1514222134-b57cbb8ce073?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/29429174/pexels-photo-29429174.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'amritsar-jallianwala-bagh',
@@ -1006,7 +1006,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Historical Memorial',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1514222134-b57cbb8ce073?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/29444352/pexels-photo-29444352.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'amritsar-gobindgarh',
@@ -1018,7 +1018,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Fort & Culinary Tour',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1514222134-b57cbb8ce073?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/13670669/pexels-photo-13670669.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1034,7 +1034,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Colonial Promenade',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/16777016/pexels-photo-16777016.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'shimla-kufri',
@@ -1046,7 +1046,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Hill Adventure Resort',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/21558505/pexels-photo-21558505.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'shimla-jakhoo-temple',
@@ -1058,7 +1058,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Hilltop Shrine & Cable Car',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/38703962/pexels-photo-38703962.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'shimla-viceregal-lodge',
@@ -1070,7 +1070,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Colonial Heritage Estate',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/39561625/pexels-photo-39561625.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1086,7 +1086,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3.5 Hours',
     category: 'Mountain Adventure Arena',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/6149892/pexels-photo-6149892.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'manali-atal-tunnel',
@@ -1098,7 +1098,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '4 Hours',
     category: 'Engineering Marvel & Excursion',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/29494193/pexels-photo-29494193.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'manali-hadimba-temple',
@@ -1110,7 +1110,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Heritage Wood Temple',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/32690108/pexels-photo-32690108.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'manali-rohtang-pass',
@@ -1122,7 +1122,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '5 Hours',
     category: 'Glacier Snow Pass',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/35077792/pexels-photo-35077792.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'manali-old-manali',
@@ -1134,7 +1134,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Cultural Village & Thermal Springs',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/31776507/pexels-photo-31776507.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1150,7 +1150,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Tibetan Buddhist Complex',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/37248332/pexels-photo-37248332.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'dharamshala-hpca-stadium',
@@ -1162,7 +1162,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Scenic Stadium & Monument',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/39432880/pexels-photo-39432880.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'dharamshala-bhagsu-waterfall',
@@ -1174,7 +1174,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Nature Hike & Temple',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/28235887/pexels-photo-28235887.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'dharamshala-norbulingka',
@@ -1186,7 +1186,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Cultural Art Institute',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/37248332/pexels-photo-37248332.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1202,7 +1202,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Iconic Lake Experience',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1595815771614-ade9d652a65d?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/25786714/pexels-photo-25786714.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'srinagar-mughal-gardens',
@@ -1214,7 +1214,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Imperial Gardens',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1595815771614-ade9d652a65d?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/33836435/pexels-photo-33836435.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'srinagar-shankaracharya',
@@ -1226,7 +1226,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Hilltop Sacred Shrine',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1595815771614-ade9d652a65d?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/14851137/pexels-photo-14851137.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'srinagar-old-city-heritage',
@@ -1238,7 +1238,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Heritage Walk',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1595815771614-ade9d652a65d?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/16508213/pexels-photo-16508213.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1254,7 +1254,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3.5 Hours',
     category: 'High Altitude Gondola & Snow',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/32620987/pexels-photo-32620987.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'gulmarg-golf-course',
@@ -1266,7 +1266,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Alpine Meadow Walk',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/15317850/pexels-photo-15317850.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'gulmarg-st-marys',
@@ -1278,7 +1278,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Heritage Church & Valley',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/6729883/pexels-photo-6729883.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1294,7 +1294,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3.5 Hours',
     category: 'Scenic Alpine Valley',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/35030070/pexels-photo-35030070.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'pahalgam-baisaran',
@@ -1306,7 +1306,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Pony Trek & Alpine Meadow',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/8303559/pexels-photo-8303559.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'pahalgam-lidder-river',
@@ -1318,7 +1318,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Riverside Nature Walk',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/33836435/pexels-photo-33836435.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1334,7 +1334,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Spiritual River Aarti',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/18887232/pexels-photo-18887232.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'rishikesh-river-rafting',
@@ -1346,7 +1346,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'River Adventure Sport',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1530866495561-507c9faab2ed?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/7542627/pexels-photo-7542627.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'rishikesh-beatles-ashram',
@@ -1358,7 +1358,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Cultural Heritage Ashram',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/5205768/pexels-photo-5205768.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'rishikesh-neelkanth',
@@ -1370,7 +1370,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Hilltop Pilgrimage',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/39845433/pexels-photo-39845433.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1386,7 +1386,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'World Famous Pilgrimage Aarti',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/29495753/pexels-photo-29495753.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'haridwar-mansa-devi',
@@ -1398,7 +1398,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Hilltop Temple & Cable Car',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/36737804/pexels-photo-36737804.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'haridwar-chandi-devi',
@@ -1410,7 +1410,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Sacred Hilltop Shrine',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/36737804/pexels-photo-36737804.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1426,7 +1426,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'UNESCO Wildlife Sanctuary',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/38426197/pexels-photo-38426197.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'bharatpur-lohagarh',
@@ -1438,7 +1438,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Historic Moat Fort',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/7825353/pexels-photo-7825353.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1454,7 +1454,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Historic Monument',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/36874536/pexels-photo-36874536.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'mumbai-marine-drive',
@@ -1466,7 +1466,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Seaside Promenade',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/33948766/pexels-photo-33948766.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'mumbai-cst-terminus',
@@ -1478,7 +1478,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'UNESCO Victorian Heritage',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/28867947/pexels-photo-28867947.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'mumbai-elephanta-caves',
@@ -1490,7 +1490,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3.5 Hours',
     category: 'UNESCO Rock-Cut Caves & Boat',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/18209328/pexels-photo-18209328.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'mumbai-bandra-sea-link',
@@ -1502,7 +1502,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Modern Landmark & Temple',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/13074008/pexels-photo-13074008.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1518,7 +1518,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'UNESCO Heritage Cathedral',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/26753044/pexels-photo-26753044.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'goa-calangute-baga',
@@ -1530,7 +1530,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Beach & Watersports',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/28355680/pexels-photo-28355680.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'goa-dudhsagar',
@@ -1542,7 +1542,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '5 Hours',
     category: 'Waterfall Jungle Adventure',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/16444281/pexels-photo-16444281.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'goa-fort-aguada',
@@ -1554,7 +1554,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Seaside Coastal Fortress',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/35401276/pexels-photo-35401276.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1570,7 +1570,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '4 Hours',
     category: 'Backwater Houseboat Cruise',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/17928231/pexels-photo-17928231.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'kerala-munnar-tea-gardens',
@@ -1582,7 +1582,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Hill Plantation Experience',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/3848200/pexels-photo-3848200.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'kerala-periyar-wildlife',
@@ -1594,7 +1594,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Wildlife Lake Safari',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/36717711/pexels-photo-36717711.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'kerala-kochi-chinese-nets',
@@ -1606,7 +1606,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Cultural Show & Heritage',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.pexels.com/photos/35347834/pexels-photo-35347834.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   }
 ];
 
