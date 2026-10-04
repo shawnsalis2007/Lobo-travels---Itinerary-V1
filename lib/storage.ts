@@ -49,86 +49,101 @@ function getStorageItem<T>(key: string, fallback: T): T {
   }
 }
 
+let isRefreshing = false;
+
 function refreshAllCaches(): void {
   if (typeof window === 'undefined') return;
+  if (isRefreshing) return;
+  isRefreshing = true;
+
   try {
-    localStorage.removeItem('lobo_destinations_v2');
-    localStorage.removeItem('lobo_destinations_v3');
-    localStorage.removeItem('lobo_attractions_v2');
-  } catch (_) {}
-  
-  // Load itineraries v3 with fallback to v2 or INITIAL_ITINERARIES
-  let loadedItins = getStorageItem<Itinerary[] | null>(STORAGE_KEYS.ITINERARIES, null);
-  if (!loadedItins) {
-    const v2 = getStorageItem<Itinerary[] | null>('lobo_itineraries_v2', null);
-    if (v2 && Array.isArray(v2)) {
-      // Sanitize v2 itineraries by clearing unmapped dummy day images
-      loadedItins = v2.map(itin => ({
-        ...itin,
-        days: itin.days.map(d => ({
-          ...d,
-          images: []
-        }))
-      }));
-    } else {
-      loadedItins = INITIAL_ITINERARIES;
+    try {
+      localStorage.removeItem('lobo_destinations_v2');
+      localStorage.removeItem('lobo_destinations_v3');
+      localStorage.removeItem('lobo_attractions_v2');
+    } catch (_) {}
+    
+    // Load itineraries v3 with fallback to v2 or INITIAL_ITINERARIES
+    let loadedItins = getStorageItem<Itinerary[] | null>(STORAGE_KEYS.ITINERARIES, null);
+    if (!loadedItins) {
+      const v2 = getStorageItem<Itinerary[] | null>('lobo_itineraries_v2', null);
+      if (v2 && Array.isArray(v2)) {
+        // Sanitize v2 itineraries by clearing unmapped dummy day images
+        loadedItins = v2.map(itin => ({
+          ...itin,
+          days: itin.days.map(d => ({
+            ...d,
+            images: []
+          }))
+        }));
+      } else {
+        loadedItins = INITIAL_ITINERARIES;
+      }
+      try {
+        localStorage.setItem(STORAGE_KEYS.ITINERARIES, JSON.stringify(loadedItins));
+      } catch (_) {}
     }
-    setStorageItem(STORAGE_KEYS.ITINERARIES, loadedItins);
-  }
-  itinerariesCache = loadedItins;
-  hotelsCache = getStorageItem<Hotel[]>(STORAGE_KEYS.HOTELS, INITIAL_HOTELS);
+    itinerariesCache = loadedItins;
+    hotelsCache = getStorageItem<Hotel[]>(STORAGE_KEYS.HOTELS, INITIAL_HOTELS);
 
-  // Auto-merge newly loaded destinations catalog
-  const storedDests = getStorageItem<Destination[]>(STORAGE_KEYS.DESTINATIONS, []);
-  const destMap = new Map<string, Destination>();
-  // 1. Initial canonical destinations always have authentic verified photos
-  INITIAL_DESTINATIONS.forEach(d => destMap.set(d.id.toLowerCase(), d));
-  // 2. Only preserve custom destinations added by the user (ignoring legacy combined dalhousie-mcleodganj)
-  if (Array.isArray(storedDests)) {
-    storedDests.forEach(d => {
-      const lowerName = (d.name || '').toLowerCase();
-      const lowerId = (d.id || '').toLowerCase();
-      if ((lowerName.includes('dalhousie') && lowerName.includes('mcleodganj')) || lowerId === 'dalhousie-mcleodganj') {
-        return; // Remove obsolete combined entry
-      }
-      if (!destMap.has(d.id.toLowerCase())) {
-        destMap.set(d.id.toLowerCase(), d);
-      }
+    // Auto-merge newly loaded destinations catalog
+    const storedDests = getStorageItem<Destination[]>(STORAGE_KEYS.DESTINATIONS, []);
+    const destMap = new Map<string, Destination>();
+    // 1. Initial canonical destinations always have authentic verified photos
+    INITIAL_DESTINATIONS.forEach(d => destMap.set(d.id.toLowerCase(), d));
+    // 2. Only preserve custom destinations added by the user (ignoring legacy combined dalhousie-mcleodganj)
+    if (Array.isArray(storedDests)) {
+      storedDests.forEach(d => {
+        const lowerName = (d.name || '').toLowerCase();
+        const lowerId = (d.id || '').toLowerCase();
+        if ((lowerName.includes('dalhousie') && lowerName.includes('mcleodganj')) || lowerId === 'dalhousie-mcleodganj') {
+          return; // Remove obsolete combined entry
+        }
+        if (!destMap.has(d.id.toLowerCase())) {
+          destMap.set(d.id.toLowerCase(), d);
+        }
+      });
+    }
+    destinationsCache = Array.from(destMap.values());
+    try {
+      localStorage.setItem(STORAGE_KEYS.DESTINATIONS, JSON.stringify(destinationsCache));
+    } catch (_) {}
+
+    // Auto-merge newly loaded attractions catalog
+    const storedAtts = getStorageItem<Attraction[]>(STORAGE_KEYS.ATTRACTIONS, []);
+    const attMap = new Map<string, Attraction>();
+    // 1. Initial canonical attractions always have authentic verified photos
+    INITIAL_ATTRACTIONS.forEach(a => {
+      const overrideImg = getAttractionImage(a.name, a.image) || getAttractionImage(a.id, a.image);
+      attMap.set(a.id.toLowerCase(), { ...a, image: overrideImg });
     });
-  }
-  destinationsCache = Array.from(destMap.values());
-  setStorageItem(STORAGE_KEYS.DESTINATIONS, destinationsCache);
+    // 2. Only preserve custom attractions added by the user, applying overrides if applicable
+    if (Array.isArray(storedAtts)) {
+      storedAtts.forEach(a => {
+        if (!attMap.has(a.id.toLowerCase())) {
+          const overrideImg = getAttractionImage(a.name, a.image) || getAttractionImage(a.id, a.image);
+          attMap.set(a.id.toLowerCase(), { ...a, image: overrideImg });
+        }
+      });
+    }
+    attractionsCache = Array.from(attMap.values());
+    try {
+      localStorage.setItem(STORAGE_KEYS.ATTRACTIONS, JSON.stringify(attractionsCache));
+    } catch (_) {}
 
-  // Auto-merge newly loaded attractions catalog
-  const storedAtts = getStorageItem<Attraction[]>(STORAGE_KEYS.ATTRACTIONS, []);
-  const attMap = new Map<string, Attraction>();
-  // 1. Initial canonical attractions always have authentic verified photos
-  INITIAL_ATTRACTIONS.forEach(a => {
-    const overrideImg = getAttractionImage(a.name, a.image) || getAttractionImage(a.id, a.image);
-    attMap.set(a.id.toLowerCase(), { ...a, image: overrideImg });
-  });
-  // 2. Only preserve custom attractions added by the user, applying overrides if applicable
-  if (Array.isArray(storedAtts)) {
-    storedAtts.forEach(a => {
-      if (!attMap.has(a.id.toLowerCase())) {
-        const overrideImg = getAttractionImage(a.name, a.image) || getAttractionImage(a.id, a.image);
-        attMap.set(a.id.toLowerCase(), { ...a, image: overrideImg });
-      }
-    });
+    vehiclesCache = getStorageItem<VehicleOption[]>(STORAGE_KEYS.VEHICLES, INITIAL_VEHICLES);
+    const rawSettings = getStorageItem<AppSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
+    // Migrate: replace old GitHub-hosted logo with local /logo.png
+    if (rawSettings.logoUrl && rawSettings.logoUrl.includes('github.com/VensonLobo')) {
+      rawSettings.logoUrl = '/logo.png';
+    }
+    settingsCache = rawSettings;
+    fleetCache = getStorageItem<FleetVehicle[]>(STORAGE_KEYS.FLEET, INITIAL_FLEET);
+    driversCache = getStorageItem<Driver[]>(STORAGE_KEYS.DRIVERS, INITIAL_DRIVERS);
+    bookingsCache = getStorageItem<OperationalBooking[]>(STORAGE_KEYS.BOOKINGS, INITIAL_OPERATIONAL_BOOKINGS);
+  } finally {
+    isRefreshing = false;
   }
-  attractionsCache = Array.from(attMap.values());
-  setStorageItem(STORAGE_KEYS.ATTRACTIONS, attractionsCache);
-
-  vehiclesCache = getStorageItem<VehicleOption[]>(STORAGE_KEYS.VEHICLES, INITIAL_VEHICLES);
-  const rawSettings = getStorageItem<AppSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
-  // Migrate: replace old GitHub-hosted logo with local /logo.png
-  if (rawSettings.logoUrl && rawSettings.logoUrl.includes('github.com/VensonLobo')) {
-    rawSettings.logoUrl = '/logo.png';
-  }
-  settingsCache = rawSettings;
-  fleetCache = getStorageItem<FleetVehicle[]>(STORAGE_KEYS.FLEET, INITIAL_FLEET);
-  driversCache = getStorageItem<Driver[]>(STORAGE_KEYS.DRIVERS, INITIAL_DRIVERS);
-  bookingsCache = getStorageItem<OperationalBooking[]>(STORAGE_KEYS.BOOKINGS, INITIAL_OPERATIONAL_BOOKINGS);
 }
 
 // Convert Itinerary Ref (e.g. LT-2026-0001) to Voucher Ref (LTV-2026-0001)
@@ -147,7 +162,17 @@ function setStorageItem<T>(key: string, value: T): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(key, JSON.stringify(value));
-    refreshAllCaches();
+    switch (key) {
+      case STORAGE_KEYS.SETTINGS: settingsCache = value as AppSettings; break;
+      case STORAGE_KEYS.VEHICLES: vehiclesCache = value as VehicleOption[]; break;
+      case STORAGE_KEYS.DESTINATIONS: destinationsCache = value as Destination[]; break;
+      case STORAGE_KEYS.ATTRACTIONS: attractionsCache = value as Attraction[]; break;
+      case STORAGE_KEYS.HOTELS: hotelsCache = value as Hotel[]; break;
+      case STORAGE_KEYS.ITINERARIES: itinerariesCache = value as Itinerary[]; break;
+      case STORAGE_KEYS.FLEET: fleetCache = value as FleetVehicle[]; break;
+      case STORAGE_KEYS.DRIVERS: driversCache = value as Driver[]; break;
+      case STORAGE_KEYS.BOOKINGS: bookingsCache = value as OperationalBooking[]; break;
+    }
     window.dispatchEvent(new Event('lobo_storage_updated'));
   } catch (e) {
     console.error(`Error saving ${key} to storage`, e);
