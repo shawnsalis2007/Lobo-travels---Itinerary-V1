@@ -344,7 +344,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5–2 Hours',
     category: 'Monument & Heritage',
     unesco: true,
-    image: 'https://images.unsplash.com/photo-1697729438410-d53c666e3810?w=600&auto=format&fit=crop&q=60'
+    image: 'https://images.pexels.com/photos/17348001/pexels-photo-17348001.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'delhi-humayun',
@@ -492,7 +492,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Historic Monument',
     unesco: false,
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Tomb_of_Akbar_at_Sikandra.jpg/1280px-Tomb_of_Akbar_at_Sikandra.jpg'
+    image: 'https://images.pexels.com/photos/19149610/pexels-photo-19149610.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -736,7 +736,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Cultural Walk',
     unesco: false,
-    image: 'https://upload.wikimedia.org/wikipedia/commons/9/99/Mehrangarh_Fort_sanhita.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail_unscaled'
+    image: 'https://images.pexels.com/photos/19160108/pexels-photo-19160108.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
 
   // ==========================================
@@ -1156,7 +1156,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3.5 Hours',
     category: 'Mountain Adventure Arena',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f1/Solang_Valley_%2CManali%2C_Himachal_Pardes%2C_India.JPG/1280px-Solang_Valley_%2CManali%2C_Himachal_Pardes%2C_India.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://images.pexels.com/photos/6149892/pexels-photo-6149892.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'manali-atal-tunnel',
@@ -1168,7 +1168,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '4 Hours',
     category: 'Engineering Marvel & Excursion',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/Atal_Tunnel_vrtmrgmpksk_%282%29.jpg/1280px-Atal_Tunnel_vrtmrgmpksk_%282%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://images.pexels.com/photos/29494193/pexels-photo-29494193.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'manali-hadimba-temple',
@@ -1192,7 +1192,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '5 Hours',
     category: 'Glacier Snow Pass',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Kullu_Valley_from_Rohtang_Pass%2C_India.jpg/1280px-Kullu_Valley_from_Rohtang_Pass%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://images.pexels.com/photos/35077792/pexels-photo-35077792.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   },
   {
     id: 'manali-old-manali',
@@ -2096,10 +2096,38 @@ export const FEATURED_COVER_PRESETS: CoverImagePreset[] = [
 // Explicitly mapped verified Unsplash imagery for core sights
 // ==========================================
 export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
-  'delhi-qutub': 'https://images.unsplash.com/photo-1697729438410-d53c666e3810?w=600&auto=format&fit=crop&q=60',
-  'qutub minar': 'https://images.unsplash.com/photo-1697729438410-d53c666e3810?w=600&auto=format&fit=crop&q=60',
-  'qutub minar complex': 'https://images.unsplash.com/photo-1697729438410-d53c666e3810?w=600&auto=format&fit=crop&q=60',
-  'qutub minar victory tower': 'https://images.unsplash.com/photo-1697729438410-d53c666e3810?w=600&auto=format&fit=crop&q=60',
+  'delhi-qutub': 'https://images.pexels.com/photos/17348001/pexels-photo-17348001.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'qutub minar': 'https://images.pexels.com/photos/17348001/pexels-photo-17348001.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'qutub minar complex': 'https://images.pexels.com/photos/17348001/pexels-photo-17348001.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'qutub minar victory tower': 'https://images.pexels.com/photos/17348001/pexels-photo-17348001.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+
+  'agra-sikandra': 'https://images.pexels.com/photos/19149610/pexels-photo-19149610.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  "akbar's tomb": 'https://images.pexels.com/photos/19149610/pexels-photo-19149610.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  "akbar’s tomb": 'https://images.pexels.com/photos/19149610/pexels-photo-19149610.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  "akbar's tomb at sikandra": 'https://images.pexels.com/photos/19149610/pexels-photo-19149610.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  "akbar’s tomb at sikandra": 'https://images.pexels.com/photos/19149610/pexels-photo-19149610.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'sikandra': 'https://images.pexels.com/photos/19149610/pexels-photo-19149610.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+
+  'jodhpur-blue-city-walk': 'https://images.pexels.com/photos/19160108/pexels-photo-19160108.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'blue city': 'https://images.pexels.com/photos/19160108/pexels-photo-19160108.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'blue city walking tour': 'https://images.pexels.com/photos/19160108/pexels-photo-19160108.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'blue city walking tour & clock tower bazaar': 'https://images.pexels.com/photos/19160108/pexels-photo-19160108.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+
+  'manali-rohtang-pass': 'https://images.pexels.com/photos/35077792/pexels-photo-35077792.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'rohtang pass': 'https://images.pexels.com/photos/35077792/pexels-photo-35077792.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'rohtang': 'https://images.pexels.com/photos/35077792/pexels-photo-35077792.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'rohtang pass snow excursion': 'https://images.pexels.com/photos/35077792/pexels-photo-35077792.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'rohtang pass snow excursion (13,058 ft)': 'https://images.pexels.com/photos/35077792/pexels-photo-35077792.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+
+  'manali-solang-valley': 'https://images.pexels.com/photos/6149892/pexels-photo-6149892.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'solang valley': 'https://images.pexels.com/photos/6149892/pexels-photo-6149892.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'solang': 'https://images.pexels.com/photos/6149892/pexels-photo-6149892.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'solang valley adventure activities': 'https://images.pexels.com/photos/6149892/pexels-photo-6149892.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+
+  'manali-atal-tunnel': 'https://images.pexels.com/photos/29494193/pexels-photo-29494193.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'atal tunnel': 'https://images.pexels.com/photos/29494193/pexels-photo-29494193.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'atal tunnel & sissu waterfall': 'https://images.pexels.com/photos/29494193/pexels-photo-29494193.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+  'atal tunnel & sissu waterfall (lahaul valley)': 'https://images.pexels.com/photos/29494193/pexels-photo-29494193.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
 
   'delhi-humayun': 'https://images.unsplash.com/photo-1609670289875-590e8ec05c88?w=600&auto=format&fit=crop&q=60',
   "humayun's tomb": 'https://images.unsplash.com/photo-1609670289875-590e8ec05c88?w=600&auto=format&fit=crop&q=60',
