@@ -15,8 +15,8 @@ import {
 const STORAGE_KEYS = {
   SETTINGS: 'lobo_settings_v1',
   VEHICLES: 'lobo_vehicles_v1',
-  DESTINATIONS: 'lobo_destinations_v2',
-  ATTRACTIONS: 'lobo_attractions_v2',
+  DESTINATIONS: 'lobo_destinations_v3',
+  ATTRACTIONS: 'lobo_attractions_v3',
   HOTELS: 'lobo_hotels_v1',
   ITINERARIES: 'lobo_itineraries_v3',
   NEXT_REF: 'lobo_next_ref_v1',
@@ -50,6 +50,10 @@ function getStorageItem<T>(key: string, fallback: T): T {
 
 function refreshAllCaches(): void {
   if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem('lobo_destinations_v2');
+    localStorage.removeItem('lobo_attractions_v2');
+  } catch (_) {}
   
   // Load itineraries v3 with fallback to v2 or INITIAL_ITINERARIES
   let loadedItins = getStorageItem<Itinerary[] | null>(STORAGE_KEYS.ITINERARIES, null);
@@ -72,21 +76,34 @@ function refreshAllCaches(): void {
   itinerariesCache = loadedItins;
   hotelsCache = getStorageItem<Hotel[]>(STORAGE_KEYS.HOTELS, INITIAL_HOTELS);
 
-  // Auto-merge newly loaded destinations catalog (v2)
-  const storedDests = getStorageItem<Destination[]>(STORAGE_KEYS.DESTINATIONS, INITIAL_DESTINATIONS);
+  // Auto-merge newly loaded destinations catalog (v3)
+  const storedDests = getStorageItem<Destination[]>(STORAGE_KEYS.DESTINATIONS, []);
   const destMap = new Map<string, Destination>();
+  // 1. Initial canonical destinations always have authentic verified photos
   INITIAL_DESTINATIONS.forEach(d => destMap.set(d.id.toLowerCase(), d));
-  storedDests.forEach(d => destMap.set(d.id.toLowerCase(), d)); // stored overrides or adds
+  // 2. Only preserve custom destinations added by the user
+  if (Array.isArray(storedDests)) {
+    storedDests.forEach(d => {
+      if (!destMap.has(d.id.toLowerCase())) {
+        destMap.set(d.id.toLowerCase(), d);
+      }
+    });
+  }
   destinationsCache = Array.from(destMap.values());
 
-  // Auto-merge newly loaded attractions catalog (v2)
-  const storedAtts = getStorageItem<Attraction[]>(STORAGE_KEYS.ATTRACTIONS, INITIAL_ATTRACTIONS);
+  // Auto-merge newly loaded attractions catalog (v3)
+  const storedAtts = getStorageItem<Attraction[]>(STORAGE_KEYS.ATTRACTIONS, []);
   const attMap = new Map<string, Attraction>();
+  // 1. Initial canonical attractions always have authentic verified photos
   INITIAL_ATTRACTIONS.forEach(a => attMap.set(a.id.toLowerCase(), a));
-  storedAtts.forEach(a => {
-    // preserve user edits or custom additions
-    attMap.set(a.id.toLowerCase(), a);
-  });
+  // 2. Only preserve custom attractions added by the user
+  if (Array.isArray(storedAtts)) {
+    storedAtts.forEach(a => {
+      if (!attMap.has(a.id.toLowerCase())) {
+        attMap.set(a.id.toLowerCase(), a);
+      }
+    });
+  }
   attractionsCache = Array.from(attMap.values());
 
   vehiclesCache = getStorageItem<VehicleOption[]>(STORAGE_KEYS.VEHICLES, INITIAL_VEHICLES);

@@ -85,7 +85,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'The Golden City rising out of the Thar Desert with its living fort and rolling sand dunes.',
     detailedDescription: 'Famous for Sonar Qila, carved sandstone havelis, desert camps under starlit skies, and camel safaris across the Sam sand dunes.',
     recommendedDuration: '2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1713349881676-594b95a5742b?w=1200&auto=format&fit=crop&q=80',
     gallery: []
   },
   {
@@ -145,7 +145,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'The Queen of Hills, former summer capital of British India surrounded by pine and cedar forests.',
     detailedDescription: 'Charming colonial pedestrian avenues on the Ridge and Mall Road, panoramic Himalayan vistas, Jakhoo Hill, and the toy train railway.',
     recommendedDuration: '2–3 Days',
-    heroImage: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.pexels.com/photos/16777016/pexels-photo-16777016.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     gallery: []
   },
   {
@@ -160,12 +160,12 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
   },
   {
     id: 'dharamshala',
-    name: 'Dharamshala & McLeodGanj',
+    name: 'Dharamshala',
     state: 'Himachal Pradesh',
-    shortDescription: 'Residence of His Holiness the Dalai Lama amidst deodar forests and the towering Dhauladhar mountains.',
-    detailedDescription: 'Center of Tibetan culture in exile with peaceful monasteries, meditation retreats, mountain hiking trails, and the picturesque HPCA cricket stadium.',
+    shortDescription: 'Gateway to the Kangra Valley, home to the Dalai Lama and scenic Dhauladhar pine hills.',
+    detailedDescription: 'Center of Tibetan culture with peaceful monasteries, meditation retreats, mountain hiking trails, and the picturesque HPCA cricket stadium.',
     recommendedDuration: '2–3 Days',
-    heroImage: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.pexels.com/photos/37248332/pexels-photo-37248332.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     gallery: []
   },
   {
@@ -185,7 +185,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Meadow of Flowers featuring the world’s highest operating cable car and premier snow ski slopes.',
     detailedDescription: 'High-altitude mountain resort renowned for the two-phase Gulmarg Gondola riding up to 14,000 feet atop Apharwat Peak, pine-covered meadows, and alpine skiing.',
     recommendedDuration: '1–2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.pexels.com/photos/32620987/pexels-photo-32620987.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     gallery: []
   },
   {
@@ -205,7 +205,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Yoga capital of the world on the emerald banks of the holy Ganges at the Himalayan foothills.',
     detailedDescription: 'World-renowned destination for spiritual yoga ashrams, suspension footbridges, evening Ganga Aarti at Triveni Ghat, and white-water river rafting.',
     recommendedDuration: '2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.pexels.com/photos/7542627/pexels-photo-7542627.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     gallery: []
   },
   {
@@ -257,7 +257,77 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     recommendedDuration: '3–5 Days',
     heroImage: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80',
     gallery: []
-  }
+  },
+  {
+    id: 'dalhousie',
+    name: 'Dalhousie',
+    state: 'Himachal Pradesh',
+    shortDescription: 'Quaint colonial hill station perched on five hills with pine-scented trails and Khajjiar meadow.',
+    detailedDescription: 'Colonial-era architecture, serene mountain walks, Dainkund Peak, and the famous saucer-shaped green meadow of Khajjiar known as Mini Switzerland.',
+    recommendedDuration: '2–3 Days',
+    heroImage: 'https://images.pexels.com/photos/30104593/pexels-photo-30104593.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    gallery: []
+  },
+  {
+    id: 'mcleodganj',
+    name: 'McLeodGanj',
+    state: 'Himachal Pradesh',
+    shortDescription: 'Little Lhasa of India and residence of the Dalai Lama surrounded by majestic cedar forests.',
+    detailedDescription: 'High-altitude Tibetan refuge featuring the Tsuglagkhang Temple complex, Buddhist monasteries, Bhagsunag waterfall, and vibrant cafes overlooking the Kangra valley.',
+    recommendedDuration: '2 Days',
+    heroImage: 'https://images.pexels.com/photos/755401/pexels-photo-755401.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    gallery: []
+  },
+  {
+    id: 'ayodhya',
+    name: 'Ayodhya',
+    state: 'Uttar Pradesh',
+    shortDescription: 'Sacred birthplace of Lord Rama along the holy Saryu River celebrating millennia of devotion.',
+    detailedDescription: 'Spiritual epic center of the Ramayana featuring the magnificent Shree Ram Janmabhumi Temple, hilltop Hanuman Garhi fortress, and evening Saryu Maha Aarti at Ram Ki Paidi.',
+    recommendedDuration: '1–2 Days',
+    heroImage: 'https://images.pexels.com/photos/36478003/pexels-photo-36478003.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    gallery: []
+  },
+  {
+    id: 'gaya',
+    name: 'Gaya',
+    state: 'Bihar',
+    shortDescription: 'Ancient holy city on the Falgu River renowned for ancestral Pind Daan and sacred shrines.',
+    detailedDescription: 'Deeply revered Hindu pilgrimage center featuring the historic Vishnupad Temple housing Lord Vishnu’s footprint and Mangla Gauri Shakti Peetha.',
+    recommendedDuration: '1 Day',
+    heroImage: 'https://images.pexels.com/photos/36065289/pexels-photo-36065289.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    gallery: []
+  },
+  {
+    id: 'bodh-gaya',
+    name: 'Bodh Gaya',
+    state: 'Bihar',
+    shortDescription: 'The cradle of Buddhism where Gautama Buddha attained enlightenment beneath the Bodhi Tree.',
+    detailedDescription: 'UNESCO World Heritage Mahabodhi Temple, the sacred Bodhi Tree, international Buddhist monasteries, and the serene 80-foot Great Buddha Statue.',
+    recommendedDuration: '1–2 Days',
+    heroImage: 'https://images.pexels.com/photos/8186112/pexels-photo-8186112.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    gallery: []
+  },
+  {
+    id: 'chitrakoot',
+    name: 'Chitrakoot',
+    state: 'Uttar Pradesh',
+    shortDescription: 'Sacred forest retreat where Lord Rama, Sita, and Lakshmana spent eleven years in exile.',
+    detailedDescription: 'Tranquil pilgrimage town on the Mandakini River featuring holy Ramghat where Tulsidas composed the Ramcharitmanas and the sacred circumambulation hill of Kamadgiri.',
+    recommendedDuration: '1–2 Days',
+    heroImage: 'https://images.pexels.com/photos/36402970/pexels-photo-36402970.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    gallery: []
+  },
+  {
+    id: 'prayagraj',
+    name: 'Prayagraj',
+    state: 'Uttar Pradesh',
+    shortDescription: 'Holy confluence of the Ganga, Yamuna, and Saraswati rivers, host to the sacred Kumbh Mela.',
+    detailedDescription: 'World-famous Triveni Sangam for holy dips, the historic subterranean Bade Hanuman Ji Mandir, Anand Bhavan, and rich colonial-era cultural heritage.',
+    recommendedDuration: '1–2 Days',
+    heroImage: 'https://images.pexels.com/photos/30218192/pexels-photo-30218192.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    gallery: []
+  },
 ];
 
 export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
@@ -1607,6 +1677,278 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     category: 'Cultural Show & Heritage',
     unesco: false,
     image: 'https://images.pexels.com/photos/35347834/pexels-photo-35347834.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  }
+,
+  // ==========================================
+  // DALHOUSIE
+  // ==========================================
+  {
+    id: 'dalhousie-khajjiar',
+    destinationId: 'dalhousie',
+    destinationName: 'Dalhousie',
+    name: 'Khajjiar Meadow (Mini Switzerland of India)',
+    shortDescription: 'Emerald saucer-shaped meadow surrounded by dense deodar pine forests and a tranquil lake.',
+    detailedDescription: 'Located 24 km from Dalhousie, featuring horse riding, zorbing, panoramic cedar trails, and the 12th-century Khajji Nag Temple.',
+    duration: '3–4 Hours',
+    category: 'Alpine Meadow',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/30104593/pexels-photo-30104593.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'dalhousie-dainkund',
+    destinationId: 'dalhousie',
+    destinationName: 'Dalhousie',
+    name: 'Dainkund Peak & Panchpula Waterfall',
+    shortDescription: 'Highest peak in Dalhousie (9,000 ft) offering 360-degree views of snow-clad Pir Panjal ranges.',
+    detailedDescription: 'A scenic ridge walk through whispering pines leading to the Pohlani Devi temple, followed by Panchpula memorial springs and waterfalls.',
+    duration: '2.5 Hours',
+    category: 'Panoramic Ridge & Springs',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/32596529/pexels-photo-32596529.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+
+  // ==========================================
+  // MCLEODGANJ
+  // ==========================================
+  {
+    id: 'mcleodganj-tsuglagkhang',
+    destinationId: 'mcleodganj',
+    destinationName: 'McLeodGanj',
+    name: 'Tsuglagkhang Dalai Lama Temple Complex',
+    shortDescription: 'Spiritual heart of Tibetan Buddhism in exile, official temple residence of His Holiness Dalai Lama.',
+    detailedDescription: 'Houses the main prayer hall with towering statues of Buddha Shakyamuni and Avalokiteshvara, Namgyal Monastery, and holy meditation Kora paths.',
+    duration: '2 Hours',
+    category: 'Buddhist Temple & Monastery',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/37248332/pexels-photo-37248332.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'mcleodganj-bhagsunag',
+    destinationId: 'mcleodganj',
+    destinationName: 'McLeodGanj',
+    name: 'Bhagsunag Waterfall & Ancient Shiva Temple',
+    shortDescription: 'Cascading mountain waterfall and freshwater natural spring pools surrounded by rocky cliffs.',
+    detailedDescription: 'Pleasant 1 km stone-paved walk from Bhagsu village, featuring an ancient Lord Shiva temple, mountain cafes, and natural cool water pools.',
+    duration: '1.5 Hours',
+    category: 'Mountain Waterfall',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/730697/pexels-photo-730697.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+
+  // ==========================================
+  // AYODHYA
+  // ==========================================
+  {
+    id: 'ayodhya-ram-mandir',
+    destinationId: 'ayodhya',
+    destinationName: 'Ayodhya',
+    name: 'Shree Ram Janmabhumi Temple',
+    shortDescription: 'Grand Nagara-style pink sandstone temple marking the sacred birthplace of Lord Rama.',
+    detailedDescription: 'Magnificent architectural masterpiece crafted from Bansi Paharpur stone with intricate carvings of deities, grand mandapas, and Ram Lalla sanctum.',
+    duration: '2–3 Hours',
+    category: 'Sacred Pilgrimage Temple',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/36478003/pexels-photo-36478003.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'ayodhya-hanuman-garhi',
+    destinationId: 'ayodhya',
+    destinationName: 'Ayodhya',
+    name: 'Hanuman Garhi Fort Temple',
+    shortDescription: '10th-century hilltop temple fortress with 76 steps, enshrining Lord Hanuman guarding Ayodhya.',
+    detailedDescription: 'Revered temple custom dictates visiting Hanuman Garhi before worshipping at Ram Janmabhumi. Features circular ramparts and panoramic views over Ayodhya.',
+    duration: '1 Hour',
+    category: 'Historic Temple Fort',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/36478011/pexels-photo-36478011.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'ayodhya-ram-ki-paidi',
+    destinationId: 'ayodhya',
+    destinationName: 'Ayodhya',
+    name: 'Ram Ki Paidi - Saryu River & Saryu Aarti',
+    shortDescription: 'Sacred series of bathing ghats on the banks of Saryu River, illuminated during the evening Maha Aarti.',
+    detailedDescription: 'Vibrant riverside promenade where thousands gather for sunset holy dips, synchronized chanting, and divine brass lamp river offerings.',
+    duration: '1.5 Hours',
+    category: 'Sacred Ghats & Aarti',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/36478020/pexels-photo-36478020.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+
+  // ==========================================
+  // GAYA
+  // ==========================================
+  {
+    id: 'gaya-vishnupad',
+    destinationId: 'gaya',
+    destinationName: 'Gaya',
+    name: 'Vishnupad Temple',
+    shortDescription: 'Ancient grey granite temple on Phalgu River enshrining the 40-cm footprint of Lord Vishnu.',
+    detailedDescription: 'Built in 1787 by Queen Ahilyabai Holkar of Indore, recognized as one of Hinduism’s most holy spots for shraddha pind daan ancestral rites.',
+    duration: '1.5 Hours',
+    category: 'Ancient Shrine',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/36065289/pexels-photo-36065289.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'gaya-mangla-gauri',
+    destinationId: 'gaya',
+    destinationName: 'Gaya',
+    name: 'Mangla Gauri Temple',
+    shortDescription: '15th-century venerated Shakti Peetha shrine situated atop Bhasmakoot hill in Gaya.',
+    detailedDescription: 'Mentioned in the Padma Purana as the spot where the breast of Sati fell, approached by stone staircase offering panoramic views.',
+    duration: '1 Hour',
+    category: 'Shakti Peetha Temple',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/36478619/pexels-photo-36478619.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+
+  // ==========================================
+  // BODH GAYA
+  // ==========================================
+  {
+    id: 'bodhgaya-mahabodhi',
+    destinationId: 'bodh-gaya',
+    destinationName: 'Bodh Gaya',
+    name: 'Mahabodhi Temple Complex',
+    shortDescription: 'UNESCO World Heritage 50-meter pyramidal brick temple marking the site of Buddha’s supreme enlightenment.',
+    detailedDescription: 'Dating back to the 5th–6th century CE, featuring the Vajrasana diamond throne, ancient votive stupas, and peaceful meditation courtyards.',
+    duration: '2 Hours',
+    category: 'UNESCO World Heritage',
+    unesco: true,
+    image: 'https://images.pexels.com/photos/8186112/pexels-photo-8186112.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'bodhgaya-bodhi-tree',
+    destinationId: 'bodh-gaya',
+    destinationName: 'Bodh Gaya',
+    name: 'The Sacred Bodhi Tree (Ficus Religiosa)',
+    shortDescription: 'Direct descendant of the original fig tree under which Siddhartha Gautama meditated and became the Buddha in 528 BCE.',
+    detailedDescription: 'Adjoining the western wall of Mahabodhi Temple, pilgrims from across the globe circumambulate and meditate beneath its shade.',
+    duration: '1 Hour',
+    category: 'Sacred Tree & Meditation',
+    unesco: true,
+    image: 'https://images.pexels.com/photos/13894274/pexels-photo-13894274.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'bodhgaya-great-buddha',
+    destinationId: 'bodh-gaya',
+    destinationName: 'Bodh Gaya',
+    name: 'Great Buddha Statue (80-Foot Daibutsu)',
+    shortDescription: 'Monumental 80-foot red granite and sandstone statue of Gautama Buddha seated in meditation dhyana mudra.',
+    detailedDescription: 'Unveiled by the 14th Dalai Lama in 1989, flanked by ten standing disciples, making it one of the tallest Buddha statues in India.',
+    duration: '45 Minutes',
+    category: 'Colossal Monument',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/37181085/pexels-photo-37181085.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+
+  // ==========================================
+  // CHITRAKOOT
+  // ==========================================
+  {
+    id: 'chitrakoot-ramghat',
+    destinationId: 'chitrakoot',
+    destinationName: 'Chitrakoot',
+    name: 'Ramghat on Mandakini River',
+    shortDescription: 'Sacred riverside bathing steps where Goswami Tulsidas had darshan of Lord Rama and Lakshmana.',
+    detailedDescription: 'Tranquil evening venue for boat rides, traditional temple bells, and the spiritual Mandakini Aarti on the serene forest river.',
+    duration: '1.5 Hours',
+    category: 'Holy Ghat & River Aarti',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/36402970/pexels-photo-36402970.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'chitrakoot-kamadgiri',
+    destinationId: 'chitrakoot',
+    destinationName: 'Chitrakoot',
+    name: 'Kamadgiri Hill & Temple Parikrama',
+    shortDescription: 'Holy forested hill believed to embody the spirit of Lord Rama and fulfill heartfelt wishes.',
+    detailedDescription: 'Devotees perform the sacred 5-kilometer parikrama circumnavigation around the wooded perimeter dotted with ancient shrines.',
+    duration: '2 Hours',
+    category: 'Sacred Parikrama Hill',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/36402970/pexels-photo-36402970.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+
+  // ==========================================
+  // PRAYAGRAJ
+  // ==========================================
+  {
+    id: 'prayagraj-sangam',
+    destinationId: 'prayagraj',
+    destinationName: 'Prayagraj',
+    name: 'Triveni Sangam (Sacred River Confluence)',
+    shortDescription: 'Holy meeting point of the greenish Ganga, clear Yamuna, and mythical underground Saraswati.',
+    detailedDescription: 'Vibrant hub of spiritual boat rides, migratory Siberian gulls in winter, and holy baths at the sacred epicentre of Kumbh Mela.',
+    duration: '2 Hours',
+    category: 'Holy Confluence',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/30218192/pexels-photo-30218192.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'prayagraj-bade-hanuman',
+    destinationId: 'prayagraj',
+    destinationName: 'Prayagraj',
+    name: 'Shri Bade Hanuman Ji Mandir (Lethe Hanuman)',
+    shortDescription: 'Revered subterranean temple near Sangam housing a unique 20-foot reclining idol of Lord Hanuman.',
+    detailedDescription: 'Submerged every monsoon by rising Ganga waters considered the river’s touch of worship. Believed to bestow divine strength and blessings.',
+    duration: '1 Hour',
+    category: 'Subterranean Shrine',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/36478011/pexels-photo-36478011.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+
+  // ==========================================
+  // VARANASI EXTRA SIGHTS
+  // ==========================================
+  {
+    id: 'varanasi-assi-ghat',
+    destinationId: 'varanasi',
+    destinationName: 'Varanasi',
+    name: 'Assi Ghat & Subah-e-Banaras',
+    shortDescription: 'Southernmost sacred ghat at the confluence of Ganga and Assi, renowned for morning classical music.',
+    detailedDescription: 'Famous for early dawn yoga, sunrise hawans, classical flute and sitar recitals, and relaxed riverside cafes.',
+    duration: '1.5 Hours',
+    category: 'Sacred Ghat',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/17869831/pexels-photo-17869831.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'varanasi-sankat-mochan',
+    destinationId: 'varanasi',
+    destinationName: 'Varanasi',
+    name: 'Sankat Mochan Hanuman Temple',
+    shortDescription: 'Historic temple founded by Sant Tulsidas dedicated to Lord Hanuman, dispeller of all troubles.',
+    detailedDescription: 'Surrounded by peaceful temple trees, renowned for its daily sweet besan laddoos and tranquil devotional atmosphere.',
+    duration: '1 Hour',
+    category: 'Devotional Shrine',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/36478619/pexels-photo-36478619.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'varanasi-kaal-bhairav',
+    destinationId: 'varanasi',
+    destinationName: 'Varanasi',
+    name: 'Kaal Bhairav Temple (Kotwal of Varanasi)',
+    shortDescription: 'Ancient temple of the fierce guardian protector deity and spiritual police chief of Varanasi.',
+    detailedDescription: 'Pilgrims seek permission and blessings from Kaal Bhairav upon arriving in Kashi. Revered for centuries of tantric and Vedic heritage.',
+    duration: '45 Minutes',
+    category: 'Guardian Deity Temple',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/36065289/pexels-photo-36065289.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+  },
+  {
+    id: 'varanasi-manikarnika',
+    destinationId: 'varanasi',
+    destinationName: 'Varanasi',
+    name: 'Manikarnika Ghat (The Sacred Cremation Ghat)',
+    shortDescription: 'The holiest burning ghat where the eternal sacred fire grants liberation (moksha) to souls.',
+    detailedDescription: 'Deeply philosophical spiritual site on the Ganges where funeral pyres have burnt continuously for millennia, witnessed respectfully from boat cruises.',
+    duration: '45 Minutes',
+    category: 'Spiritual Ghat',
+    unesco: false,
+    image: 'https://images.pexels.com/photos/19272041/pexels-photo-19272041.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
   }
 ];
 
