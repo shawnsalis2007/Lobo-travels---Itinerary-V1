@@ -11,6 +11,7 @@ import {
   INITIAL_DRIVERS,
   INITIAL_OPERATIONAL_BOOKINGS
 } from './mock-data';
+import { getAttractionImage } from './catalog-data';
 
 const STORAGE_KEYS = {
   SETTINGS: 'lobo_settings_v1',
@@ -77,35 +78,46 @@ function refreshAllCaches(): void {
   itinerariesCache = loadedItins;
   hotelsCache = getStorageItem<Hotel[]>(STORAGE_KEYS.HOTELS, INITIAL_HOTELS);
 
-  // Auto-merge newly loaded destinations catalog (v3)
+  // Auto-merge newly loaded destinations catalog
   const storedDests = getStorageItem<Destination[]>(STORAGE_KEYS.DESTINATIONS, []);
   const destMap = new Map<string, Destination>();
   // 1. Initial canonical destinations always have authentic verified photos
   INITIAL_DESTINATIONS.forEach(d => destMap.set(d.id.toLowerCase(), d));
-  // 2. Only preserve custom destinations added by the user
+  // 2. Only preserve custom destinations added by the user (ignoring legacy combined dalhousie-mcleodganj)
   if (Array.isArray(storedDests)) {
     storedDests.forEach(d => {
+      const lowerName = (d.name || '').toLowerCase();
+      const lowerId = (d.id || '').toLowerCase();
+      if ((lowerName.includes('dalhousie') && lowerName.includes('mcleodganj')) || lowerId === 'dalhousie-mcleodganj') {
+        return; // Remove obsolete combined entry
+      }
       if (!destMap.has(d.id.toLowerCase())) {
         destMap.set(d.id.toLowerCase(), d);
       }
     });
   }
   destinationsCache = Array.from(destMap.values());
+  setStorageItem(STORAGE_KEYS.DESTINATIONS, destinationsCache);
 
-  // Auto-merge newly loaded attractions catalog (v3)
+  // Auto-merge newly loaded attractions catalog
   const storedAtts = getStorageItem<Attraction[]>(STORAGE_KEYS.ATTRACTIONS, []);
   const attMap = new Map<string, Attraction>();
   // 1. Initial canonical attractions always have authentic verified photos
-  INITIAL_ATTRACTIONS.forEach(a => attMap.set(a.id.toLowerCase(), a));
-  // 2. Only preserve custom attractions added by the user
+  INITIAL_ATTRACTIONS.forEach(a => {
+    const overrideImg = getAttractionImage(a.name, a.image) || getAttractionImage(a.id, a.image);
+    attMap.set(a.id.toLowerCase(), { ...a, image: overrideImg });
+  });
+  // 2. Only preserve custom attractions added by the user, applying overrides if applicable
   if (Array.isArray(storedAtts)) {
     storedAtts.forEach(a => {
       if (!attMap.has(a.id.toLowerCase())) {
-        attMap.set(a.id.toLowerCase(), a);
+        const overrideImg = getAttractionImage(a.name, a.image) || getAttractionImage(a.id, a.image);
+        attMap.set(a.id.toLowerCase(), { ...a, image: overrideImg });
       }
     });
   }
   attractionsCache = Array.from(attMap.values());
+  setStorageItem(STORAGE_KEYS.ATTRACTIONS, attractionsCache);
 
   vehiclesCache = getStorageItem<VehicleOption[]>(STORAGE_KEYS.VEHICLES, INITIAL_VEHICLES);
   const rawSettings = getStorageItem<AppSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);

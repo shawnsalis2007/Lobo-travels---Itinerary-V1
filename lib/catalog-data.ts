@@ -344,7 +344,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5–2 Hours',
     category: 'Monument & Heritage',
     unesco: true,
-    image: 'https://images.pexels.com/photos/17348001/pexels-photo-17348001.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+    image: 'https://images.unsplash.com/photo-1697729438410-d53c666e3810?w=600&auto=format&fit=crop&q=60'
   },
   {
     id: 'delhi-humayun',
@@ -356,7 +356,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Mughal Monument',
     unesco: true,
-    image: 'https://images.pexels.com/photos/13256094/pexels-photo-13256094.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+    image: 'https://images.unsplash.com/photo-1609670289875-590e8ec05c88?w=600&auto=format&fit=crop&q=60'
   },
   {
     id: 'delhi-india-gate',
@@ -368,7 +368,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '45 Minutes',
     category: 'National Memorial',
     unesco: false,
-    image: 'https://images.pexels.com/photos/16952108/pexels-photo-16952108.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+    image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=60'
   },
   {
     id: 'delhi-red-fort',
@@ -380,7 +380,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Historic Fortress',
     unesco: true,
-    image: 'https://images.pexels.com/photos/14094276/pexels-photo-14094276.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+    image: 'https://images.unsplash.com/photo-1705524220939-dac17cf94236?w=600&auto=format&fit=crop&q=60'
   },
   {
     id: 'delhi-lotus',
@@ -834,7 +834,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'jaisalmer-patwon-haveli',
     destinationId: 'jaisalmer',
     destinationName: 'Jaisalmer',
-    name: 'Patwon Ki Haveli & Salim Singh Haveli',
+    name: 'Patwon Ki Haveli',
     shortDescription: 'Cluster of carved yellow sandstone merchant havelis with intricate stone jharokhas.',
     detailedDescription: 'Built over 50 years by a wealthy merchant family, showcasing the finest stone filigree carving and antique mirror frescoes in Rajasthan.',
     duration: '1.5 Hours',
@@ -982,7 +982,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'varanasi-ganga-aarti',
     destinationId: 'varanasi',
     destinationName: 'Varanasi',
-    name: 'Dashashwamedh Ghat Evening Ganga Aarti',
+    name: 'Dashashwamedh Ghat',
     shortDescription: 'Mesmerizing evening prayer ritual conducted with multi-tiered brass oil lamps, incense, and conch shells.',
     detailedDescription: 'Witnessed from wooden boats on the sacred Ganges as seven young priests choreograph fiery offerings to Mother Ganga in unison.',
     duration: '1.5 Hours',
@@ -1006,7 +1006,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'varanasi-kashi-vishwanath',
     destinationId: 'varanasi',
     destinationName: 'Varanasi',
-    name: 'Kashi Vishwanath Temple (Golden Temple of Shiva)',
+    name: 'Shri Kashi Vishwanath Temple',
     shortDescription: 'One of the twelve sacred Jyotirlingas, crowned by a one-ton pure gold dome.',
     detailedDescription: 'The spiritual heart of Varanasi, dedicated to Lord Shiva as Vishwanatha (Lord of the Universe), connected to the Ganges by the new temple corridor.',
     duration: '2 Hours',
@@ -1213,7 +1213,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
   {
     id: 'dharamshala-dalai-lama-temple',
     destinationId: 'dharamshala',
-    destinationName: 'Dharamshala & McLeodGanj',
+    destinationName: 'Dharamshala',
     name: 'Tsuglagkhang Complex (Dalai Lama Temple & Monastery)',
     shortDescription: 'The spiritual heart of Tibetan Buddhism in exile, home to His Holiness the 14th Dalai Lama.',
     detailedDescription: 'Visit the revered main prayer hall with statues of Avalokiteshvara and Padmasambhava, spin sacred prayer wheels, and walk the tranquil Kora meditation path.',
@@ -1225,7 +1225,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
   {
     id: 'dharamshala-hpca-stadium',
     destinationId: 'dharamshala',
-    destinationName: 'Dharamshala & McLeodGanj',
+    destinationName: 'Dharamshala',
     name: 'HPCA International Cricket Stadium',
     shortDescription: 'World’s most picturesque cricket stadium set at 4,780 feet against the snow-clad Dhauladhar peaks.',
     detailedDescription: 'Famous for its vibrant Tibetan-style pavilion architecture and awe-inspiring backdrop of sheer mountain rock and pine forests.',
@@ -1237,7 +1237,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
   {
     id: 'dharamshala-bhagsu-waterfall',
     destinationId: 'dharamshala',
-    destinationName: 'Dharamshala & McLeodGanj',
+    destinationName: 'Dharamshala',
     name: 'Bhagsunath Temple & Waterfall Hike',
     shortDescription: 'Ancient Lord Shiva temple, freshwater swimming pool, and scenic mountain trail to Bhagsunath waterfall.',
     detailedDescription: 'Enjoy a light mountain hike along mountain streams to the roaring waterfall with famous cliffside cafes serving herbal teas and pancakes.',
@@ -1249,7 +1249,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
   {
     id: 'dharamshala-norbulingka',
     destinationId: 'dharamshala',
-    destinationName: 'Dharamshala & McLeodGanj',
+    destinationName: 'Dharamshala',
     name: 'Norbulingka Tibetan Cultural Institute',
     shortDescription: 'Tranquil Japanese-inspired gardens preserving Tibetan Thangka painting, woodcarving, and bronze casting.',
     detailedDescription: 'Dedicated to keeping traditional Tibetan arts alive through live artisan workshops, shaded bamboo walkways, and traditional tea houses.',
@@ -1754,7 +1754,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'ayodhya-hanuman-garhi',
     destinationId: 'ayodhya',
     destinationName: 'Ayodhya',
-    name: 'Hanuman Garhi Fort Temple',
+    name: 'Hanuman Garhi',
     shortDescription: '10th-century hilltop temple fortress with 76 steps, enshrining Lord Hanuman guarding Ayodhya.',
     detailedDescription: 'Revered temple custom dictates visiting Hanuman Garhi before worshipping at Ram Janmabhumi. Features circular ramparts and panoramic views over Ayodhya.',
     duration: '1 Hour',
@@ -1766,7 +1766,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'ayodhya-ram-ki-paidi',
     destinationId: 'ayodhya',
     destinationName: 'Ayodhya',
-    name: 'Ram Ki Paidi - Saryu River & Saryu Aarti',
+    name: 'Ram Ki Paidi - Saryu River / Saryu Aarti',
     shortDescription: 'Sacred series of bathing ghats on the banks of Saryu River, illuminated during the evening Maha Aarti.',
     detailedDescription: 'Vibrant riverside promenade where thousands gather for sunset holy dips, synchronized chanting, and divine brass lamp river offerings.',
     duration: '1.5 Hours',
@@ -1810,7 +1810,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'bodhgaya-mahabodhi',
     destinationId: 'bodh-gaya',
     destinationName: 'Bodh Gaya',
-    name: 'Mahabodhi Temple Complex',
+    name: 'Mahabodhi Temple',
     shortDescription: 'UNESCO World Heritage 50-meter pyramidal brick temple marking the site of Buddha’s supreme enlightenment.',
     detailedDescription: 'Dating back to the 5th–6th century CE, featuring the Vajrasana diamond throne, ancient votive stupas, and peaceful meditation courtyards.',
     duration: '2 Hours',
@@ -1822,7 +1822,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'bodhgaya-bodhi-tree',
     destinationId: 'bodh-gaya',
     destinationName: 'Bodh Gaya',
-    name: 'The Sacred Bodhi Tree (Ficus Religiosa)',
+    name: 'Bodhi Tree',
     shortDescription: 'Direct descendant of the original fig tree under which Siddhartha Gautama meditated and became the Buddha in 528 BCE.',
     detailedDescription: 'Adjoining the western wall of Mahabodhi Temple, pilgrims from across the globe circumambulate and meditate beneath its shade.',
     duration: '1 Hour',
@@ -1834,7 +1834,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'bodhgaya-great-buddha',
     destinationId: 'bodh-gaya',
     destinationName: 'Bodh Gaya',
-    name: 'Great Buddha Statue (80-Foot Daibutsu)',
+    name: 'Great Buddha Statue',
     shortDescription: 'Monumental 80-foot red granite and sandstone statue of Gautama Buddha seated in meditation dhyana mudra.',
     detailedDescription: 'Unveiled by the 14th Dalai Lama in 1989, flanked by ten standing disciples, making it one of the tallest Buddha statues in India.',
     duration: '45 Minutes',
@@ -1850,7 +1850,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'chitrakoot-ramghat',
     destinationId: 'chitrakoot',
     destinationName: 'Chitrakoot',
-    name: 'Ramghat on Mandakini River',
+    name: 'Ramghat',
     shortDescription: 'Sacred riverside bathing steps where Goswami Tulsidas had darshan of Lord Rama and Lakshmana.',
     detailedDescription: 'Tranquil evening venue for boat rides, traditional temple bells, and the spiritual Mandakini Aarti on the serene forest river.',
     duration: '1.5 Hours',
@@ -1862,7 +1862,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'chitrakoot-kamadgiri',
     destinationId: 'chitrakoot',
     destinationName: 'Chitrakoot',
-    name: 'Kamadgiri Hill & Temple Parikrama',
+    name: 'Kamadgiri Temple',
     shortDescription: 'Holy forested hill believed to embody the spirit of Lord Rama and fulfill heartfelt wishes.',
     detailedDescription: 'Devotees perform the sacred 5-kilometer parikrama circumnavigation around the wooded perimeter dotted with ancient shrines.',
     duration: '2 Hours',
@@ -1878,7 +1878,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'prayagraj-sangam',
     destinationId: 'prayagraj',
     destinationName: 'Prayagraj',
-    name: 'Triveni Sangam (Sacred River Confluence)',
+    name: 'Triveni Sangam',
     shortDescription: 'Holy meeting point of the greenish Ganga, clear Yamuna, and mythical underground Saraswati.',
     detailedDescription: 'Vibrant hub of spiritual boat rides, migratory Siberian gulls in winter, and holy baths at the sacred epicentre of Kumbh Mela.',
     duration: '2 Hours',
@@ -1890,7 +1890,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'prayagraj-bade-hanuman',
     destinationId: 'prayagraj',
     destinationName: 'Prayagraj',
-    name: 'Shri Bade Hanuman Ji Mandir (Lethe Hanuman)',
+    name: 'Shri Bade Hanuman Ji Mandir',
     shortDescription: 'Revered subterranean temple near Sangam housing a unique 20-foot reclining idol of Lord Hanuman.',
     detailedDescription: 'Submerged every monsoon by rising Ganga waters considered the river’s touch of worship. Believed to bestow divine strength and blessings.',
     duration: '1 Hour',
@@ -1906,7 +1906,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'varanasi-assi-ghat',
     destinationId: 'varanasi',
     destinationName: 'Varanasi',
-    name: 'Assi Ghat & Subah-e-Banaras',
+    name: 'Assi Ghat',
     shortDescription: 'Southernmost sacred ghat at the confluence of Ganga and Assi, renowned for morning classical music.',
     detailedDescription: 'Famous for early dawn yoga, sunrise hawans, classical flute and sitar recitals, and relaxed riverside cafes.',
     duration: '1.5 Hours',
@@ -1930,7 +1930,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'varanasi-kaal-bhairav',
     destinationId: 'varanasi',
     destinationName: 'Varanasi',
-    name: 'Kaal Bhairav Temple (Kotwal of Varanasi)',
+    name: 'Kaal Bhairav Temple',
     shortDescription: 'Ancient temple of the fierce guardian protector deity and spiritual police chief of Varanasi.',
     detailedDescription: 'Pilgrims seek permission and blessings from Kaal Bhairav upon arriving in Kashi. Revered for centuries of tantric and Vedic heritage.',
     duration: '45 Minutes',
@@ -1942,7 +1942,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'varanasi-manikarnika',
     destinationId: 'varanasi',
     destinationName: 'Varanasi',
-    name: 'Manikarnika Ghat (The Sacred Cremation Ghat)',
+    name: 'Manikarnika Ghat',
     shortDescription: 'The holiest burning ghat where the eternal sacred fire grants liberation (moksha) to souls.',
     detailedDescription: 'Deeply philosophical spiritual site on the Ganges where funeral pyres have burnt continuously for millennia, witnessed respectfully from boat cruises.',
     duration: '45 Minutes',
@@ -2090,3 +2090,51 @@ export const FEATURED_COVER_PRESETS: CoverImagePreset[] = [
     url: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=1200&q=80'
   }
 ];
+
+// ==========================================
+// HARDCODED ATTRACTION IMAGE OVERRIDES
+// Explicitly mapped verified Unsplash imagery for core sights
+// ==========================================
+export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
+  'delhi-qutub': 'https://images.unsplash.com/photo-1697729438410-d53c666e3810?w=600&auto=format&fit=crop&q=60',
+  'qutub minar': 'https://images.unsplash.com/photo-1697729438410-d53c666e3810?w=600&auto=format&fit=crop&q=60',
+  'qutub minar complex': 'https://images.unsplash.com/photo-1697729438410-d53c666e3810?w=600&auto=format&fit=crop&q=60',
+  'qutub minar victory tower': 'https://images.unsplash.com/photo-1697729438410-d53c666e3810?w=600&auto=format&fit=crop&q=60',
+
+  'delhi-humayun': 'https://images.unsplash.com/photo-1609670289875-590e8ec05c88?w=600&auto=format&fit=crop&q=60',
+  "humayun's tomb": 'https://images.unsplash.com/photo-1609670289875-590e8ec05c88?w=600&auto=format&fit=crop&q=60',
+  'humayun’s tomb': 'https://images.unsplash.com/photo-1609670289875-590e8ec05c88?w=600&auto=format&fit=crop&q=60',
+
+  'delhi-india-gate': 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=60',
+  'india gate': 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=60',
+  'india gate & kartavya path': 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=60',
+
+  'delhi-red-fort': 'https://images.unsplash.com/photo-1705524220939-dac17cf94236?w=600&auto=format&fit=crop&q=60',
+  'red fort': 'https://images.unsplash.com/photo-1705524220939-dac17cf94236?w=600&auto=format&fit=crop&q=60',
+  'red fort (lal qila)': 'https://images.unsplash.com/photo-1705524220939-dac17cf94236?w=600&auto=format&fit=crop&q=60',
+
+  'jaisalmer-fort': 'https://images.unsplash.com/photo-1713349881676-594b95a5742b?w=600&auto=format&fit=crop&q=60',
+  'jaisalmer fort': 'https://images.unsplash.com/photo-1713349881676-594b95a5742b?w=600&auto=format&fit=crop&q=60',
+  'jaisalmer fort (sonar qila / golden fort)': 'https://images.unsplash.com/photo-1713349881676-594b95a5742b?w=600&auto=format&fit=crop&q=60',
+  'sonar qila': 'https://images.unsplash.com/photo-1713349881676-594b95a5742b?w=600&auto=format&fit=crop&q=60',
+  'golden fort': 'https://images.unsplash.com/photo-1713349881676-594b95a5742b?w=600&auto=format&fit=crop&q=60',
+
+  'jaisalmer-sam-dunes': 'https://plus.unsplash.com/premium_photo-1661936495413-875706d59696?w=600&auto=format&fit=crop&q=60',
+  'sam sand dunes': 'https://plus.unsplash.com/premium_photo-1661936495413-875706d59696?w=600&auto=format&fit=crop&q=60',
+  'sam sand dunes camel safari & desert camp': 'https://plus.unsplash.com/premium_photo-1661936495413-875706d59696?w=600&auto=format&fit=crop&q=60',
+
+  'jaisalmer-patwon-haveli': 'https://images.unsplash.com/photo-1677649117932-4c8abf3e27bb?w=600&auto=format&fit=crop&q=60',
+  'patwon ki haveli': 'https://images.unsplash.com/photo-1677649117932-4c8abf3e27bb?w=600&auto=format&fit=crop&q=60',
+  'patwon ki haveli & salim singh haveli': 'https://images.unsplash.com/photo-1677649117932-4c8abf3e27bb?w=600&auto=format&fit=crop&q=60',
+};
+
+export function getAttractionImage(attractionNameOrId: string, defaultImage?: string): string {
+  if (!attractionNameOrId) return defaultImage || '';
+  const key = attractionNameOrId.toLowerCase().trim();
+  if (ATTRACTION_IMAGE_OVERRIDES[key]) return ATTRACTION_IMAGE_OVERRIDES[key];
+  for (const [k, url] of Object.entries(ATTRACTION_IMAGE_OVERRIDES)) {
+    if (key.includes(k) || k.includes(key)) return url;
+  }
+  return defaultImage || '';
+}
+
