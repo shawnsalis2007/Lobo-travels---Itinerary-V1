@@ -70,7 +70,7 @@ export const COVER_IMAGE_PRESETS = [
   { name: 'Dal Lake (Kashmir)', image: 'https://images.unsplash.com/photo-1595815771614-ade9d652a65d?auto=format&fit=crop&w=1200&q=80' },
   { name: 'Golden Temple (Amritsar)', image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df8?auto=format&fit=crop&w=1200&q=80' },
   { name: 'Goa Coastal Beach', image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1200&q=80' },
-  { name: 'Ladakh Snow Peaks', image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80' }
+  { name: 'Ladakh Snow Peaks', image: 'https://images.pexels.com/photos/27593915/pexels-photo-27593915.jpeg?auto=compress&cs=tinysrgb&h=650&w=940' }
 ];
 
 interface ItineraryBuilderProps {
