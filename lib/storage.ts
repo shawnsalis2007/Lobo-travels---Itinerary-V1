@@ -17,7 +17,7 @@ const STORAGE_KEYS = {
   SETTINGS: 'lobo_settings_v1',
   VEHICLES: 'lobo_vehicles_v1',
   DESTINATIONS: 'lobo_destinations_v5',
-  ATTRACTIONS: 'lobo_attractions_v6',
+  ATTRACTIONS: 'lobo_attractions_v7',
   HOTELS: 'lobo_hotels_v1',
   ITINERARIES: 'lobo_itineraries_v3',
   NEXT_REF: 'lobo_next_ref_v1',

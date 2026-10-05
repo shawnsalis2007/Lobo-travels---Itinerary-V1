@@ -1408,7 +1408,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Heritage Church & Valley',
     unesco: false,
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Gulmarg_gondola.JPG/1280px-Gulmarg_gondola.JPG'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/8/83/St._Mary%27s_Church%2C_Gulmarg.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original'
   },
 
   // ==========================================
@@ -1900,7 +1900,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Sacred Tree & Meditation',
     unesco: true,
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Bodhi_Tree_Bodhgaya.jpg/1280px-Bodhi_Tree_Bodhgaya.jpg'
+    image: 'https://tricycle.org/wp-content/uploads/2019/04/bodhi-tree.jpg'
   },
   {
     id: 'bodhgaya-great-buddha',
@@ -1928,7 +1928,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Holy Ghat & River Aarti',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/Government_Polytechnic_-_Bargarh_-_Chitrakoot_2014-07-06_7257.JPG/1280px-Government_Polytechnic_-_Bargarh_-_Chitrakoot_2014-07-06_7257.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmWLux5g3HxIeP_P-PW_DMzTouOrmGTDoiZYngSR5Kl_00aDXyCJoZLwCb5Jws-OFhR8J_huvuLTGP5aNG2Oi14iuyihQ3r4PCMhJ0KNKecYhH1rYuL7H522LBbFy6XTiHjRC9p7a3Kjd6B=s1360-w1360-h1020-rw'
   },
   {
     id: 'chitrakoot-kamadgiri',
@@ -2453,6 +2453,21 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'bharatpur-lohagarh': 'https://s7ap1.scene7.com/is/image/incredibleindia/bharatpur-palace-and-museum-bharatpur-rajasthan-tri-hero?qlt=82&ts=1727166273101',
   'lohagarh fort': 'https://s7ap1.scene7.com/is/image/incredibleindia/bharatpur-palace-and-museum-bharatpur-rajasthan-tri-hero?qlt=82&ts=1727166273101',
   'lohagarh fort (iron fort) & government museum': 'https://s7ap1.scene7.com/is/image/incredibleindia/bharatpur-palace-and-museum-bharatpur-rajasthan-tri-hero?qlt=82&ts=1727166273101',
+  // Gulmarg
+  'gulmarg-st-marys': 'https://upload.wikimedia.org/wikipedia/commons/8/83/St._Mary%27s_Church%2C_Gulmarg.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original',
+  "st. mary's church": 'https://upload.wikimedia.org/wikipedia/commons/8/83/St._Mary%27s_Church%2C_Gulmarg.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original',
+  "st. mary’s church": 'https://upload.wikimedia.org/wikipedia/commons/8/83/St._Mary%27s_Church%2C_Gulmarg.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original',
+  "st. mary's church & strawberry valley": 'https://upload.wikimedia.org/wikipedia/commons/8/83/St._Mary%27s_Church%2C_Gulmarg.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original',
+  "st. mary’s church & strawberry valley": 'https://upload.wikimedia.org/wikipedia/commons/8/83/St._Mary%27s_Church%2C_Gulmarg.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original',
+
+  // Bodh Gaya
+  'bodhgaya-bodhi-tree': 'https://tricycle.org/wp-content/uploads/2019/04/bodhi-tree.jpg',
+  'bodhi tree': 'https://tricycle.org/wp-content/uploads/2019/04/bodhi-tree.jpg',
+
+  // Chitrakoot
+  'chitrakoot-ramghat': 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmWLux5g3HxIeP_P-PW_DMzTouOrmGTDoiZYngSR5Kl_00aDXyCJoZLwCb5Jws-OFhR8J_huvuLTGP5aNG2Oi14iuyihQ3r4PCMhJ0KNKecYhH1rYuL7H522LBbFy6XTiHjRC9p7a3Kjd6B=s1360-w1360-h1020-rw',
+  'ramghat': 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmWLux5g3HxIeP_P-PW_DMzTouOrmGTDoiZYngSR5Kl_00aDXyCJoZLwCb5Jws-OFhR8J_huvuLTGP5aNG2Oi14iuyihQ3r4PCMhJ0KNKecYhH1rYuL7H522LBbFy6XTiHjRC9p7a3Kjd6B=s1360-w1360-h1020-rw',
+  'ramghat in chitrakoot': 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmWLux5g3HxIeP_P-PW_DMzTouOrmGTDoiZYngSR5Kl_00aDXyCJoZLwCb5Jws-OFhR8J_huvuLTGP5aNG2Oi14iuyihQ3r4PCMhJ0KNKecYhH1rYuL7H522LBbFy6XTiHjRC9p7a3Kjd6B=s1360-w1360-h1020-rw',
 };
 
 export function getAttractionImage(attractionNameOrId: string, defaultImage?: string): string {
