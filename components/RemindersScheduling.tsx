@@ -771,7 +771,7 @@ export default function RemindersScheduling({
               {b.calendarAccountIds && b.calendarAccountIds.length > 0 ? (
                 <div className="space-y-2 mb-3">
                   {b.calendarAccountIds.map(accId => {
-                    const acc = settings.connectedCalendars?.find(c => c.id === accId);
+                    const acc = (settings?.connectedCalendars ?? []).find(c => c.id === accId);
                     return (
                       <div key={accId} className="flex items-center justify-between text-sm bg-slate-50 p-2 rounded border border-slate-200">
                         <div className="flex items-center">
@@ -793,7 +793,7 @@ export default function RemindersScheduling({
               )}
 
               {/* Add to another calendar */}
-              {settings.connectedCalendars && settings.connectedCalendars.filter(c => !b.calendarAccountIds?.includes(c.id)).length > 0 && (
+              {(settings?.connectedCalendars ?? []).filter(c => !b.calendarAccountIds?.includes(c.id)).length > 0 && (
                 <div className="flex gap-2">
                   <select
                     className="flex-1 border border-slate-300 rounded px-2 py-1 text-xs"
@@ -801,7 +801,7 @@ export default function RemindersScheduling({
                     onChange={(e) => setSelectedCalendarToAdd(e.target.value)}
                   >
                     <option value="">Select calendar to sync...</option>
-                    {settings.connectedCalendars
+                    {(settings?.connectedCalendars ?? [])
                       .filter(c => !b.calendarAccountIds?.includes(c.id))
                       .map(c => (
                         <option key={c.id} value={c.id}>{c.label} ({c.googleEmail})</option>

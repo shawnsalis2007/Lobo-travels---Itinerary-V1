@@ -151,17 +151,17 @@ export default function TravelVoucherView({
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 rounded-lg overflow-hidden flex items-center justify-center p-1 bg-slate-50 border border-slate-200">
                     <img 
-                      src={settings.logoUrl} 
-                      alt={settings.companyName} 
+                      src={settings?.logoUrl || '/logo.png'} 
+                      alt={settings?.companyName || 'Lobo Travels'} 
                       className="h-full w-full object-contain"
                     />
                   </div>
                   <div>
                     <h1 className="text-lg font-black tracking-tight text-[#151521]">
-                      {settings.companyName.toUpperCase()}
+                      {(settings?.companyName || 'LOBO TRAVELS').toUpperCase()}
                     </h1>
                     <p className="text-[10px] text-[#9899A1] font-medium">
-                      {settings.tagline}
+                      {settings?.tagline || ''}
                     </p>
                   </div>
                 </div>
@@ -398,9 +398,9 @@ export default function TravelVoucherView({
             {/* Pinned Page 1 Footer */}
             <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-[#151521]">{settings.companyName} Operations</span>
+                <span className="font-bold text-[#151521]">{(settings?.companyName || 'Lobo Travels')} Operations</span>
                 <span>·</span>
-                <span>24/7 Helpline: {settings.phones[0]}</span>
+                <span>24/7 Helpline: {settings?.phones?.[0] || '+91 9811240072'}</span>
               </div>
               <div className="font-mono">Voucher Ref: {voucherReference}</div>
               <div>Page 1 of 2</div>
@@ -496,7 +496,7 @@ export default function TravelVoucherView({
                   Important Tour Instructions & Reconfirmation:
                 </span>
                 <p className="text-[10px] text-slate-700">
-                  {settings.voucherTerms}
+                  {settings?.voucherTerms || ''}
                 </p>
               </div>
 
@@ -519,14 +519,14 @@ export default function TravelVoucherView({
               {/* Footer & Contacts */}
               <div className="pt-4 border-t-2 border-[#151521] text-xs text-slate-600 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <div className="font-bold text-slate-900 text-xs">{settings.companyName} Operations Desk</div>
+                  <div className="font-bold text-slate-900 text-xs">{(settings?.companyName || 'Lobo Travels')} Operations Desk</div>
                   <div className="font-mono text-[11px] font-bold text-[#26214F]">Voucher: {voucherReference}</div>
                 </div>
                 <div className="text-[10px] text-slate-500">
-                  Chauffeur Helplines: {settings.phones.join(' | ')} · Email: {settings.email} · {settings.website}
+                  Chauffeur Helplines: {(settings?.phones || []).join(' | ')} · Email: {settings?.email || ''} · {settings?.website || ''}
                 </div>
                 <div className="text-[9px] text-slate-400">
-                  {settings.address}
+                  {settings?.address || ''}
                 </div>
               </div>
 
@@ -535,9 +535,9 @@ export default function TravelVoucherView({
             {/* Pinned Page 2 Footer */}
             <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-[#151521]">{settings.companyName}</span>
+                <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
                 <span>·</span>
-                <span>{settings.phones[0]}</span>
+                <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
               </div>
               <div className="font-mono">Voucher Ref: {voucherReference}</div>
               <div>Page 2 of 2</div>

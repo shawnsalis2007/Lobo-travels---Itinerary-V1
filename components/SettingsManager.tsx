@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { AppSettings, GoogleCalendarAccount } from '@/types';
 import { initGoogleCalendarAuth, listUserCalendars, openGoogleOAuthPopup, startGoogleOAuthRedirect } from '@/lib/calendar';
+import { sanitizeSettings } from '@/lib/storage';
 
 interface SettingsManagerProps {
   settings: AppSettings;
@@ -37,8 +38,27 @@ export default function SettingsManager({
   onSaveSettings,
   onResetDefaults
 }: SettingsManagerProps) {
-  const [formData, setFormData] = useState<AppSettings>(initialSettings);
+  const [formData, setFormData] = useState<AppSettings>(() => sanitizeSettings(initialSettings));
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Sync state if initialSettings changes
+  React.useEffect(() => {
+    if (initialSettings) {
+      setFormData(sanitizeSettings(initialSettings));
+    }
+  }, [initialSettings]);
+
+  // Handle URL redirect with ?gcal_connected=1
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('gcal_connected') === '1') {
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 4000);
+      const newUrl = window.location.pathname + (params.get('tab') ? `?tab=${params.get('tab')}` : '');
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
 
   // ── Calendar connect state ──────────────────────────────────────────────────
   const [showCalendarConnect, setShowCalendarConnect] = useState(false);
@@ -58,13 +78,15 @@ export default function SettingsManager({
       if (event.data?.type === 'LOBO_GCAL_CONNECTED' && event.data?.account) {
         const newAccount: GoogleCalendarAccount = event.data.account;
         setFormData((prev) => {
-          const existing = (prev.connectedCalendars ?? []).filter(
-            (c) => c.googleEmail !== newAccount.googleEmail && c.calendarId !== newAccount.calendarId
+          const sanitizedPrev = sanitizeSettings(prev);
+          const existing = (sanitizedPrev.connectedCalendars ?? []).filter(
+            (c) => c && c.googleEmail !== newAccount.googleEmail && c.calendarId !== newAccount.calendarId
           );
           if (existing.length === 0) newAccount.isDefault = true;
           const updated = [...existing, newAccount];
-          onSaveSettings({ ...prev, connectedCalendars: updated });
-          return { ...prev, connectedCalendars: updated };
+          const updatedSettings = { ...sanitizedPrev, connectedCalendars: updated };
+          onSaveSettings(updatedSettings);
+          return updatedSettings;
         });
         setShowCalendarConnect(false);
         setSaveSuccess(true);
@@ -77,23 +99,23 @@ export default function SettingsManager({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSaveSettings(formData);
+    onSaveSettings(sanitizeSettings(formData));
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
   };
 
   const handlePhoneChange = (index: number, val: string) => {
-    const updated = [...formData.phones];
+    const updated = [...(formData.phones ?? [])];
     updated[index] = val;
     setFormData({ ...formData, phones: updated });
   };
 
   const handleAddPhone = () => {
-    setFormData({ ...formData, phones: [...formData.phones, ''] });
+    setFormData({ ...formData, phones: [...(formData.phones ?? []), ''] });
   };
 
   const handleRemovePhone = (index: number) => {
-    setFormData({ ...formData, phones: formData.phones.filter((_, i) => i !== index) });
+    setFormData({ ...formData, phones: (formData.phones ?? []).filter((_, i) => i !== index) });
   };
 
   return (
@@ -244,7 +266,7 @@ export default function SettingsManager({
               </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {formData.phones.map((phone, idx) => (
+              {(formData.phones ?? []).map((phone, idx) => (
                 <div key={idx} className="flex items-center gap-1">
                   <input
                     type="text"
@@ -253,7 +275,7 @@ export default function SettingsManager({
                     placeholder="9811240072"
                     className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-xs"
                   />
-                  {formData.phones.length > 1 && (
+                  {(formData.phones ?? []).length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemovePhone(idx)}
@@ -348,13 +370,13 @@ export default function SettingsManager({
               const others = (formData.connectedCalendars ?? []).filter((_, i) => i !== idx);
               return (
                 <div
-                  key={cal.id}
+                  key={cal?.id || idx}
                   className="flex flex-wrap items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs"
                 >
                   {/* Editable label */}
                   <input
                     type="text"
-                    value={cal.label}
+                    value={cal?.label || ''}
                     onChange={(e) => {
                       const updated = (formData.connectedCalendars ?? []).map((c, i) =>
                         i === idx ? { ...c, label: e.target.value } : c,
@@ -366,18 +388,18 @@ export default function SettingsManager({
                   />
 
                   {/* Google email (read-only) */}
-                  <span className="text-slate-500 font-mono">{cal.googleEmail}</span>
+                  <span className="text-slate-500 font-mono">{cal?.googleEmail || ''}</span>
 
                   {/* Calendar ID (read-only, truncated) */}
                   <span
                     className="text-slate-400 hidden sm:block truncate max-w-[180px]"
-                    title={cal.calendarId}
+                    title={cal?.calendarId || ''}
                   >
-                    {cal.calendarId}
+                    {cal?.calendarId || ''}
                   </span>
 
                   {/* Status badge */}
-                  {cal.connectionStatus === 'connected' ? (
+                  {cal?.connectionStatus === 'connected' ? (
                     <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
                       <Wifi className="w-3 h-3" /> Connected
                     </span>
@@ -390,7 +412,7 @@ export default function SettingsManager({
                   {/* Set as Default */}
                   <button
                     type="button"
-                    title={cal.isDefault ? 'Default calendar' : 'Set as default'}
+                    title={cal?.isDefault ? 'Default calendar' : 'Set as default'}
                     onClick={() => {
                       const updated = (formData.connectedCalendars ?? []).map((c, i) => ({
                         ...c,
@@ -400,7 +422,7 @@ export default function SettingsManager({
                     }}
                     className="text-amber-400 hover:text-amber-600 transition"
                   >
-                    {cal.isDefault ? (
+                    {cal?.isDefault ? (
                       <Star className="w-4 h-4 fill-amber-400" />
                     ) : (
                       <StarOff className="w-4 h-4" />

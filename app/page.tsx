@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Dashboard from '@/components/Dashboard';
 import ItineraryBuilder from '@/components/ItineraryBuilder';
@@ -52,6 +52,15 @@ import {
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['dashboard', 'itineraries', 'hotels', 'destinations', 'reminders', 'reports', 'fleet', 'drivers', 'settings'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, []);
 
   // Synchronized stores with SSR snapshot hydration safety
   const itineraries = useItineraries();
@@ -115,8 +124,8 @@ export default function Home() {
       advancePaid: 0,
       pendingAmount: 49000,
       paymentStatus: 'Unpaid',
-      inclusions: [...settings.defaultInclusions],
-      exclusions: [...settings.defaultExclusions],
+      inclusions: [...(settings?.defaultInclusions || [])],
+      exclusions: [...(settings?.defaultExclusions || [])],
       specialNotes: 'Taj Mahal is closed every Friday. Monument entry permits, cameras, and personal expenses are paid directly.',
       coverImage: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80',
       flightBookings: {
@@ -458,18 +467,18 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-bold text-white tracking-wide">
-              {settings.companyName.toUpperCase()}
+              {(settings?.companyName || 'LOBO TRAVELS').toUpperCase()}
             </span>
             <span>·</span>
-            <span>{settings.tagline}</span>
+            <span>{settings?.tagline || ''}</span>
           </div>
 
           <div className="flex items-center gap-4 text-[11px] text-slate-500">
-            <span>Helpline: {settings.phones[0]}</span>
+            <span>Helpline: {settings?.phones?.[0] || '+91 9811240072'}</span>
             <span>·</span>
-            <span>{settings.email}</span>
+            <span>{settings?.email || 'info@lobotravels.com'}</span>
             <span>·</span>
-            <span>{settings.address}</span>
+            <span>{settings?.address || ''}</span>
           </div>
         </div>
       </footer>

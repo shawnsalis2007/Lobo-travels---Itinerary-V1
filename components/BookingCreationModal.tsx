@@ -168,7 +168,7 @@ export default function BookingCreationModal({
   const [syncErrors, setSyncErrors] = useState<string[]>([]);
 
   // ── calendar selection ──
-  const calendars: GoogleCalendarAccount[] = settings.connectedCalendars ?? [];
+  const calendars: GoogleCalendarAccount[] = settings?.connectedCalendars ?? [];
   const defaultChecked = new Set(
     calendars.filter((c) => c.isDefault).map((c) => c.id)
   );

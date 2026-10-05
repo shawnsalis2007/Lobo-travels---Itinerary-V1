@@ -49,6 +49,33 @@ function getStorageItem<T>(key: string, fallback: T): T {
   }
 }
 
+// Sanitizes raw or partially initialized settings by deep-merging with DEFAULT_SETTINGS
+export function sanitizeSettings(raw: Partial<AppSettings> | null | undefined): AppSettings {
+  if (!raw || typeof raw !== 'object') {
+    return { ...DEFAULT_SETTINGS, connectedCalendars: [] };
+  }
+  return {
+    ...DEFAULT_SETTINGS,
+    ...raw,
+    companyName: raw.companyName || DEFAULT_SETTINGS.companyName,
+    tagline: raw.tagline !== undefined ? raw.tagline : DEFAULT_SETTINGS.tagline,
+    logoUrl: (raw.logoUrl && !raw.logoUrl.includes('github.com/VensonLobo')) ? raw.logoUrl : DEFAULT_SETTINGS.logoUrl,
+    phones: Array.isArray(raw.phones) && raw.phones.length > 0 ? raw.phones : [...DEFAULT_SETTINGS.phones],
+    email: raw.email || DEFAULT_SETTINGS.email,
+    address: raw.address !== undefined ? raw.address : DEFAULT_SETTINGS.address,
+    website: raw.website !== undefined ? raw.website : DEFAULT_SETTINGS.website,
+    referencePrefix: raw.referencePrefix || DEFAULT_SETTINGS.referencePrefix,
+    nextReferenceSequence: typeof raw.nextReferenceSequence === 'number' ? raw.nextReferenceSequence : DEFAULT_SETTINGS.nextReferenceSequence,
+    voucherTerms: raw.voucherTerms !== undefined ? raw.voucherTerms : DEFAULT_SETTINGS.voucherTerms,
+    defaultInclusions: Array.isArray(raw.defaultInclusions) && raw.defaultInclusions.length > 0 ? raw.defaultInclusions : [...DEFAULT_SETTINGS.defaultInclusions],
+    defaultExclusions: Array.isArray(raw.defaultExclusions) && raw.defaultExclusions.length > 0 ? raw.defaultExclusions : [...DEFAULT_SETTINGS.defaultExclusions],
+    brandColorPrimary: raw.brandColorPrimary || DEFAULT_SETTINGS.brandColorPrimary,
+    brandColorSecondary: raw.brandColorSecondary || DEFAULT_SETTINGS.brandColorSecondary,
+    brandColorAccent: raw.brandColorAccent || DEFAULT_SETTINGS.brandColorAccent,
+    connectedCalendars: Array.isArray(raw.connectedCalendars) ? raw.connectedCalendars : []
+  };
+}
+
 let isRefreshing = false;
 
 function refreshAllCaches(): void {
@@ -134,12 +161,11 @@ function refreshAllCaches(): void {
     } catch (_) {}
 
     vehiclesCache = getStorageItem<VehicleOption[]>(STORAGE_KEYS.VEHICLES, INITIAL_VEHICLES);
-    const rawSettings = getStorageItem<AppSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
-    // Migrate: replace old GitHub-hosted logo with local /logo.png
-    if (rawSettings.logoUrl && rawSettings.logoUrl.includes('github.com/VensonLobo')) {
-      rawSettings.logoUrl = '/logo.png';
-    }
-    settingsCache = rawSettings;
+    const rawSettings = getStorageItem<Partial<AppSettings>>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
+    settingsCache = sanitizeSettings(rawSettings);
+    try {
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settingsCache));
+    } catch (_) {}
     fleetCache = getStorageItem<FleetVehicle[]>(STORAGE_KEYS.FLEET, INITIAL_FLEET);
     driversCache = getStorageItem<Driver[]>(STORAGE_KEYS.DRIVERS, INITIAL_DRIVERS);
     bookingsCache = getStorageItem<OperationalBooking[]>(STORAGE_KEYS.BOOKINGS, INITIAL_OPERATIONAL_BOOKINGS);
@@ -165,7 +191,7 @@ function setStorageItem<T>(key: string, value: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
     switch (key) {
-      case STORAGE_KEYS.SETTINGS: settingsCache = value as AppSettings; break;
+      case STORAGE_KEYS.SETTINGS: settingsCache = sanitizeSettings(value as Partial<AppSettings>); break;
       case STORAGE_KEYS.VEHICLES: vehiclesCache = value as VehicleOption[]; break;
       case STORAGE_KEYS.DESTINATIONS: destinationsCache = value as Destination[]; break;
       case STORAGE_KEYS.ATTRACTIONS: attractionsCache = value as Attraction[]; break;
@@ -267,11 +293,15 @@ export function useSettings(): AppSettings {
 
 // Standard synchronous getters (fallbacks)
 export function getSettings(): AppSettings {
-  return getStorageItem<AppSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
+  if (settingsCache) return settingsCache;
+  const rawSettings = getStorageItem<Partial<AppSettings>>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
+  settingsCache = sanitizeSettings(rawSettings);
+  return settingsCache;
 }
 
 export function saveSettings(settings: AppSettings): void {
-  setStorageItem(STORAGE_KEYS.SETTINGS, settings);
+  const sanitized = sanitizeSettings(settings);
+  setStorageItem(STORAGE_KEYS.SETTINGS, sanitized);
 }
 
 // Vehicles

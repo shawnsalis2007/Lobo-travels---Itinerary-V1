@@ -363,8 +363,8 @@ export default function ItineraryBuilder({
       return JSON.parse(JSON.stringify(initialItinerary));
     }
 
-    const defaultInclusions = settings.defaultInclusions || [];
-    const defaultExclusions = settings.defaultExclusions || [];
+    const defaultInclusions = settings?.defaultInclusions || [];
+    const defaultExclusions = settings?.defaultExclusions || [];
 
     const defaultDay: ItineraryDay = {
       id: 'day-' + Date.now(),
@@ -402,7 +402,7 @@ export default function ItineraryBuilder({
 
     return {
       id: 'itn-' + Date.now().toString(36),
-      referenceNumber: `${settings.referencePrefix || 'LT-2026-'}0001`,
+      referenceNumber: `${settings?.referencePrefix || 'LT-2026-'}0001`,
       tourName: 'Golden Triangle Tour – Delhi, Agra & Jaipur',
       clientName: '',
       clientPhone: '',

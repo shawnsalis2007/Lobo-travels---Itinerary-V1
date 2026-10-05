@@ -193,11 +193,59 @@ export async function GET(req: NextRequest) {
                 // Save to localStorage directly
                 const SETTINGS_KEY = 'lobo_settings_v1';
                 const raw = localStorage.getItem(SETTINGS_KEY);
-                let settings = raw ? JSON.parse(raw) : {};
-                let cals = settings.connectedCalendars || [];
+                let settings = {};
+                try {
+                  settings = raw ? JSON.parse(raw) : {};
+                } catch (e) {
+                  settings = {};
+                }
+                if (!settings || typeof settings !== 'object') {
+                  settings = {};
+                }
+
+                // Guarantee core settings properties exist to prevent missing-property exceptions
+                const defaults = {
+                  companyName: 'Lobo Travels',
+                  tagline: 'Travel packages, fleet operations, and all travel related solutions.',
+                  logoUrl: '/logo.png',
+                  phones: ['9811240072', '9891240072', '9312640072'],
+                  email: 'info@lobotravels.com',
+                  address: 'Shop No. 12, NDMC Market Near CNG Pump, Mandir Marg, New Delhi - 110001',
+                  website: 'lobotravels.com',
+                  referencePrefix: 'LT-2026-',
+                  nextReferenceSequence: 3,
+                  voucherTerms: 'Please reconfirm all hotel, sightseeing and transfer arrangements before the start of the tour. Valid government-issued photo ID is mandatory at all hotel check-ins and monument entrances. Chauffeur duty hours: 08:00 AM to 08:00 PM for local transfers except early morning scheduled transfers.',
+                  defaultInclusions: [
+                    'Private air-conditioned Kia Carens throughout the tour',
+                    'Hotel Accommodation - 1 Room with triple occupancy',
+                    'Breakfast as per hotel policy',
+                    'Sightseeing as per itinerary',
+                    'Experienced chauffeur',
+                    'Guides in Agra and Jaipur',
+                    'Fuel, tolls, parking & applicable taxes',
+                    'Driver allowances'
+                  ],
+                  defaultExclusions: [
+                    'Airfare & visa fees',
+                    'Monument / attraction entrance fees',
+                    'Guides - except where mentioned in the inclusions',
+                    'Food & beverages (lunches, dinners, snacks, alcoholic drinks)',
+                    'Additional sightseeing / activities not in itinerary',
+                    'Travel insurance',
+                    'Anything not specifically mentioned under inclusions'
+                  ],
+                  brandColorPrimary: '#151521',
+                  brandColorSecondary: '#26214F',
+                  brandColorAccent: '#9899A1'
+                };
+
+                settings = Object.assign({}, defaults, settings);
+                let cals = Array.isArray(settings.connectedCalendars) ? settings.connectedCalendars : [];
 
                 // Filter out any older duplicate with the same email or calendarId
-                cals = cals.filter(c => c.googleEmail !== account.googleEmail && c.calendarId !== account.calendarId);
+                cals = cals.filter(function(c) {
+                  return c && c.googleEmail !== account.googleEmail && c.calendarId !== account.calendarId;
+                });
 
                 // If this is the only calendar, set as default
                 if (cals.length === 0) {

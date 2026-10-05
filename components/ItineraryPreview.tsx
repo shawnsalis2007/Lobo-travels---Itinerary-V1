@@ -484,17 +484,17 @@ export default function ItineraryPreview({
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 rounded-lg overflow-hidden flex items-center justify-center p-1 bg-slate-50 border border-slate-200">
                     <img 
-                      src={settings.logoUrl} 
-                      alt={settings.companyName} 
+                      src={settings?.logoUrl || '/logo.png'} 
+                      alt={settings?.companyName || 'Lobo Travels'} 
                       className="h-full w-full object-contain"
                     />
                   </div>
                   <div>
                     <h2 className="text-lg font-black tracking-tight text-[#151521]">
-                      {settings.companyName.toUpperCase()}
+                      {(settings?.companyName || 'LOBO TRAVELS').toUpperCase()}
                     </h2>
                     <p className="text-[10px] text-[#9899A1] font-medium tracking-wide">
-                      {settings.tagline}
+                      {settings?.tagline || ''}
                     </p>
                   </div>
                 </div>
@@ -659,7 +659,7 @@ export default function ItineraryPreview({
                       Flight Travel Details & Tickets (Confirmed Flights)
                     </span>
                     <span className="text-[10px] font-bold text-sky-800 bg-sky-200/60 px-2 py-0.5 rounded">
-                      Flights Booked by {settings.companyName}
+                      Flights Booked by {settings?.companyName || 'Lobo Travels'}
                     </span>
                   </div>
 
@@ -728,11 +728,11 @@ export default function ItineraryPreview({
             {/* Pinned Page 1 Footer */}
             <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-[#151521]">{settings.companyName}</span>
+                <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
                 <span>·</span>
-                <span>{settings.phones[0]}</span>
+                <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
                 <span>·</span>
-                <span>{settings.website}</span>
+                <span>{settings?.website || 'lobotravels.com'}</span>
               </div>
               <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
               <div>Page 1 of {totalPages}</div>
@@ -1016,9 +1016,9 @@ export default function ItineraryPreview({
                 {/* Pinned Page Footer */}
                 <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#151521]">{settings.companyName}</span>
+                    <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
                     <span>·</span>
-                    <span>{settings.phones[0]}</span>
+                    <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
                   </div>
                   <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
                   <div>Page {pageNum} of {totalPages}</div>
@@ -1174,12 +1174,12 @@ export default function ItineraryPreview({
               {/* Company Signoff & Verification */}
               <div className="p-3 rounded-xl bg-[#151521] text-white text-xs flex items-center justify-between">
                 <div>
-                  <div className="font-bold text-amber-300">{settings.companyName} Operations Desk</div>
-                  <div className="text-[10px] text-slate-300">{settings.address}</div>
+                  <div className="font-bold text-amber-300">{(settings?.companyName || 'Lobo Travels')} Operations Desk</div>
+                  <div className="text-[10px] text-slate-300">{settings?.address || ''}</div>
                 </div>
                 <div className="text-right text-[10px] text-slate-300">
-                  <div>Chauffeur Helplines: {settings.phones.join(' | ')}</div>
-                  <div>Email: {settings.email} · {settings.website}</div>
+                  <div>Chauffeur Helplines: {(settings?.phones || []).join(' | ')}</div>
+                  <div>Email: {settings?.email || ''} · {settings?.website || ''}</div>
                 </div>
               </div>
 
@@ -1188,9 +1188,9 @@ export default function ItineraryPreview({
             {/* Pinned Final Page Footer */}
             <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-[#151521]">{settings.companyName}</span>
+                <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
                 <span>·</span>
-                <span>{settings.phones[0]}</span>
+                <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
               </div>
               <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
               <div>Page {totalPages} of {totalPages}</div>
