@@ -451,6 +451,8 @@ export default function Home() {
         {activeTab === 'settings' && (
           <SettingsManager
             settings={settings}
+            itineraries={itineraries}
+            bookings={operationalBookings}
             onSaveSettings={(st) => {
               saveSettings(st);
             }}

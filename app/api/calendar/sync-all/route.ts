@@ -4,14 +4,18 @@ import { GoogleCalendarAccount, Itinerary, OperationalBooking, CalendarEventRef 
 export const dynamic = 'force-dynamic';
 
 function addDays(dateStr: string, days: number): string {
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    d.setDate(d.getDate() + days);
-    return d.toISOString().split('T')[0];
-  } catch {
-    return dateStr;
+  if (!dateStr) return dateStr;
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+      const d = new Date(Date.UTC(year, month, day + days));
+      return d.toISOString().split('T')[0];
+    }
   }
+  return dateStr;
 }
 
 export async function POST(req: NextRequest) {
@@ -27,7 +31,7 @@ export async function POST(req: NextRequest) {
       bookings?: OperationalBooking[];
     } = body;
 
-    if (!calendarAccount || !calendarAccount.calendarId) {
+    if (!calendarAccount) {
       return NextResponse.json(
         { error: 'No connected Google Calendar account specified for synchronization.' },
         { status: 400 }
@@ -71,61 +75,236 @@ export async function POST(req: NextRequest) {
 
     if (!accessToken) {
       return NextResponse.json(
-        { error: 'Google Calendar session token has expired. Please reconnect your Google Calendar in Settings.' },
+        { error: 'Google Calendar session token has expired or is invalid. Please reconnect your Google Calendar in Settings.' },
         { status: 401 }
       );
     }
 
-    const targetCalendarId = calendarAccount.calendarId || 'primary';
+    // Force 'primary' calendar so events always land in the user's main personal/primary calendar view
+    const targetCalendarId = 'primary';
     const accountId = calendarAccount.id;
 
     let syncedCount = 0;
     const syncedBookings: { id: string; calendarEventIds: CalendarEventRef[] }[] = [];
     const syncedItineraries: { id: string; googleCalendarEventId: string; calendarEventIds: CalendarEventRef[] }[] = [];
     const errors: string[] = [];
+    const skippedReason: string[] = [];
 
-    // Map to keep track of tours already scheduled via bookings to avoid duplicate itinerary events
-    const scheduledTourIdentifiers = new Set<string>();
+    // Track which itinerary IDs and references have been scheduled to avoid any duplicate events
+    const processedTours = new Set<string>();
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // 1. Sync Operational Bookings (with Reminder Schedules)
+    // 1. Sync Itineraries (The primary data source for the Lobo Travels Dashboard)
     // ─────────────────────────────────────────────────────────────────────────────
-    for (const b of bookings) {
-      if (b.status === 'cancelled') continue;
-      if (!b.startDate || !b.endDate) continue;
+    for (const itin of itineraries) {
+      if (itin.status === 'Cancelled') {
+        skippedReason.push(`Itinerary ${itin.referenceNumber}: status is Cancelled`);
+        continue;
+      }
 
-      if (b.itineraryId) scheduledTourIdentifiers.add(b.itineraryId);
-      if (b.itineraryRef) scheduledTourIdentifiers.add(b.itineraryRef);
+      const effectiveStartDate = itin.startDate;
+      const effectiveEndDate = itin.endDate || itin.startDate;
 
-      // Deduplication check: check if event is already registered on this calendar account
-      const alreadyHasEvent = Array.isArray(b.calendarEventIds) &&
-        b.calendarEventIds.some((ref) => ref.calendarAccountId === accountId && ref.eventId);
+      if (!effectiveStartDate || !effectiveEndDate) {
+        skippedReason.push(`Itinerary ${itin.referenceNumber}: tour dates not confirmed`);
+        continue;
+      }
 
-      if (alreadyHasEvent) {
-        continue; // Deduplicated — skip creating duplicate
+      // Check if an operational booking exists for this tour
+      const matchingBooking = bookings.find(
+        (b) => (b.itineraryId && b.itineraryId === itin.id) || (b.itineraryRef && b.itineraryRef === itin.referenceNumber)
+      );
+
+      // Deduplication check: Check if an event already exists on this account for the itinerary
+      const itineraryAlreadySynced = Array.isArray(itin.calendarEventIds) &&
+        itin.calendarEventIds.some((ref) => (ref.calendarAccountId === accountId || ref.calendarAccountId === 'primary') && ref.eventId);
+
+      // Deduplication check: Check if matching operational booking already has an event on this account
+      const bookingAlreadySynced = matchingBooking && Array.isArray(matchingBooking.calendarEventIds) &&
+        matchingBooking.calendarEventIds.some((ref) => (ref.calendarAccountId === accountId || ref.calendarAccountId === 'primary') && ref.eventId);
+
+      if (itineraryAlreadySynced || bookingAlreadySynced) {
+        // Already synchronized on this Google Calendar account
+        if (bookingAlreadySynced && matchingBooking && !itineraryAlreadySynced) {
+          const ref = matchingBooking.calendarEventIds.find((r) => r.calendarAccountId === accountId || r.calendarAccountId === 'primary');
+          if (ref) {
+            syncedItineraries.push({
+              id: itin.id,
+              googleCalendarEventId: ref.eventId,
+              calendarEventIds: [ref],
+            });
+          }
+        }
+        processedTours.add(itin.id);
+        processedTours.add(itin.referenceNumber);
+        continue;
       }
 
       // Compute Google Calendar reminder popups
       const reminderOverrides: { method: 'popup'; minutes: number }[] = [];
-      if (Array.isArray(b.reminders) && b.reminders.length > 0) {
-        for (const rem of b.reminders) {
+      if (matchingBooking && Array.isArray(matchingBooking.reminders) && matchingBooking.reminders.length > 0) {
+        for (const rem of matchingBooking.reminders) {
           if (rem.type === 'offset' && typeof rem.offsetDays === 'number' && rem.offsetDays > 0) {
-            reminderOverrides.push({ method: 'popup', minutes: rem.offsetDays * 24 * 60 });
+            const mins = Math.min(rem.offsetDays * 24 * 60, 40320); // Google max 4 weeks
+            reminderOverrides.push({ method: 'popup', minutes: mins });
           } else if (rem.type === 'custom' && rem.customDateTime) {
             const remTime = new Date(rem.customDateTime).getTime();
-            const startTime = new Date(b.startDate).getTime();
+            const startTime = new Date(effectiveStartDate).getTime();
             if (remTime < startTime) {
               const diffMins = Math.round((startTime - remTime) / (60 * 1000));
-              if (diffMins > 0) reminderOverrides.push({ method: 'popup', minutes: diffMins });
+              if (diffMins > 0 && diffMins <= 40320) {
+                reminderOverrides.push({ method: 'popup', minutes: diffMins });
+              }
             }
           }
         }
       }
 
-      // Fallback default operational reminders if none are explicitly configured
+      // Default operational reminders if none are configured (7 days and 1 day prior)
       if (reminderOverrides.length === 0) {
-        reminderOverrides.push({ method: 'popup', minutes: 7 * 24 * 60 }); // 7 days prior
-        reminderOverrides.push({ method: 'popup', minutes: 2 * 24 * 60 }); // 2 days prior
+        reminderOverrides.push({ method: 'popup', minutes: 7 * 24 * 60 }); // 7 days prior (10080 mins)
+        reminderOverrides.push({ method: 'popup', minutes: 1 * 24 * 60 }); // 1 day prior (1440 mins)
+      }
+
+      const destSummary = itin.days
+        ?.map((d) => d.overnightLocation || d.destination)
+        .filter(Boolean)
+        .slice(0, 6)
+        .join(' → ');
+
+      const clientDisplayName = itin.clientName || matchingBooking?.client?.name || 'Valued Guest';
+      const clientPhone = itin.clientPhone || matchingBooking?.client?.phone;
+      const clientEmail = itin.clientEmail || matchingBooking?.client?.email;
+      const voucherRef = matchingBooking?.voucherNo;
+      const arrivalInfo = matchingBooking?.flightOrArrivalDetails;
+      const totalCostFormatted = typeof itin.totalCost === 'number' ? `₹${itin.totalCost.toLocaleString('en-IN')}` : '';
+
+      const descriptionLines = [
+        `Tour Package: ${itin.tourName}`,
+        `Proposal Ref: ${itin.referenceNumber}`,
+        voucherRef ? `Voucher Ref: ${voucherRef}` : '',
+        `Lead Guest: ${clientDisplayName}`,
+        clientPhone ? `Phone: ${clientPhone}` : '',
+        clientEmail ? `Email: ${clientEmail}` : '',
+        itin.paxSummary ? `Travelers: ${itin.paxSummary}` : '',
+        itin.vehicleDisplay ? `Vehicle Assigned: ${itin.vehicleDisplay}` : '',
+        destSummary ? `Route: ${destSummary}` : '',
+        arrivalInfo ? `Arrival / Flight: ${arrivalInfo}` : '',
+        totalCostFormatted ? `Total Package Value: ${totalCostFormatted}` : '',
+        '',
+        'Synchronized via Lobo Travels Tour Operations Management'
+      ].filter(Boolean).join('\n');
+
+      const eventPayload = {
+        summary: `[${voucherRef || itin.referenceNumber}] ${itin.tourName} — ${clientDisplayName}`,
+        description: descriptionLines,
+        start: { date: effectiveStartDate },
+        end: { date: addDays(effectiveEndDate, 1) }, // Google Calendar all-day event end date is exclusive
+        reminders: {
+          useDefault: false,
+          overrides: reminderOverrides.slice(0, 5), // Google allows max 5 overrides
+        },
+      };
+
+      try {
+        const eventRes = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(eventPayload),
+          }
+        );
+
+        if (!eventRes.ok) {
+          const errText = await eventRes.text();
+          console.error(`[sync-all] Google API Error on Itinerary ${itin.referenceNumber}:`, errText);
+          errors.push(`Itinerary ${itin.referenceNumber}: ${errText}`);
+          continue;
+        }
+
+        const eventData = await eventRes.json();
+        const eventRef: CalendarEventRef = {
+          calendarAccountId: accountId,
+          eventId: eventData.id,
+        };
+
+        const updatedItinRefs = [
+          ...(itin.calendarEventIds || []),
+          eventRef
+        ];
+
+        syncedItineraries.push({
+          id: itin.id,
+          googleCalendarEventId: eventData.id,
+          calendarEventIds: updatedItinRefs,
+        });
+
+        // Also associate event ID with matching operational booking if present
+        if (matchingBooking) {
+          const updatedBookingRefs = [
+            ...(matchingBooking.calendarEventIds || []),
+            eventRef
+          ];
+          syncedBookings.push({
+            id: matchingBooking.id,
+            calendarEventIds: updatedBookingRefs,
+          });
+        }
+
+        processedTours.add(itin.id);
+        processedTours.add(itin.referenceNumber);
+        syncedCount++;
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : 'Unknown exception';
+        console.error(`[sync-all] Exception on Itinerary ${itin.referenceNumber}:`, err);
+        errors.push(`Itinerary ${itin.referenceNumber}: ${errMsg}`);
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // 2. Sync Any Standalone Operational Bookings (not already processed above)
+    // ─────────────────────────────────────────────────────────────────────────────
+    for (const b of bookings) {
+      if (b.status === 'cancelled') continue;
+      if (!b.startDate || !b.endDate) continue;
+
+      if (processedTours.has(b.id) || (b.itineraryId && processedTours.has(b.itineraryId)) || (b.itineraryRef && processedTours.has(b.itineraryRef))) {
+        continue; // Already processed
+      }
+
+      const alreadyHasEvent = Array.isArray(b.calendarEventIds) &&
+        b.calendarEventIds.some((ref) => (ref.calendarAccountId === accountId || ref.calendarAccountId === 'primary') && ref.eventId);
+
+      if (alreadyHasEvent) {
+        continue;
+      }
+
+      const reminderOverrides: { method: 'popup'; minutes: number }[] = [];
+      if (Array.isArray(b.reminders) && b.reminders.length > 0) {
+        for (const rem of b.reminders) {
+          if (rem.type === 'offset' && typeof rem.offsetDays === 'number' && rem.offsetDays > 0) {
+            const mins = Math.min(rem.offsetDays * 24 * 60, 40320);
+            reminderOverrides.push({ method: 'popup', minutes: mins });
+          } else if (rem.type === 'custom' && rem.customDateTime) {
+            const remTime = new Date(rem.customDateTime).getTime();
+            const startTime = new Date(b.startDate).getTime();
+            if (remTime < startTime) {
+              const diffMins = Math.round((startTime - remTime) / (60 * 1000));
+              if (diffMins > 0 && diffMins <= 40320) {
+                reminderOverrides.push({ method: 'popup', minutes: diffMins });
+              }
+            }
+          }
+        }
+      }
+
+      if (reminderOverrides.length === 0) {
+        reminderOverrides.push({ method: 'popup', minutes: 7 * 24 * 60 });
+        reminderOverrides.push({ method: 'popup', minutes: 1 * 24 * 60 });
       }
 
       const descriptionLines = [
@@ -146,10 +325,10 @@ export async function POST(req: NextRequest) {
         summary: `[${b.voucherNo || b.itineraryRef || 'Booking'}] ${b.tourPackageName} — ${b.client?.name || 'Guest'}`,
         description: descriptionLines,
         start: { date: b.startDate },
-        end: { date: addDays(b.endDate, 1) }, // Google Calendar all-day event end is exclusive
+        end: { date: addDays(b.endDate, 1) },
         reminders: {
           useDefault: false,
-          overrides: reminderOverrides.slice(0, 5), // Google API allows max 5 overrides
+          overrides: reminderOverrides.slice(0, 5),
         },
       };
 
@@ -168,6 +347,7 @@ export async function POST(req: NextRequest) {
 
         if (!eventRes.ok) {
           const errText = await eventRes.text();
+          console.error(`[sync-all] Google API Error on Booking ${b.voucherNo || b.id}:`, errText);
           errors.push(`Booking ${b.voucherNo || b.id}: ${errText}`);
           continue;
         }
@@ -184,131 +364,39 @@ export async function POST(req: NextRequest) {
         });
         syncedCount++;
       } catch (err: unknown) {
-        errors.push(`Booking ${b.voucherNo || b.id}: ${err instanceof Error ? err.message : 'Unknown exception'}`);
+        const errMsg = err instanceof Error ? err.message : 'Unknown exception';
+        console.error(`[sync-all] Exception on Booking ${b.voucherNo || b.id}:`, err);
+        errors.push(`Booking ${b.voucherNo || b.id}: ${errMsg}`);
       }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // 2. Sync Existing Active Itineraries
-    // ─────────────────────────────────────────────────────────────────────────────
-    for (const itin of itineraries) {
-      if (itin.status === 'Cancelled') continue;
-      if (itin.datesNotConfirmed || !itin.startDate || !itin.endDate) continue;
-
-      // Deduplication check 1: Already has Google Calendar event recorded
-      const alreadyHasEvent = !!itin.googleCalendarEventId || (
-        Array.isArray(itin.calendarEventIds) &&
-        itin.calendarEventIds.some((ref) => ref.calendarAccountId === accountId && ref.eventId)
-      );
-
-      if (alreadyHasEvent) {
-        continue; // Deduplicated
-      }
-
-      // Deduplication check 2: Tour was already synced via its operational booking
-      if (scheduledTourIdentifiers.has(itin.id) || scheduledTourIdentifiers.has(itin.referenceNumber)) {
-        // Link to booking's event ID if available
-        const matchingBooking = syncedBookings.find((sb) => {
-          const orig = bookings.find((b) => b.id === sb.id);
-          return orig && (orig.itineraryId === itin.id || orig.itineraryRef === itin.referenceNumber);
-        });
-        if (matchingBooking) {
-          const ref = matchingBooking.calendarEventIds.find((r) => r.calendarAccountId === accountId);
-          if (ref) {
-            syncedItineraries.push({
-              id: itin.id,
-              googleCalendarEventId: ref.eventId,
-              calendarEventIds: [ref],
-            });
-          }
-        }
-        continue;
-      }
-
-      // Standalone itinerary: create dedicated calendar event
-      const destSummary = itin.days
-        ?.map((d) => d.overnightLocation || d.destination)
-        .filter(Boolean)
-        .slice(0, 5)
-        .join(' → ');
-
-      const descriptionLines = [
-        `Tour: ${itin.tourName}`,
-        `Reference: ${itin.referenceNumber}`,
-        `Lead Guest: ${itin.clientName || 'Guest'}`,
-        itin.clientPhone ? `Phone: ${itin.clientPhone}` : '',
-        itin.clientEmail ? `Email: ${itin.clientEmail}` : '',
-        itin.paxSummary ? `Guests: ${itin.paxSummary}` : '',
-        itin.vehicleDisplay ? `Vehicle: ${itin.vehicleDisplay}` : '',
-        destSummary ? `Circuit: ${destSummary}` : '',
-        typeof itin.totalCost === 'number' ? `Total Package: ₹${itin.totalCost.toLocaleString('en-IN')}` : '',
-        '',
-        'Synchronized via Lobo Travels Tour Operations Management'
-      ].filter(Boolean).join('\n');
-
-      const eventPayload = {
-        summary: `[${itin.referenceNumber}] ${itin.tourName} — ${itin.clientName || 'Guest'}`,
-        description: descriptionLines,
-        start: { date: itin.startDate },
-        end: { date: addDays(itin.endDate, 1) },
-        reminders: {
-          useDefault: false,
-          overrides: [
-            { method: 'popup', minutes: 7 * 24 * 60 },
-            { method: 'popup', minutes: 2 * 24 * 60 },
-          ],
+    // If there were API errors and nothing got synced, report the error instead of false success!
+    if (errors.length > 0 && syncedCount === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Google Calendar returned an error: ${errors[0]}`,
+          errors,
+          skippedReason,
         },
-      };
-
-      try {
-        const eventRes = await fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(eventPayload),
-          }
-        );
-
-        if (!eventRes.ok) {
-          const errText = await eventRes.text();
-          errors.push(`Itinerary ${itin.referenceNumber}: ${errText}`);
-          continue;
-        }
-
-        const eventData = await eventRes.json();
-        const eventRef: CalendarEventRef = {
-          calendarAccountId: accountId,
-          eventId: eventData.id,
-        };
-
-        syncedItineraries.push({
-          id: itin.id,
-          googleCalendarEventId: eventData.id,
-          calendarEventIds: [eventRef],
-        });
-        syncedCount++;
-      } catch (err: unknown) {
-        errors.push(`Itinerary ${itin.referenceNumber}: ${err instanceof Error ? err.message : 'Unknown exception'}`);
-      }
+        { status: 400 }
+      );
     }
 
     const message = syncedCount > 0
-      ? `Successfully synchronized ${syncedCount} tour itinerary & reminder event${syncedCount === 1 ? '' : 's'} to Google Calendar.`
-      : `All active itineraries and booking reminders are already synchronized (0 duplicates created).`;
+      ? `Successfully synchronized ${syncedCount} itinerary event${syncedCount === 1 ? '' : 's'} directly to your primary Google Calendar!`
+      : `All ${itineraries.length} dashboard itineraries are already up to date on your primary Google Calendar (0 duplicates created).`;
 
     return NextResponse.json({
       success: true,
       syncedCount,
-      totalConsidered: bookings.length + itineraries.length,
+      totalConsidered: itineraries.length + bookings.length,
       syncedBookings,
       syncedItineraries,
       updatedAccessToken,
       tokenExpiresAt,
       errors: errors.length > 0 ? errors : undefined,
+      skippedReason: skippedReason.length > 0 ? skippedReason : undefined,
       message,
     });
   } catch (err: unknown) {

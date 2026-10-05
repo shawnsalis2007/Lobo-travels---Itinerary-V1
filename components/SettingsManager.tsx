@@ -25,7 +25,7 @@ import {
   RefreshCw,
   Loader2
 } from 'lucide-react';
-import { AppSettings, GoogleCalendarAccount } from '@/types';
+import { AppSettings, GoogleCalendarAccount, Itinerary, OperationalBooking } from '@/types';
 import { 
   initGoogleCalendarAuth, 
   listUserCalendars, 
@@ -43,12 +43,16 @@ import {
 
 interface SettingsManagerProps {
   settings: AppSettings;
+  itineraries?: Itinerary[];
+  bookings?: OperationalBooking[];
   onSaveSettings: (settings: AppSettings) => void;
   onResetDefaults: () => void;
 }
 
 export default function SettingsManager({
   settings: initialSettings,
+  itineraries = [],
+  bookings = [],
   onSaveSettings,
   onResetDefaults
 }: SettingsManagerProps) {
@@ -108,11 +112,14 @@ export default function SettingsManager({
     setSyncFeedback(null);
 
     try {
-      const allItineraries = getItineraries();
-      const allBookings = getOperationalBookings();
+      const allItineraries = (itineraries && itineraries.length > 0) ? itineraries : getItineraries();
+      const allBookings = (bookings && bookings.length > 0) ? bookings : getOperationalBookings();
 
       const result = await syncAllItinerariesToCalendar({
-        calendarAccount: targetAccount,
+        calendarAccount: {
+          ...targetAccount,
+          calendarId: 'primary',
+        },
         itineraries: allItineraries,
         bookings: allBookings,
       });

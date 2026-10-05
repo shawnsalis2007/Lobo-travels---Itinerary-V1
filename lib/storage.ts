@@ -394,6 +394,9 @@ export function getNextReferenceNumber(): string {
 
 // Itineraries
 export function getItineraries(): Itinerary[] {
+  if (itinerariesCache && itinerariesCache.length > 0) return itinerariesCache;
+  refreshAllCaches();
+  if (itinerariesCache && itinerariesCache.length > 0) return itinerariesCache;
   return getStorageItem<Itinerary[]>(STORAGE_KEYS.ITINERARIES, INITIAL_ITINERARIES);
 }
 
@@ -566,6 +569,9 @@ export function useOperationalBookings(): OperationalBooking[] {
 }
 
 export function getOperationalBookings(): OperationalBooking[] {
+  if (bookingsCache && bookingsCache.length > 0) return bookingsCache;
+  refreshAllCaches();
+  if (bookingsCache && bookingsCache.length > 0) return bookingsCache;
   return getStorageItem<OperationalBooking[]>(STORAGE_KEYS.BOOKINGS, INITIAL_OPERATIONAL_BOOKINGS);
 }
 
