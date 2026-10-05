@@ -9,6 +9,8 @@ const SCOPES = [
   'https://www.googleapis.com/auth/calendar.readonly',
 ].join(' ');
 
+import { GoogleCalendarAccount, Itinerary, OperationalBooking, CalendarEventRef } from '@/types';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface CalendarEventPayload {
@@ -259,3 +261,35 @@ export async function deleteCalendarEvent(
     throw new Error(`[calendar] deleteCalendarEvent failed (${res.status}): ${text}`);
   }
 }
+
+/**
+ * Triggers batch synchronization of existing itineraries and operational booking reminders to Google Calendar.
+ */
+export async function syncAllItinerariesToCalendar(payload: {
+  calendarAccount: GoogleCalendarAccount;
+  itineraries: Itinerary[];
+  bookings: OperationalBooking[];
+}): Promise<{
+  success: boolean;
+  syncedCount: number;
+  totalConsidered: number;
+  syncedBookings: { id: string; calendarEventIds: CalendarEventRef[] }[];
+  syncedItineraries: { id: string; googleCalendarEventId: string; calendarEventIds: CalendarEventRef[] }[];
+  updatedAccessToken?: string;
+  tokenExpiresAt?: number;
+  message: string;
+}> {
+  const res = await fetch('/api/calendar/sync-all', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || 'Failed to synchronize items to Google Calendar');
+  }
+
+  return data;
+}
+

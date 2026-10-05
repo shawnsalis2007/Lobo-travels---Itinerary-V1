@@ -21,11 +21,25 @@ import {
   Wifi,
   WifiOff,
   Plus,
-  Trash2
+  Trash2,
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 import { AppSettings, GoogleCalendarAccount } from '@/types';
-import { initGoogleCalendarAuth, listUserCalendars, openGoogleOAuthPopup, startGoogleOAuthRedirect } from '@/lib/calendar';
-import { sanitizeSettings } from '@/lib/storage';
+import { 
+  initGoogleCalendarAuth, 
+  listUserCalendars, 
+  openGoogleOAuthPopup, 
+  startGoogleOAuthRedirect,
+  syncAllItinerariesToCalendar 
+} from '@/lib/calendar';
+import { 
+  sanitizeSettings, 
+  getItineraries, 
+  saveItinerary, 
+  getOperationalBookings, 
+  saveOperationalBooking 
+} from '@/lib/storage';
 
 interface SettingsManagerProps {
   settings: AppSettings;
@@ -71,6 +85,97 @@ export default function SettingsManager({
   const [pendingAccessToken, setPendingAccessToken] = useState('');
   // Stores the Google email (decoded from token hint or entered by user)
   const [pendingEmail, setPendingEmail] = useState('');
+
+  // ── Sync All Existing Itineraries & Reminders State ─────────────────────────
+  const [isSyncingAll, setIsSyncingAll] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const handleSyncAllItineraries = async () => {
+    const connectedCals = formData.connectedCalendars ?? [];
+    if (connectedCals.length === 0) {
+      setSyncFeedback({
+        type: 'error',
+        message: 'No Google Calendar is connected yet. Please connect your Google account above first.',
+      });
+      return;
+    }
+
+    // Pick default calendar or first active calendar
+    const targetAccount = connectedCals.find((c) => c.isDefault) || connectedCals[0];
+    if (!targetAccount) return;
+
+    setIsSyncingAll(true);
+    setSyncFeedback(null);
+
+    try {
+      const allItineraries = getItineraries();
+      const allBookings = getOperationalBookings();
+
+      const result = await syncAllItinerariesToCalendar({
+        calendarAccount: targetAccount,
+        itineraries: allItineraries,
+        bookings: allBookings,
+      });
+
+      // Update local storage records with deduplication event IDs
+      if (Array.isArray(result.syncedBookings) && result.syncedBookings.length > 0) {
+        for (const item of result.syncedBookings) {
+          const current = allBookings.find((b) => b.id === item.id);
+          if (current) {
+            saveOperationalBooking({
+              ...current,
+              calendarEventIds: item.calendarEventIds,
+              calendarAccountIds: Array.from(
+                new Set([...(current.calendarAccountIds || []), targetAccount.id])
+              ),
+            });
+          }
+        }
+      }
+
+      if (Array.isArray(result.syncedItineraries) && result.syncedItineraries.length > 0) {
+        for (const item of result.syncedItineraries) {
+          const current = allItineraries.find((i) => i.id === item.id);
+          if (current) {
+            saveItinerary({
+              ...current,
+              googleCalendarEventId: item.googleCalendarEventId,
+              calendarEventIds: item.calendarEventIds,
+            });
+          }
+        }
+      }
+
+      // If refreshed access token was returned, persist in settings
+      if (result.updatedAccessToken) {
+        const updatedCals = connectedCals.map((c) =>
+          c.id === targetAccount.id
+            ? { ...c, accessToken: result.updatedAccessToken, tokenExpiresAt: result.tokenExpiresAt }
+            : c
+        );
+        const updatedSettings = { ...formData, connectedCalendars: updatedCals };
+        setFormData(updatedSettings);
+        onSaveSettings(updatedSettings);
+      }
+
+      setSyncFeedback({
+        type: 'success',
+        message: result.message,
+      });
+
+      setTimeout(() => {
+        setSyncFeedback(null);
+      }, 7000);
+    } catch (err: unknown) {
+      console.error('Error during calendar sync-all:', err);
+      setSyncFeedback({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Failed to sync itineraries to Google Calendar',
+      });
+    } finally {
+      setIsSyncingAll(false);
+    }
+  };
 
   // Handle OAuth callback communication
   React.useEffect(() => {
@@ -646,6 +751,72 @@ export default function SettingsManager({
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ── Sync Existing Itineraries & Reminders Action ──────────────── */}
+          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/80 p-4 rounded-xl border border-slate-200">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                  <CalendarClock className="w-3.5 h-3.5 text-indigo-600" />
+                  Sync Existing Itineraries to Google Calendar
+                </span>
+                <span className="text-[10px] font-semibold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+                  Auto Deduplicated
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 leading-relaxed max-w-xl">
+                Push all tour packages and operational booking reminders created prior to connecting Google Calendar. Events are securely tagged with their unique Event ID so re-clicking sync will never create duplicates.
+              </p>
+            </div>
+
+            <div className="shrink-0 flex items-center gap-2">
+              <button
+                type="button"
+                disabled={isSyncingAll || (formData.connectedCalendars ?? []).length === 0}
+                onClick={handleSyncAllItineraries}
+                className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-xs transition active:scale-95"
+              >
+                {isSyncingAll ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-950" />
+                    <span>Syncing...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 text-slate-950" />
+                    <span>Sync Existing Itineraries to Google Calendar</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Sync Feedback Notification Toast */}
+          {syncFeedback && (
+            <div
+              className={`p-3.5 rounded-xl text-xs font-medium flex items-center justify-between gap-3 border transition-all animate-in fade-in slide-in-from-top-1 ${
+                syncFeedback.type === 'success'
+                  ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                  : 'bg-rose-50 text-rose-900 border-rose-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {syncFeedback.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                )}
+                <span>{syncFeedback.message}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSyncFeedback(null)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold px-1"
+              >
+                ×
+              </button>
             </div>
           )}
         </div>

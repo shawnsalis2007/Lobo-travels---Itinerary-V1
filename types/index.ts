@@ -154,6 +154,11 @@ export interface CostBreakdown {
   other?: number;
 }
 
+export interface CalendarEventRef {
+  calendarAccountId: string;
+  eventId: string;
+}
+
 export interface Itinerary {
   id: string;
   referenceNumber: string;
@@ -194,6 +199,8 @@ export interface Itinerary {
   flightBookings?: TourFlightsBooking;
   status: BookingStatus;
   confirmedAt?: string;
+  googleCalendarEventId?: string;
+  calendarEventIds?: CalendarEventRef[];
   createdAt: string;
   updatedAt: string;
 }
@@ -323,11 +330,6 @@ export interface OutsourcedVehicleInfo {
 }
 
 export type OperationalBookingStatus = 'scheduled' | 'active' | 'completed' | 'cancelled';
-
-export interface CalendarEventRef {
-  calendarAccountId: string;
-  eventId: string;
-}
 
 export interface OperationalBooking {
   id: string;
