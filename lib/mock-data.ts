@@ -39,6 +39,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
 export const INITIAL_VEHICLES: VehicleOption[] = [
   {
+    brand: 'Vehicle Not Selected Yet',
+    models: ['Pending Confirmation', 'Not Selected Yet'],
+    category: 'Other'
+  },
+  {
     brand: 'Toyota',
     models: ['Innova Crysta', 'Innova Hycross', 'Fortuner', 'Camry Hybrid', 'Etios', 'Urban Cruiser Taisor'],
     category: 'MUV'
@@ -351,6 +356,7 @@ export const INITIAL_ITINERARIES: Itinerary[] = [
     vehicleModel: 'Carens',
     vehicleCategory: 'MUV',
     vehicleDisplay: 'Kia Carens – Private Air-Conditioned Vehicle',
+    includeHotels: true,
     showCostInItinerary: true,
     costDisplayType: 'total_only',
     currency: 'INR',

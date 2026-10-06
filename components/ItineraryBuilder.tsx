@@ -127,7 +127,13 @@ function computePayment(totalCost: number, advancePaid: number) {
 }
 
 // Dynamic Day Sightseeing Narrative Generator
-export function generateAutoDayDescription(day: ItineraryDay, dayIndex: number): string {
+export function generateAutoDayDescription(
+  day: ItineraryDay, 
+  dayIndex: number, 
+  totalDays?: number, 
+  includeHotels: boolean = true
+): string {
+  const isLastDay = (totalDays !== undefined && dayIndex === totalDays - 1) || Boolean(day.departureDetails?.enabled);
   // Meal summary helper
   const getMealsSentence = () => {
     const includedMeals: string[] = [];
@@ -269,14 +275,18 @@ export function generateAutoDayDescription(day: ItineraryDay, dayIndex: number):
     const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
     parts.push(`Welcome to ${day.destination}! Upon arrival at ${day.destination} ${pointStr}${flightStr}${timeStr}, meet and greet with our representative and private chauffeur.`);
     
-    if (arr.includeHotelCheckIn !== false) {
+    if (includeHotels && arr.includeHotelCheckIn !== false) {
       if (arr.checkInTiming !== 'after_sightseeing') {
         parts.push(`Transfer directly to your pre-booked hotel for check-in and leisure time to freshen up before commencing sightseeing.`);
       }
     }
   } else if (dayIndex > 0) {
     if (day.meals?.breakfast) {
-      parts.push(`After a wholesome breakfast at your hotel,`);
+      if (includeHotels) {
+        parts.push(`After a wholesome breakfast at your hotel,`);
+      } else {
+        parts.push(`After a wholesome breakfast,`);
+      }
     } else {
       parts.push(`In the morning,`);
     }
@@ -288,17 +298,28 @@ export function generateAutoDayDescription(day: ItineraryDay, dayIndex: number):
 
   if (sightsStr) {
     parts.push(`proceed for a comprehensive sightseeing tour of ${day.destination}, visiting prominent landmarks including ${sightsStr}.`);
-  } else {
+  } else if (!isLastDay) {
     parts.push(`proceed for a full-day sightseeing tour exploring the iconic architectural wonders, bazaars, and cultural sights of ${day.destination}.`);
+  } else {
+    // Final day with no sightseeing activities: do not generate placeholder tour
+    if (includeHotels) {
+      parts.push(`complete hotel check-out and prepare for departure.`);
+    } else {
+      parts.push(`prepare for your onward journey.`);
+    }
   }
 
-  if (day.arrivalDetails?.enabled && day.arrivalDetails.includeHotelCheckIn !== false && day.arrivalDetails.checkInTiming === 'after_sightseeing') {
+  if (includeHotels && day.arrivalDetails?.enabled && day.arrivalDetails.includeHotelCheckIn !== false && day.arrivalDetails.checkInTiming === 'after_sightseeing') {
     parts.push(`Following the sightseeing tour, transfer to your hotel for smooth check-in and relaxation.`);
   }
 
   // Highway transfer to overnight location without mentioning Kms or hours
   if (!day.isOvernightSameLocation && day.overnightLocation && day.overnightLocation.toLowerCase() !== day.destination.toLowerCase()) {
-    parts.push(`Later in the afternoon, commence your comfortable highway drive to ${day.overnightLocation}. Upon arrival, check-in to your hotel.`);
+    if (includeHotels) {
+      parts.push(`Later in the afternoon, commence your comfortable highway drive to ${day.overnightLocation}. Upon arrival, check-in to your hotel.`);
+    } else {
+      parts.push(`Later in the afternoon, commence your comfortable highway drive to ${day.overnightLocation}.`);
+    }
   }
 
   // Departure logistics for single destination day (e.g. final day airport transfer)
@@ -315,8 +336,12 @@ export function generateAutoDayDescription(day: ItineraryDay, dayIndex: number):
     parts.push(mealSentence);
   }
 
-  if (!day.departureDetails?.enabled) {
-    parts.push(`Overnight stay at your designated hotel in ${day.overnightLocation || day.destination}.`);
+  if (!day.departureDetails?.enabled && (!isLastDay || day.overnightLocation)) {
+    if (includeHotels) {
+      parts.push(`Overnight stay at your designated hotel in ${day.overnightLocation || day.destination}.`);
+    } else {
+      parts.push(`Overnight in ${day.overnightLocation || day.destination}.`);
+    }
   }
 
   return parts.join(' ');
@@ -360,7 +385,9 @@ export default function ItineraryBuilder({
   // State initialization
   const [itinerary, setItinerary] = useState<Itinerary>(() => {
     if (initialItinerary) {
-      return JSON.parse(JSON.stringify(initialItinerary));
+      const copy = JSON.parse(JSON.stringify(initialItinerary));
+      if (copy.includeHotels === undefined) copy.includeHotels = true;
+      return copy;
     }
 
     const defaultInclusions = settings?.defaultInclusions || [];
@@ -422,6 +449,7 @@ export default function ItineraryBuilder({
       vehicleModel: 'Carens',
       vehicleCategory: 'MUV',
       vehicleDisplay: 'Kia Carens – Private Air-Conditioned Vehicle',
+      includeHotels: true,
       days: [defaultDay],
       showCostInItinerary: true,
       costDisplayType: 'total_only',
@@ -632,7 +660,14 @@ export default function ItineraryBuilder({
 
   // Vehicle change handler
   const handleVehicleChange = (brand: string, model: string, category: string, custom?: string) => {
-    const display = brand === 'Other' && custom ? custom : `${brand} ${model} – Private Air-Conditioned ${category}`;
+    let display = '';
+    if (brand === 'Vehicle Not Selected Yet') {
+      display = 'Vehicle Not Selected Yet';
+    } else if (brand === 'Other' && custom) {
+      display = custom;
+    } else {
+      display = `${brand} ${model} – Private Air-Conditioned ${category}`;
+    }
     setItinerary(prev => ({
       ...prev,
       vehicleBrand: brand,
@@ -694,7 +729,7 @@ export default function ItineraryBuilder({
       meals: { breakfast: false, lunch: false, dinner: false, note: '' },
       images: []
     };
-    newDay.description = generateAutoDayDescription(newDay, nextDayNum - 1);
+    newDay.description = generateAutoDayDescription(newDay, nextDayNum - 1, nextDayNum, itinerary.includeHotels);
 
     const updatedDays = [...itinerary.days, newDay];
     setItinerary(prev => ({
@@ -724,7 +759,7 @@ export default function ItineraryBuilder({
       meals: { breakfast: false, lunch: false, dinner: false, note: '' },
       images: []
     };
-    newDay.description = generateAutoDayDescription(newDay, afterIndex + 1);
+    newDay.description = generateAutoDayDescription(newDay, afterIndex + 1, itinerary.days.length + 1, itinerary.includeHotels);
 
     const newDays = [...itinerary.days];
     newDays.splice(afterIndex + 1, 0, newDay);
@@ -851,12 +886,12 @@ export default function ItineraryBuilder({
       }
 
       // Automatically update the sightseeing description when destination or overnight changes!
-      targetDay.description = generateAutoDayDescription(targetDay, dayIndex);
+      targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
     }
 
     // Automatically update the sightseeing description when meal selections change!
     if (field === 'meals') {
-      targetDay.description = generateAutoDayDescription(targetDay, dayIndex);
+      targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
     }
 
     updatedDays[dayIndex] = targetDay;
@@ -877,7 +912,7 @@ export default function ItineraryBuilder({
     };
 
     targetDay.arrivalDetails = { ...currentArrival, ...partialArrival };
-    targetDay.description = generateAutoDayDescription(targetDay, dayIndex);
+    targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
 
     updatedDays[dayIndex] = targetDay;
     setItinerary(prev => ({ ...prev, days: updatedDays }));
@@ -896,7 +931,7 @@ export default function ItineraryBuilder({
     };
 
     targetDay.departureDetails = { ...currentDeparture, ...partialDeparture };
-    targetDay.description = generateAutoDayDescription(targetDay, dayIndex);
+    targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
 
     updatedDays[dayIndex] = targetDay;
     setItinerary(prev => ({ ...prev, days: updatedDays }));
@@ -1044,7 +1079,7 @@ export default function ItineraryBuilder({
         includeHotelCheckIn: day1.arrivalDetails?.includeHotelCheckIn ?? true,
         checkInTiming: day1.arrivalDetails?.checkInTiming || 'before_sightseeing'
       };
-      day1.description = generateAutoDayDescription(day1, 0);
+      day1.description = generateAutoDayDescription(day1, 0, itinerary.days.length, itinerary.includeHotels);
       updatedDays[0] = day1;
     }
 
@@ -1058,7 +1093,7 @@ export default function ItineraryBuilder({
         departureTime: depFlight.departureTime,
         dropLocation: depFlight.departureCity
       };
-      lastDay.description = generateAutoDayDescription(lastDay, lastIdx);
+      lastDay.description = generateAutoDayDescription(lastDay, lastIdx, itinerary.days.length, itinerary.includeHotels);
       updatedDays[lastIdx] = lastDay;
     }
 
@@ -1097,7 +1132,7 @@ export default function ItineraryBuilder({
     };
 
     // Auto-update description with the selected attractions
-    updatedDay.description = generateAutoDayDescription(updatedDay, dayIndex);
+    updatedDay.description = generateAutoDayDescription(updatedDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
 
     updatedDays[dayIndex] = updatedDay;
     setItinerary(prev => ({ ...prev, days: updatedDays }));
@@ -1145,7 +1180,7 @@ export default function ItineraryBuilder({
       }
     }
 
-    targetDay.description = generateAutoDayDescription(targetDay, dayIndex);
+    targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
     updatedDays[dayIndex] = targetDay;
     setItinerary(prev => ({ ...prev, days: updatedDays }));
   };
@@ -1179,7 +1214,7 @@ export default function ItineraryBuilder({
 
     targetDay.cities = currentCities;
     targetDay.overnightLocation = newCityName;
-    targetDay.description = generateAutoDayDescription(targetDay, dayIndex);
+    targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
 
     updatedDays[dayIndex] = targetDay;
     setItinerary(prev => ({ ...prev, days: updatedDays }));
@@ -1228,7 +1263,7 @@ export default function ItineraryBuilder({
     });
     targetDay.attractionNames = allAttractionNames;
 
-    targetDay.description = generateAutoDayDescription(targetDay, dayIndex);
+    targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
     updatedDays[dayIndex] = targetDay;
     setItinerary(prev => ({ ...prev, days: updatedDays }));
   };
@@ -1264,7 +1299,7 @@ export default function ItineraryBuilder({
     targetDay.attractionNames = allAttractionNames;
     targetDay.images = allImages.length > 0 ? allImages : targetDay.images;
 
-    targetDay.description = generateAutoDayDescription(targetDay, dayIndex);
+    targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
     updatedDays[dayIndex] = targetDay;
     setItinerary(prev => ({ ...prev, days: updatedDays }));
   };
@@ -1298,7 +1333,7 @@ export default function ItineraryBuilder({
 
     targetDay.cities = currentCities;
     targetDay.overnightLocation = currentCities[currentCities.length - 1].destination;
-    targetDay.description = generateAutoDayDescription(targetDay, dayIndex);
+    targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
 
     updatedDays[dayIndex] = targetDay;
     setItinerary(prev => ({ ...prev, days: updatedDays }));
@@ -1365,14 +1400,7 @@ export default function ItineraryBuilder({
         setValidationError('Tour Proposal Name is required.');
         return;
       }
-      if (!itinerary.clientName.trim()) {
-        setValidationError('Lead Guest Name is required.');
-        return;
-      }
-      if (!itinerary.clientPhone.trim()) {
-        setValidationError('Guest WhatsApp / Mobile Phone is required.');
-        return;
-      }
+      // Client Name and Phone are optional
     }
     setActiveStep(nextStep);
   };
@@ -1418,7 +1446,9 @@ export default function ItineraryBuilder({
     return copy;
   };
 
-  const availableModels = vehicles.find(v => v.brand === itinerary.vehicleBrand)?.models || [];
+  const availableModels = itinerary.vehicleBrand === 'Vehicle Not Selected Yet'
+    ? ['Pending Confirmation']
+    : (vehicles.find(v => v.brand === itinerary.vehicleBrand)?.models || []);
 
   return (
     <div className="space-y-6 pb-20">
@@ -1527,7 +1557,7 @@ export default function ItineraryBuilder({
             {/* Client Name */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Guest / Lead Passenger Name <span className="text-rose-500">*</span>
+                Guest / Lead Passenger Name <span className="text-slate-400 font-normal">(Optional)</span>
               </label>
               <input
                 type="text"
@@ -1541,7 +1571,7 @@ export default function ItineraryBuilder({
             {/* Client Phone */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                WhatsApp / Phone Number <span className="text-rose-500">*</span>
+                WhatsApp / Phone Number <span className="text-slate-400 font-normal">(Optional)</span>
               </label>
               <input
                 type="text"
@@ -1775,6 +1805,10 @@ export default function ItineraryBuilder({
                   value={itinerary.vehicleBrand}
                   onChange={(e) => {
                     const newBrand = e.target.value;
+                    if (newBrand === 'Vehicle Not Selected Yet') {
+                      handleVehicleChange('Vehicle Not Selected Yet', 'Pending Confirmation', 'Other', undefined);
+                      return;
+                    }
                     const brandObj = vehicles.find(v => v.brand === newBrand);
                     const firstModel = brandObj && brandObj.models.length > 0 ? brandObj.models[0] : '';
                     const cat = brandObj ? brandObj.category : 'MUV';
@@ -1782,7 +1816,8 @@ export default function ItineraryBuilder({
                   }}
                   className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none"
                 >
-                  {vehicles.map((v) => (
+                  <option value="Vehicle Not Selected Yet">Vehicle Not Selected Yet</option>
+                  {vehicles.filter(v => v.brand !== 'Vehicle Not Selected Yet').map((v) => (
                     <option key={v.brand} value={v.brand}>
                       {v.brand}
                     </option>
@@ -1794,7 +1829,15 @@ export default function ItineraryBuilder({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Vehicle Model <span className="text-rose-500">*</span>
                 </label>
-                {itinerary.vehicleBrand === 'Other' ? (
+                {itinerary.vehicleBrand === 'Vehicle Not Selected Yet' ? (
+                  <select
+                    disabled
+                    value="Pending Confirmation"
+                    className="w-full px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg text-slate-500 cursor-not-allowed"
+                  >
+                    <option value="Pending Confirmation">To Be Decided / Pending</option>
+                  </select>
+                ) : itinerary.vehicleBrand === 'Other' ? (
                   <input
                     type="text"
                     placeholder="Enter custom vehicle"
@@ -1821,17 +1864,27 @@ export default function ItineraryBuilder({
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Category
                 </label>
-                <select
-                  value={itinerary.vehicleCategory}
-                  onChange={(e) => handleVehicleChange(itinerary.vehicleBrand, itinerary.vehicleModel, e.target.value, itinerary.customVehicle)}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none"
-                >
-                  {['Sedan', 'MUV', 'SUV', 'Luxury', 'Tempo Traveller', 'Coach/Bus', 'Other'].map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                {itinerary.vehicleBrand === 'Vehicle Not Selected Yet' ? (
+                  <select
+                    disabled
+                    value="Other"
+                    className="w-full px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg text-slate-500 cursor-not-allowed"
+                  >
+                    <option value="Other">Pending Confirmation</option>
+                  </select>
+                ) : (
+                  <select
+                    value={itinerary.vehicleCategory}
+                    onChange={(e) => handleVehicleChange(itinerary.vehicleBrand, itinerary.vehicleModel, e.target.value, itinerary.customVehicle)}
+                    className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none"
+                  >
+                    {['Sedan', 'MUV', 'SUV', 'Luxury', 'Tempo Traveller', 'Coach/Bus', 'Other'].map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
 
@@ -1846,6 +1899,57 @@ export default function ItineraryBuilder({
                 className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-800"
               />
             </div>
+          </div>
+
+          {/* Hotel Accommodations Plan Toggle */}
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold flex-shrink-0">
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                    Include Hotels
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Include hotel stay arrangements in this tour package proposal
+                  </p>
+                </div>
+              </div>
+
+              {/* Toggle Switch */}
+              <div className="flex items-center gap-2.5">
+                <span className={`text-xs font-bold ${itinerary.includeHotels === false ? 'text-slate-400' : 'text-indigo-600'}`}>
+                  {itinerary.includeHotels === false ? 'Not Included' : 'Included'}
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={itinerary.includeHotels !== false}
+                  onClick={() => setItinerary(prev => ({ ...prev, includeHotels: prev.includeHotels === false ? true : false }))}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                    itinerary.includeHotels !== false ? 'bg-indigo-600' : 'bg-slate-300'
+                  }`}
+                  title="Toggle Include Hotels"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      itinerary.includeHotels !== false ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {itinerary.includeHotels === false && (
+              <div className="p-2.5 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-900 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <span>
+                  <strong>Hotels Not Included:</strong> When set to &apos;Not Included&apos; (off), all hotel sections, room categories, and accommodation plan tables are automatically hidden across the entire generated itinerary.
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Flight Booking & Tickets Section (Arrival and Departure Details) */}
@@ -3090,7 +3194,7 @@ export default function ItineraryBuilder({
                             <button
                               type="button"
                               onClick={() => {
-                                const freshDesc = generateAutoDayDescription(day, dayIndex);
+                                const freshDesc = generateAutoDayDescription(day, dayIndex, itinerary.days.length, itinerary.includeHotels);
                                 handleUpdateDayField(dayIndex, 'description', freshDesc);
                               }}
                               className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
@@ -3126,6 +3230,7 @@ export default function ItineraryBuilder({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
                         
                         {/* Hotel Selection */}
+                        {itinerary.includeHotels !== false ? (
                         <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
@@ -3229,6 +3334,21 @@ export default function ItineraryBuilder({
                             )}
                           </div>
                         </div>
+                        ) : (
+                        <div className="p-3.5 rounded-xl bg-slate-50/70 border border-dashed border-slate-200 text-xs text-slate-500 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                            <span>Hotels: <strong>Not Included</strong> (Hidden across generated itinerary)</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setItinerary(prev => ({ ...prev, includeHotels: true }))}
+                            className="text-indigo-600 font-semibold hover:underline text-[11px]"
+                          >
+                            Turn On
+                          </button>
+                        </div>
+                        )}
 
                         {/* Meals Selection */}
                         <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">

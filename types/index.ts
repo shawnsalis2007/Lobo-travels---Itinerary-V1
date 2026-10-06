@@ -183,6 +183,7 @@ export interface Itinerary {
   customVehicle?: string;
   vehicleDisplay: string;
   days: ItineraryDay[];
+  includeHotels?: boolean;
   showCostInItinerary: boolean;
   costDisplayType: CostDisplayType;
   currency: string;

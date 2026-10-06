@@ -100,6 +100,17 @@ export default function ItineraryPreview({
 
   // Helper to retrieve authentic photos of key highlight sights and monuments for a day
   const getDayPhotos = React.useCallback((day: ItineraryDay) => {
+    const isLastDay = day.dayNumber === itinerary.days.length;
+    const hasSightseeing = Boolean(
+      (day.attractionIds && day.attractionIds.length > 0) ||
+      (day.attractionNames && day.attractionNames.length > 0)
+    );
+
+    // Final Day with no sightseeing activities: strictly return empty array (do not render empty section or placeholder)
+    if (isLastDay && !hasSightseeing) {
+      return [];
+    }
+
     const list: { id: string; name: string; image: string; unesco?: boolean }[] = [];
     const seenUrls = new Set<string>();
 
@@ -137,8 +148,8 @@ export default function ItineraryPreview({
       }
     }
 
-    // 3. Fallback to destination attractions ONLY if list is completely empty
-    if (list.length === 0 && day.destination) {
+    // 3. Fallback to destination attractions ONLY if list is completely empty AND NOT the final day with no sightseeing
+    if (list.length === 0 && day.destination && (!isLastDay || hasSightseeing)) {
       const destAtts = activeAttractions.filter(
         a => a.destinationName.toLowerCase() === day.destination.toLowerCase() && a.image
       );
@@ -151,7 +162,7 @@ export default function ItineraryPreview({
     }
 
     return list.slice(0, 4); // Up to 4 authentic highlight photos per day card
-  }, [activeAttractions]);
+  }, [activeAttractions, itinerary.days.length]);
 
   // Main hero cover image for Page 1 of the itinerary proposal
   const smartCoverImage = React.useMemo(() => {
@@ -392,6 +403,24 @@ export default function ItineraryPreview({
                   View Voucher ({getVoucherReferenceNumber(itinerary.referenceNumber)})
                 </button>
               )}
+
+              {/* Hotel Visibility Toggle */}
+              <button
+                onClick={() => {
+                  const updated = { ...itinerary, includeHotels: itinerary.includeHotels === false ? true : false };
+                  setItinerary(updated);
+                  onSave(updated);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition border ${
+                  itinerary.includeHotels !== false
+                    ? 'bg-indigo-600/30 hover:bg-indigo-600/40 text-indigo-200 border-indigo-400/40'
+                    : 'bg-white/10 hover:bg-white/20 text-slate-300 border-white/20'
+                }`}
+                title="Toggle hotel sections across the generated itinerary"
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Hotels: {itinerary.includeHotels !== false ? 'Included' : 'Not Included'}</span>
+              </button>
 
               {/* Edit Full Form */}
               <button
@@ -645,7 +674,9 @@ export default function ItineraryPreview({
                     Vehicle Standard
                   </span>
                   <div className="font-bold text-slate-900 truncate" title={itinerary.vehicleDisplay}>
-                    {itinerary.vehicleBrand} {itinerary.vehicleModel}
+                    {itinerary.vehicleBrand === 'Vehicle Not Selected Yet'
+                      ? 'Vehicle Not Selected Yet'
+                      : `${itinerary.vehicleBrand} ${itinerary.vehicleModel}`}
                   </div>
                 </div>
               </div>
@@ -785,11 +816,35 @@ export default function ItineraryPreview({
                               <h4 className="font-black text-sm text-slate-900 leading-tight">
                                 {day.title}
                               </h4>
-                              <div className="text-[10px] text-slate-500 font-medium">
-                                Sightseeing: <strong>{day.isMultiCity ? (day.cities?.map(c => c.destination).join(' & ') || day.destination) : day.destination}</strong>
-                                {' · '}
-                                Overnight: <strong>{day.overnightLocation}</strong>
-                              </div>
+                              {(() => {
+                                const isLastDay = day.dayNumber === itinerary.days.length;
+                                const hasSightseeing = Boolean(
+                                  (day.attractionNames && day.attractionNames.length > 0) ||
+                                  (day.attractionIds && day.attractionIds.length > 0)
+                                );
+
+                                return (
+                                  <div className="text-[10px] text-slate-500 font-medium">
+                                    {(!isLastDay || hasSightseeing) && (
+                                      <>
+                                        Sightseeing: <strong>{day.isMultiCity ? (day.cities?.map(c => c.destination).join(' & ') || day.destination) : day.destination}</strong>
+                                        {(day.overnightLocation && itinerary.includeHotels !== false) || day.departureDetails?.enabled ? ' · ' : ''}
+                                      </>
+                                    )}
+                                    {(!isLastDay || itinerary.includeHotels !== false) && day.overnightLocation && (
+                                      <>
+                                        Overnight: <strong>{day.overnightLocation}</strong>
+                                      </>
+                                    )}
+                                    {isLastDay && !hasSightseeing && day.departureDetails?.enabled && (
+                                      <>
+                                        {day.overnightLocation && itinerary.includeHotels !== false ? ' · ' : ''}
+                                        Drop-off: <strong>{day.departureDetails.point || 'Airport / Station'}</strong>
+                                      </>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
 
@@ -819,9 +874,11 @@ export default function ItineraryPreview({
                                 </span>
                               )}
                             </div>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-200/60 text-indigo-900">
-                              {day.arrivalDetails.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}
-                            </span>
+                            {itinerary.includeHotels !== false && (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-200/60 text-indigo-900">
+                                {day.arrivalDetails.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}
+                              </span>
+                            )}
                           </div>
                         )}
 
@@ -925,9 +982,11 @@ export default function ItineraryPreview({
                         )}
 
                         {/* Sightseeing Narrative Description */}
-                        <p className="text-xs text-slate-700 leading-relaxed font-sans">
-                          {day.description}
-                        </p>
+                        {day.description && day.description.trim() ? (
+                          <p className="text-xs text-slate-700 leading-relaxed font-sans">
+                            {day.description}
+                          </p>
+                        ) : null}
 
                         {/* Key Highlight Attractions & Monuments Photos Grid (Strictly Square 1:1 Images) */}
                         {(() => {
@@ -997,17 +1056,19 @@ export default function ItineraryPreview({
                         })()}
 
                         {/* Hotel & Night Stay */}
-                        <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px] flex items-center justify-between text-slate-700">
-                          <div className="flex items-center gap-1.5">
-                            <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                            <span>
-                              <strong>Hotel:</strong> {day.hotel?.name || `Partner Hotel in ${day.overnightLocation}`} ({day.hotel?.roomCategory || 'Deluxe Room'})
+                        {itinerary.includeHotels !== false && (
+                          <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px] flex items-center justify-between text-slate-700">
+                            <div className="flex items-center gap-1.5">
+                              <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                              <span>
+                                <strong>Hotel:</strong> {day.hotel?.name || `Partner Hotel in ${day.overnightLocation}`} ({day.hotel?.roomCategory || 'Deluxe Room'})
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-500 font-medium">
+                              {day.hotel?.mealPlan || 'Breakfast Included (CP)'}
                             </span>
                           </div>
-                          <span className="text-[10px] text-slate-500 font-medium">
-                            {day.hotel?.mealPlan || 'Breakfast Included (CP)'}
-                          </span>
-                        </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1040,10 +1101,10 @@ export default function ItineraryPreview({
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div>
                   <h3 className="text-sm font-black tracking-tight text-[#151521] uppercase">
-                    Accommodations, Inclusions & Tour Guidelines
+                    {itinerary.includeHotels === false ? 'Commercials, Inclusions & Tour Guidelines' : 'Accommodations, Inclusions & Tour Guidelines'}
                   </h3>
                   <p className="text-[10px] text-slate-500">
-                    Comprehensive commercial terms, hotel schedule, and contractual inclusions
+                    {itinerary.includeHotels === false ? 'Comprehensive commercial terms and contractual inclusions' : 'Comprehensive commercial terms, hotel schedule, and contractual inclusions'}
                   </p>
                 </div>
                 <div className="text-right">
@@ -1054,44 +1115,46 @@ export default function ItineraryPreview({
               </div>
 
               {/* Confirmed Hotels Matrix Table */}
-              <div className="space-y-1.5">
-                <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                  Hotel Accommodations Plan
-                </span>
-                <div className="rounded-lg border border-slate-200 overflow-hidden">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#151521] text-amber-300 font-semibold text-[11px]">
-                      <tr>
-                        <th className="py-2 px-3">Day / Night</th>
-                        <th className="py-2 px-3">Destination</th>
-                        <th className="py-2 px-3">Hotel Property</th>
-                        <th className="py-2 px-3">Room Category</th>
-                        <th className="py-2 px-3">Meal Plan</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-700 text-[11px]">
-                      {itinerary.days.map((day) => (
-                        <tr key={day.id} className="hover:bg-slate-50/50">
-                          <td className="py-1.5 px-3 font-semibold text-slate-900">
-                            Day {day.dayNumber}
-                          </td>
-                          <td className="py-1.5 px-3">{day.overnightLocation}</td>
-                          <td className="py-1.5 px-3 font-bold text-slate-900">
-                            {day.hotel?.name || `Partner Hotel (${day.overnightLocation})`}
-                          </td>
-                          <td className="py-1.5 px-3 text-slate-600">
-                            {day.hotel?.roomCategory || 'Deluxe Room'}
-                          </td>
-                          <td className="py-1.5 px-3 text-slate-600">
-                            {day.hotel?.mealPlan || 'Breakfast Included (CP)'}
-                          </td>
+              {itinerary.includeHotels !== false && (
+                <div className="space-y-1.5">
+                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                    Hotel Accommodations Plan
+                  </span>
+                  <div className="rounded-lg border border-slate-200 overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#151521] text-amber-300 font-semibold text-[11px]">
+                        <tr>
+                          <th className="py-2 px-3">Day / Night</th>
+                          <th className="py-2 px-3">Destination</th>
+                          <th className="py-2 px-3">Hotel Property</th>
+                          <th className="py-2 px-3">Room Category</th>
+                          <th className="py-2 px-3">Meal Plan</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-slate-700 text-[11px]">
+                        {itinerary.days.map((day) => (
+                          <tr key={day.id} className="hover:bg-slate-50/50">
+                            <td className="py-1.5 px-3 font-semibold text-slate-900">
+                              Day {day.dayNumber}
+                            </td>
+                            <td className="py-1.5 px-3">{day.overnightLocation}</td>
+                            <td className="py-1.5 px-3 font-bold text-slate-900">
+                              {day.hotel?.name || `Partner Hotel (${day.overnightLocation})`}
+                            </td>
+                            <td className="py-1.5 px-3 text-slate-600">
+                              {day.hotel?.roomCategory || 'Deluxe Room'}
+                            </td>
+                            <td className="py-1.5 px-3 text-slate-600">
+                              {day.hotel?.mealPlan || 'Breakfast Included (CP)'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Commercial Price & Payment Plan (If Enabled) */}
               {itinerary.showCostInItinerary && (
