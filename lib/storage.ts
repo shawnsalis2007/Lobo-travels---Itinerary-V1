@@ -114,8 +114,23 @@ function refreshAllCaches(): void {
         localStorage.setItem(STORAGE_KEYS.ITINERARIES, JSON.stringify(loadedItins));
       } catch (_) {}
     }
-    itinerariesCache = loadedItins;
-    hotelsCache = getStorageItem<Hotel[]>(STORAGE_KEYS.HOTELS, INITIAL_HOTELS);
+    // Auto-merge newly loaded hotels catalog
+    const storedHotels = getStorageItem<Hotel[]>(STORAGE_KEYS.HOTELS, []);
+    const hotelMap = new Map<string, Hotel>();
+    // 1. Initial canonical hotels always present
+    INITIAL_HOTELS.forEach(h => hotelMap.set(h.id.toLowerCase(), h));
+    // 2. Preserve custom hotels added by the user
+    if (Array.isArray(storedHotels)) {
+      storedHotels.forEach(h => {
+        if (!hotelMap.has(h.id.toLowerCase())) {
+          hotelMap.set(h.id.toLowerCase(), h);
+        }
+      });
+    }
+    hotelsCache = Array.from(hotelMap.values());
+    try {
+      localStorage.setItem(STORAGE_KEYS.HOTELS, JSON.stringify(hotelsCache));
+    } catch (_) {}
 
     // Auto-merge newly loaded destinations catalog
     const storedDests = getStorageItem<Destination[]>(STORAGE_KEYS.DESTINATIONS, []);
