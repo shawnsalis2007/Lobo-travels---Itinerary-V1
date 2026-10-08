@@ -35,7 +35,9 @@ import {
   Upload,
   Search,
   Filter,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Star,
+  Layers
 } from 'lucide-react';
 import { 
   Itinerary, 
@@ -53,7 +55,12 @@ import {
   InterCityFlightDetails,
   InterCityTrainDetails,
   BookedFlightInfo,
-  TourFlightsBooking
+  TourFlightsBooking,
+  HotelStarTier,
+  DayHotelTiers,
+  TierPricingData,
+  PricingTiers,
+  DayHotelSelection
 } from '@/types';
 import { PRESET_ROUTES } from '@/lib/mock-data';
 import { INTERCITY_ROUTES } from '@/lib/catalog-data';
@@ -258,7 +265,7 @@ export function generateAutoDayDescription(
       parts.push(mealSentence);
     }
 
-    if (day.overnightLocation && !day.departureDetails?.enabled) {
+    if (day.overnightLocation && !day.departureDetails?.enabled && !isLastDay) {
       parts.push(`Overnight stay at your designated hotel in ${day.overnightLocation}.`);
     }
 
@@ -314,7 +321,7 @@ export function generateAutoDayDescription(
   }
 
   // Highway transfer to overnight location without mentioning Kms or hours
-  if (!day.isOvernightSameLocation && day.overnightLocation && day.overnightLocation.toLowerCase() !== day.destination.toLowerCase()) {
+  if (!day.departureDetails?.enabled && !isLastDay && !day.isOvernightSameLocation && day.overnightLocation && day.overnightLocation.toLowerCase() !== day.destination.toLowerCase()) {
     if (includeHotels) {
       parts.push(`Later in the afternoon, commence your comfortable highway drive to ${day.overnightLocation}. Upon arrival, check-in to your hotel.`);
     } else {
@@ -328,7 +335,8 @@ export function generateAutoDayDescription(
     const pointStr = dep.point === 'Airport' ? 'Airport' : dep.point === 'Railway Station' ? 'Railway Station' : dep.point;
     const numStr = dep.flightOrTrainNumber ? ` (${dep.flightOrTrainNumber})` : '';
     const timeStr = dep.departureTime ? ` scheduled at ${dep.departureTime}` : '';
-    parts.push(`Later, you will be transferred to ${day.destination} ${pointStr}${numStr}${timeStr} for your onward journey home with cherished memories.`);
+    const dropCity = dep.dropLocation || day.destination;
+    parts.push(`Later, you will be transferred to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished memories.`);
   }
 
   const mealSentence = getMealsSentence();
@@ -336,7 +344,7 @@ export function generateAutoDayDescription(
     parts.push(mealSentence);
   }
 
-  if (!day.departureDetails?.enabled && (!isLastDay || day.overnightLocation)) {
+  if (!day.departureDetails?.enabled && !isLastDay) {
     if (includeHotels) {
       parts.push(`Overnight stay at your designated hotel in ${day.overnightLocation || day.destination}.`);
     } else {
@@ -387,6 +395,20 @@ export default function ItineraryBuilder({
     if (initialItinerary) {
       const copy = JSON.parse(JSON.stringify(initialItinerary));
       if (copy.includeHotels === undefined) copy.includeHotels = true;
+      if (copy.hotelTiersEnabled === undefined) copy.hotelTiersEnabled = false;
+      if (!copy.selectedHotelTier) copy.selectedHotelTier = '4_star';
+      if (!copy.pricingTiers) {
+        const baseCost = copy.totalCost || 45000;
+        const baseTransport = copy.transportRate || Math.round(baseCost * 0.4);
+        copy.pricingTiers = {
+          threeStar: { totalCost: Math.round(baseCost * 0.85), transportCost: baseTransport, accommodationCost: Math.round(baseCost * 0.85) - baseTransport },
+          fourStar: { totalCost: baseCost, transportCost: baseTransport, accommodationCost: baseCost - baseTransport },
+          fiveStar: { totalCost: Math.round(baseCost * 1.3), transportCost: baseTransport, accommodationCost: Math.round(baseCost * 1.3) - baseTransport },
+        };
+      }
+      if (copy.itemizedPriceSplit === undefined) copy.itemizedPriceSplit = false;
+      if (copy.transportRate === undefined) copy.transportRate = Math.round((copy.totalCost || 45000) * 0.4);
+      if (copy.accommodationRate === undefined) copy.accommodationRate = (copy.totalCost || 45000) - (copy.transportRate || 0);
       return copy;
     }
 
@@ -450,6 +472,16 @@ export default function ItineraryBuilder({
       vehicleCategory: 'MUV',
       vehicleDisplay: 'Kia Carens – Private Air-Conditioned Vehicle',
       includeHotels: true,
+      hotelTiersEnabled: false,
+      selectedHotelTier: '4_star',
+      pricingTiers: {
+        threeStar: { totalCost: 38000, transportCost: 18000, accommodationCost: 20000 },
+        fourStar: { totalCost: 45000, transportCost: 18000, accommodationCost: 27000 },
+        fiveStar: { totalCost: 58000, transportCost: 18000, accommodationCost: 40000 },
+      },
+      itemizedPriceSplit: false,
+      transportRate: 18000,
+      accommodationRate: 27000,
       days: [defaultDay],
       showCostInItinerary: true,
       costDisplayType: 'total_only',
@@ -642,11 +674,281 @@ export default function ItineraryBuilder({
 
   const handleTotalCostChange = (val: number) => {
     const payment = computePayment(val, itinerary.advancePaid);
-    setItinerary(prev => ({
-      ...prev,
-      totalCost: val,
-      ...payment
-    }));
+    setItinerary(prev => {
+      let updatedPricingTiers = prev.pricingTiers;
+      if (prev.pricingTiers) {
+        const activeKey = prev.selectedHotelTier === '3_star' ? 'threeStar' : prev.selectedHotelTier === '5_star' ? 'fiveStar' : 'fourStar';
+        const currentTier = prev.pricingTiers[activeKey] || { totalCost: val };
+        const trans = currentTier.transportCost ?? prev.transportRate ?? Math.round(val * 0.4);
+        updatedPricingTiers = {
+          ...prev.pricingTiers,
+          [activeKey]: {
+            ...currentTier,
+            totalCost: val,
+            transportCost: trans,
+            accommodationCost: Math.max(0, val - trans)
+          }
+        };
+      }
+      return {
+        ...prev,
+        totalCost: val,
+        accommodationRate: prev.transportRate !== undefined ? Math.max(0, val - prev.transportRate) : prev.accommodationRate,
+        pricingTiers: updatedPricingTiers,
+        ...payment
+      };
+    });
+  };
+
+  // Hotel Tiers & Tiered Pricing Handlers
+  const handleToggleHotelTiers = (enabled: boolean) => {
+    setItinerary(prev => {
+      const updatedDays = prev.days.map((d) => {
+        if (!enabled) return d;
+        if (d.hotelTiers && (d.hotelTiers.threeStar || d.hotelTiers.fourStar || d.hotelTiers.fiveStar)) {
+          return d;
+        }
+        const city = d.overnightLocation || d.destination;
+        const cityHotels = hotels.filter(h => h.city.toLowerCase() === city.toLowerCase());
+        const h3 = cityHotels.find(h => h.starCategory === 3) || hotels.find(h => h.starCategory === 3);
+        const h4 = cityHotels.find(h => h.starCategory === 4) || hotels.find(h => h.starCategory === 4);
+        const h5 = cityHotels.find(h => h.starCategory === 5) || hotels.find(h => h.starCategory === 5);
+        const cur = d.hotel;
+
+        return {
+          ...d,
+          hotelTiers: {
+            threeStar: {
+              hotelId: h3?.id,
+              name: h3?.name || (cur?.starCategory === 3 ? cur.name : `Comfort 3-Star Partner Hotel (${city})`),
+              city,
+              roomCategory: h3?.roomCategories?.[0] || (cur?.starCategory === 3 ? cur.roomCategory : 'Standard / Deluxe Room'),
+              mealPlan: h3?.mealPlans?.[0] || (cur?.starCategory === 3 ? cur.mealPlan : 'Breakfast Included (CP)'),
+              starCategory: 3
+            },
+            fourStar: {
+              hotelId: h4?.id || (cur?.starCategory === 4 ? cur.hotelId : undefined),
+              name: h4?.name || cur?.name || `Deluxe 4-Star Premium Hotel (${city})`,
+              city,
+              roomCategory: h4?.roomCategories?.[0] || cur?.roomCategory || 'Deluxe Room',
+              mealPlan: h4?.mealPlans?.[0] || cur?.mealPlan || 'Breakfast Included (CP)',
+              starCategory: 4
+            },
+            fiveStar: {
+              hotelId: h5?.id || (cur?.starCategory === 5 ? cur.hotelId : undefined),
+              name: h5?.name || (cur?.starCategory === 5 ? cur.name : `Luxury 5-Star Heritage / Palace Hotel (${city})`),
+              city,
+              roomCategory: h5?.roomCategories?.[0] || (cur?.starCategory === 5 ? cur.roomCategory : 'Luxury / Palace Suite'),
+              mealPlan: h5?.mealPlans?.[0] || (cur?.starCategory === 5 ? cur.mealPlan : 'Breakfast Included (CP)'),
+              starCategory: 5
+            }
+          }
+        };
+      });
+
+      return {
+        ...prev,
+        hotelTiersEnabled: enabled,
+        days: updatedDays
+      };
+    });
+  };
+
+  const handleSelectHotelTier = (tier: HotelStarTier) => {
+    setItinerary(prev => {
+      const activeKey = tier === '3_star' ? 'threeStar' : tier === '5_star' ? 'fiveStar' : 'fourStar';
+      const tierPricing = prev.pricingTiers?.[activeKey];
+      const newTotal = tierPricing?.totalCost || prev.totalCost;
+      const newTransport = tierPricing?.transportCost ?? prev.transportRate;
+      const newAccommodation = tierPricing?.accommodationCost ?? Math.max(0, newTotal - (newTransport || 0));
+      const payment = computePayment(newTotal, prev.advancePaid);
+
+      const updatedDays = prev.days.map(d => {
+        if (!d.hotelTiers) return d;
+        const tierHotel = d.hotelTiers[activeKey];
+        if (tierHotel) {
+          return { ...d, hotel: tierHotel };
+        }
+        return d;
+      });
+
+      return {
+        ...prev,
+        selectedHotelTier: tier,
+        totalCost: newTotal,
+        transportRate: newTransport,
+        accommodationRate: newAccommodation,
+        ...payment,
+        days: updatedDays
+      };
+    });
+  };
+
+  const handleUpdateDayHotelTier = (
+    dayIndex: number,
+    tier: 'threeStar' | 'fourStar' | 'fiveStar',
+    partialHotel: Partial<DayHotelSelection>
+  ) => {
+    const updatedDays = [...itinerary.days];
+    const targetDay = { ...updatedDays[dayIndex] };
+    const currentTiers: DayHotelTiers = targetDay.hotelTiers || {};
+    const existingTierHotel: DayHotelSelection = currentTiers[tier] || {
+      name: '',
+      city: targetDay.overnightLocation,
+      roomCategory: 'Deluxe Room',
+      mealPlan: 'Breakfast Included (CP)',
+      starCategory: tier === 'threeStar' ? 3 : tier === 'fourStar' ? 4 : 5
+    };
+
+    const updatedTierHotel: DayHotelSelection = { ...existingTierHotel, ...partialHotel };
+    const updatedTiers: DayHotelTiers = { ...currentTiers, [tier]: updatedTierHotel };
+    targetDay.hotelTiers = updatedTiers;
+
+    const activeTierKey = itinerary.selectedHotelTier === '3_star' ? 'threeStar' : itinerary.selectedHotelTier === '5_star' ? 'fiveStar' : 'fourStar';
+    if (tier === activeTierKey) {
+      targetDay.hotel = updatedTierHotel;
+    }
+
+    updatedDays[dayIndex] = targetDay;
+    setItinerary(prev => ({ ...prev, days: updatedDays }));
+  };
+
+  const handleAutoFillDayHotelTiers = (dayIndex: number) => {
+    const updatedDays = [...itinerary.days];
+    const targetDay = { ...updatedDays[dayIndex] };
+    const city = targetDay.overnightLocation || targetDay.destination;
+    const cityHotels = hotels.filter(h => h.city.toLowerCase() === city.toLowerCase());
+
+    const h3 = cityHotels.find(h => h.starCategory === 3) || hotels.find(h => h.starCategory === 3);
+    const h4 = cityHotels.find(h => h.starCategory === 4) || hotels.find(h => h.starCategory === 4);
+    const h5 = cityHotels.find(h => h.starCategory === 5) || hotels.find(h => h.starCategory === 5);
+
+    const newTiers: DayHotelTiers = {
+      threeStar: {
+        hotelId: h3?.id,
+        name: h3?.name || `Comfort 3-Star Partner Hotel (${city})`,
+        city,
+        roomCategory: h3?.roomCategories?.[0] || 'Standard / Deluxe Room',
+        mealPlan: h3?.mealPlans?.[0] || 'Breakfast Included (CP)',
+        starCategory: 3
+      },
+      fourStar: {
+        hotelId: h4?.id,
+        name: h4?.name || `Deluxe 4-Star Premium Hotel (${city})`,
+        city,
+        roomCategory: h4?.roomCategories?.[0] || 'Deluxe Room',
+        mealPlan: h4?.mealPlans?.[0] || 'Breakfast Included (CP)',
+        starCategory: 4
+      },
+      fiveStar: {
+        hotelId: h5?.id,
+        name: h5?.name || `Luxury 5-Star Heritage / Palace Hotel (${city})`,
+        city,
+        roomCategory: h5?.roomCategories?.[0] || 'Luxury / Palace Suite',
+        mealPlan: h5?.mealPlans?.[0] || 'Breakfast Included (CP)',
+        starCategory: 5
+      }
+    };
+
+    targetDay.hotelTiers = newTiers;
+    const activeTierKey = itinerary.selectedHotelTier === '3_star' ? 'threeStar' : itinerary.selectedHotelTier === '5_star' ? 'fiveStar' : 'fourStar';
+    targetDay.hotel = newTiers[activeTierKey];
+
+    updatedDays[dayIndex] = targetDay;
+    setItinerary(prev => ({ ...prev, days: updatedDays }));
+  };
+
+  const handleTierPricingChange = (
+    tierKey: 'threeStar' | 'fourStar' | 'fiveStar',
+    field: 'totalCost' | 'transportCost' | 'accommodationCost',
+    val: number
+  ) => {
+    setItinerary(prev => {
+      const currentPricingTiers = prev.pricingTiers || {
+        threeStar: { totalCost: 38000, transportCost: 18000, accommodationCost: 20000 },
+        fourStar: { totalCost: 45000, transportCost: 18000, accommodationCost: 27000 },
+        fiveStar: { totalCost: 58000, transportCost: 18000, accommodationCost: 40000 }
+      };
+
+      const tierData: TierPricingData = { ...(currentPricingTiers[tierKey] || { totalCost: 0, transportCost: 0, accommodationCost: 0 }) };
+
+      if (field === 'totalCost') {
+        tierData.totalCost = val;
+        if (prev.itemizedPriceSplit && tierData.transportCost !== undefined) {
+          tierData.accommodationCost = Math.max(0, val - tierData.transportCost);
+        }
+      } else if (field === 'transportCost') {
+        tierData.transportCost = val;
+        tierData.totalCost = val + (tierData.accommodationCost || 0);
+      } else if (field === 'accommodationCost') {
+        tierData.accommodationCost = val;
+        tierData.totalCost = (tierData.transportCost || 0) + val;
+      }
+
+      const updatedPricingTiers = { ...currentPricingTiers, [tierKey]: tierData };
+      const activeTierKey = prev.selectedHotelTier === '3_star' ? 'threeStar' : prev.selectedHotelTier === '5_star' ? 'fiveStar' : 'fourStar';
+
+      if (tierKey === activeTierKey) {
+        const payment = computePayment(tierData.totalCost, prev.advancePaid);
+        return {
+          ...prev,
+          pricingTiers: updatedPricingTiers,
+          totalCost: tierData.totalCost,
+          transportRate: tierData.transportCost,
+          accommodationRate: tierData.accommodationCost,
+          ...payment
+        };
+      }
+
+      return {
+        ...prev,
+        pricingTiers: updatedPricingTiers
+      };
+    });
+  };
+
+  const handleToggleItemizedSplit = (enabled: boolean) => {
+    setItinerary(prev => {
+      let tRate = prev.transportRate;
+      let aRate = prev.accommodationRate;
+      if (tRate === undefined || aRate === undefined) {
+        tRate = Math.round(prev.totalCost * 0.4);
+        aRate = prev.totalCost - tRate;
+      }
+      return {
+        ...prev,
+        itemizedPriceSplit: enabled,
+        costDisplayType: enabled ? 'itemized_split' : 'total_only',
+        transportRate: tRate,
+        accommodationRate: aRate
+      };
+    });
+  };
+
+  const handleTransportRateChange = (val: number) => {
+    setItinerary(prev => {
+      const newTotal = val + (prev.accommodationRate || 0);
+      const payment = computePayment(newTotal, prev.advancePaid);
+      return {
+        ...prev,
+        transportRate: val,
+        totalCost: newTotal,
+        ...payment
+      };
+    });
+  };
+
+  const handleAccommodationRateChange = (val: number) => {
+    setItinerary(prev => {
+      const newTotal = (prev.transportRate || 0) + val;
+      const payment = computePayment(newTotal, prev.advancePaid);
+      return {
+        ...prev,
+        accommodationRate: val,
+        totalCost: newTotal,
+        ...payment
+      };
+    });
   };
 
   const handleAdvancePaidChange = (val: number) => {
@@ -931,7 +1233,12 @@ export default function ItineraryBuilder({
     };
 
     targetDay.departureDetails = { ...currentDeparture, ...partialDeparture };
-    targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
+    let newDesc = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
+    if (targetDay.departureDetails.enabled) {
+      newDesc = newDesc.replace(/\s*Overnight stay at your designated hotel in [^.]+\./gi, '');
+      newDesc = newDesc.replace(/\s*Overnight in [^.]+\./gi, '');
+    }
+    targetDay.description = newDesc.trim();
 
     updatedDays[dayIndex] = targetDay;
     setItinerary(prev => ({ ...prev, days: updatedDays }));
@@ -1443,6 +1750,35 @@ export default function ItineraryBuilder({
 
       copy.coverImage = smartImg || DEFAULT_TAJ_MAHAL;
     }
+
+    // Clean up any lingering overnight text on departure / final day
+    copy.days = copy.days.map((d, idx) => {
+      const isLast = idx === copy.days.length - 1;
+      if (d.departureDetails?.enabled || isLast) {
+        if (d.departureDetails?.enabled) {
+          let desc = d.description || '';
+          desc = desc.replace(/\s*Overnight stay at your designated hotel in [^.]+\./gi, '');
+          desc = desc.replace(/\s*Overnight in [^.]+\./gi, '');
+          return { ...d, description: desc.trim() };
+        }
+      }
+      return d;
+    });
+
+    // Sync active tier pricing if multi-tier is enabled
+    if (copy.hotelTiersEnabled && copy.pricingTiers) {
+      const activeKey = copy.selectedHotelTier === '3_star' ? 'threeStar' : copy.selectedHotelTier === '5_star' ? 'fiveStar' : 'fourStar';
+      const activeTierData = copy.pricingTiers[activeKey];
+      if (activeTierData?.totalCost) {
+        copy.totalCost = activeTierData.totalCost;
+        if (activeTierData.transportCost !== undefined) copy.transportRate = activeTierData.transportCost;
+        if (activeTierData.accommodationCost !== undefined) copy.accommodationRate = activeTierData.accommodationCost;
+        const payment = computePayment(copy.totalCost, copy.advancePaid);
+        copy.pendingAmount = payment.pendingAmount;
+        copy.paymentStatus = payment.paymentStatus;
+      }
+    }
+
     return copy;
   };
 
@@ -2205,6 +2541,37 @@ export default function ItineraryBuilder({
               <Plus className="w-4 h-4" />
               Add Day {itinerary.days.length + 1}
             </button>
+          </div>
+
+          {/* Multi-Tiered Hotel Packages Global Toggle */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-200 flex items-center justify-center text-amber-700">
+                <Layers className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-900">Multi-Tiered Hotel Packages</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                    3★ · 4★ · 5★ Options
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Offer clients multiple hotel choices categorized by star ratings (3-Star, 4-Star & 5-Star) with linked tiered rates in Step 5.
+                </p>
+              </div>
+            </div>
+            <label className="inline-flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+              <input
+                type="checkbox"
+                checked={itinerary.hotelTiersEnabled ?? false}
+                onChange={(e) => handleToggleHotelTiers(e.target.checked)}
+                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+              />
+              <span className="text-xs font-semibold text-slate-800">
+                {itinerary.hotelTiersEnabled ? 'Active (Multi-Tier)' : 'Off (Single Hotel)'}
+              </span>
+            </label>
           </div>
 
           {/* Days List */}
@@ -3231,109 +3598,340 @@ export default function ItineraryBuilder({
                         
                         {/* Hotel Selection */}
                         {itinerary.includeHotels !== false ? (
-                        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                              <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                              Hotel for Overnight in {day.overnightLocation}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setQuickHotelData({
-                                  ...quickHotelData,
-                                  city: day.overnightLocation
-                                });
-                                setQuickHotelModalDayId(day.id);
-                              }}
-                              className="text-[11px] font-bold text-indigo-600 hover:underline"
-                            >
-                              + Add New Hotel
-                            </button>
-                          </div>
+                          itinerary.hotelTiersEnabled ? (
+                            /* Multi-Tiered Hotel Selection for Day */
+                            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3 col-span-1 md:col-span-2">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="w-4 h-4 text-indigo-600" />
+                                  <div>
+                                    <span className="text-xs font-bold text-slate-900 block">
+                                      Multi-Tier Hotel Selection for Overnight in {day.overnightLocation}
+                                    </span>
+                                    <span className="text-[10px] text-slate-500">
+                                      Set options for 3-Star (Comfort), 4-Star (Deluxe), and 5-Star (Luxury).
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAutoFillDayHotelTiers(dayIndex)}
+                                    className="text-[11px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-2xs"
+                                  >
+                                    <Sparkles className="w-3 h-3 text-amber-600" />
+                                    <span>Auto-Fill 3★, 4★, 5★ from Partners</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setQuickHotelData({ ...quickHotelData, city: day.overnightLocation });
+                                      setQuickHotelModalDayId(day.id);
+                                    }}
+                                    className="text-[11px] font-bold text-indigo-600 hover:underline px-1"
+                                  >
+                                    + Add Hotel
+                                  </button>
+                                </div>
+                              </div>
 
-                          <div className="space-y-2">
-                            <select
-                              value={day.hotel?.hotelId || ''}
-                              onChange={(e) => {
-                                const selectedHotel = hotels.find(h => h.id === e.target.value);
-                                if (selectedHotel) {
-                                  handleUpdateDayField(dayIndex, 'hotel', {
-                                    hotelId: selectedHotel.id,
-                                    name: selectedHotel.name,
-                                    city: selectedHotel.city,
-                                    roomCategory: selectedHotel.roomCategories[0] || 'Deluxe Room',
-                                    mealPlan: selectedHotel.mealPlans[0] || 'Breakfast Included (CP)',
-                                    starCategory: selectedHotel.starCategory
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                {/* 3-Star Tier */}
+                                <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[11px] font-black text-amber-800 uppercase tracking-wider flex items-center gap-1">
+                                      <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                                      3-Star (Comfort)
+                                    </span>
+                                    {itinerary.selectedHotelTier === '3_star' && (
+                                      <span className="text-[9px] font-bold bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded">Active Quote</span>
+                                    )}
+                                  </div>
+                                  <select
+                                    value={day.hotelTiers?.threeStar?.hotelId || ''}
+                                    onChange={(e) => {
+                                      const sel = hotels.find(h => h.id === e.target.value);
+                                      if (sel) {
+                                        handleUpdateDayHotelTier(dayIndex, 'threeStar', {
+                                          hotelId: sel.id,
+                                          name: sel.name,
+                                          city: sel.city,
+                                          roomCategory: sel.roomCategories[0] || 'Standard / Deluxe Room',
+                                          mealPlan: sel.mealPlans[0] || 'Breakfast Included (CP)',
+                                          starCategory: 3
+                                        });
+                                      }
+                                    }}
+                                    className="w-full px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:outline-none"
+                                  >
+                                    <option value="">-- Choose 3★ Hotel --</option>
+                                    {matchingHotels.map(h => (
+                                      <option key={h.id} value={h.id}>{h.name} ({h.starCategory}★)</option>
+                                    ))}
+                                    <optgroup label="Other Hotels">
+                                      {hotels.filter(h => h.city.toLowerCase() !== day.overnightLocation.toLowerCase()).map(h => (
+                                        <option key={h.id} value={h.id}>{h.name} ({h.city} · {h.starCategory}★)</option>
+                                      ))}
+                                    </optgroup>
+                                  </select>
+                                  <input
+                                    type="text"
+                                    value={day.hotelTiers?.threeStar?.name || ''}
+                                    onChange={(e) => handleUpdateDayHotelTier(dayIndex, 'threeStar', { name: e.target.value })}
+                                    placeholder="Hotel Name"
+                                    className="w-full px-2 py-1 text-[11px] bg-slate-50 border border-slate-200 rounded"
+                                  />
+                                  <div className="grid grid-cols-2 gap-1.5">
+                                    <input
+                                      type="text"
+                                      value={day.hotelTiers?.threeStar?.roomCategory || ''}
+                                      onChange={(e) => handleUpdateDayHotelTier(dayIndex, 'threeStar', { roomCategory: e.target.value })}
+                                      placeholder="Room Category"
+                                      className="px-2 py-1 text-[10px] bg-slate-50 border border-slate-200 rounded"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={day.hotelTiers?.threeStar?.mealPlan || ''}
+                                      onChange={(e) => handleUpdateDayHotelTier(dayIndex, 'threeStar', { mealPlan: e.target.value })}
+                                      placeholder="Meal Plan"
+                                      className="px-2 py-1 text-[10px] bg-slate-50 border border-slate-200 rounded"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* 4-Star Tier */}
+                                <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[11px] font-black text-blue-800 uppercase tracking-wider flex items-center gap-1">
+                                      <Star className="w-3 h-3 text-blue-500 fill-blue-500" />
+                                      4-Star (Deluxe)
+                                    </span>
+                                    {itinerary.selectedHotelTier === '4_star' && (
+                                      <span className="text-[9px] font-bold bg-blue-100 text-blue-900 px-1.5 py-0.5 rounded">Active Quote</span>
+                                    )}
+                                  </div>
+                                  <select
+                                    value={day.hotelTiers?.fourStar?.hotelId || ''}
+                                    onChange={(e) => {
+                                      const sel = hotels.find(h => h.id === e.target.value);
+                                      if (sel) {
+                                        handleUpdateDayHotelTier(dayIndex, 'fourStar', {
+                                          hotelId: sel.id,
+                                          name: sel.name,
+                                          city: sel.city,
+                                          roomCategory: sel.roomCategories[0] || 'Deluxe Room',
+                                          mealPlan: sel.mealPlans[0] || 'Breakfast Included (CP)',
+                                          starCategory: 4
+                                        });
+                                      }
+                                    }}
+                                    className="w-full px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:outline-none"
+                                  >
+                                    <option value="">-- Choose 4★ Hotel --</option>
+                                    {matchingHotels.map(h => (
+                                      <option key={h.id} value={h.id}>{h.name} ({h.starCategory}★)</option>
+                                    ))}
+                                    <optgroup label="Other Hotels">
+                                      {hotels.filter(h => h.city.toLowerCase() !== day.overnightLocation.toLowerCase()).map(h => (
+                                        <option key={h.id} value={h.id}>{h.name} ({h.city} · {h.starCategory}★)</option>
+                                      ))}
+                                    </optgroup>
+                                  </select>
+                                  <input
+                                    type="text"
+                                    value={day.hotelTiers?.fourStar?.name || ''}
+                                    onChange={(e) => handleUpdateDayHotelTier(dayIndex, 'fourStar', { name: e.target.value })}
+                                    placeholder="Hotel Name"
+                                    className="w-full px-2 py-1 text-[11px] bg-slate-50 border border-slate-200 rounded"
+                                  />
+                                  <div className="grid grid-cols-2 gap-1.5">
+                                    <input
+                                      type="text"
+                                      value={day.hotelTiers?.fourStar?.roomCategory || ''}
+                                      onChange={(e) => handleUpdateDayHotelTier(dayIndex, 'fourStar', { roomCategory: e.target.value })}
+                                      placeholder="Room Category"
+                                      className="px-2 py-1 text-[10px] bg-slate-50 border border-slate-200 rounded"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={day.hotelTiers?.fourStar?.mealPlan || ''}
+                                      onChange={(e) => handleUpdateDayHotelTier(dayIndex, 'fourStar', { mealPlan: e.target.value })}
+                                      placeholder="Meal Plan"
+                                      className="px-2 py-1 text-[10px] bg-slate-50 border border-slate-200 rounded"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* 5-Star Tier */}
+                                <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[11px] font-black text-purple-800 uppercase tracking-wider flex items-center gap-1">
+                                      <Star className="w-3 h-3 text-purple-500 fill-purple-500" />
+                                      5-Star (Luxury)
+                                    </span>
+                                    {itinerary.selectedHotelTier === '5_star' && (
+                                      <span className="text-[9px] font-bold bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded">Active Quote</span>
+                                    )}
+                                  </div>
+                                  <select
+                                    value={day.hotelTiers?.fiveStar?.hotelId || ''}
+                                    onChange={(e) => {
+                                      const sel = hotels.find(h => h.id === e.target.value);
+                                      if (sel) {
+                                        handleUpdateDayHotelTier(dayIndex, 'fiveStar', {
+                                          hotelId: sel.id,
+                                          name: sel.name,
+                                          city: sel.city,
+                                          roomCategory: sel.roomCategories[0] || 'Luxury / Palace Suite',
+                                          mealPlan: sel.mealPlans[0] || 'Breakfast Included (CP)',
+                                          starCategory: 5
+                                        });
+                                      }
+                                    }}
+                                    className="w-full px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:outline-none"
+                                  >
+                                    <option value="">-- Choose 5★ Hotel --</option>
+                                    {matchingHotels.map(h => (
+                                      <option key={h.id} value={h.id}>{h.name} ({h.starCategory}★)</option>
+                                    ))}
+                                    <optgroup label="Other Hotels">
+                                      {hotels.filter(h => h.city.toLowerCase() !== day.overnightLocation.toLowerCase()).map(h => (
+                                        <option key={h.id} value={h.id}>{h.name} ({h.city} · {h.starCategory}★)</option>
+                                      ))}
+                                    </optgroup>
+                                  </select>
+                                  <input
+                                    type="text"
+                                    value={day.hotelTiers?.fiveStar?.name || ''}
+                                    onChange={(e) => handleUpdateDayHotelTier(dayIndex, 'fiveStar', { name: e.target.value })}
+                                    placeholder="Hotel Name"
+                                    className="w-full px-2 py-1 text-[11px] bg-slate-50 border border-slate-200 rounded"
+                                  />
+                                  <div className="grid grid-cols-2 gap-1.5">
+                                    <input
+                                      type="text"
+                                      value={day.hotelTiers?.fiveStar?.roomCategory || ''}
+                                      onChange={(e) => handleUpdateDayHotelTier(dayIndex, 'fiveStar', { roomCategory: e.target.value })}
+                                      placeholder="Room Category"
+                                      className="px-2 py-1 text-[10px] bg-slate-50 border border-slate-200 rounded"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={day.hotelTiers?.fiveStar?.mealPlan || ''}
+                                      onChange={(e) => handleUpdateDayHotelTier(dayIndex, 'fiveStar', { mealPlan: e.target.value })}
+                                      placeholder="Meal Plan"
+                                      className="px-2 py-1 text-[10px] bg-slate-50 border border-slate-200 rounded"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                          /* Standard Single Hotel Selection */
+                          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                                Hotel for Overnight in {day.overnightLocation}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setQuickHotelData({
+                                    ...quickHotelData,
+                                    city: day.overnightLocation
                                   });
-                                }
-                              }}
-                              className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none"
-                            >
-                              <option value="">-- Select Hotel for {day.overnightLocation} --</option>
-                              {matchingHotels.length > 0 && (
-                                <optgroup label={`Partner Hotels in ${day.overnightLocation}`}>
-                                  {matchingHotels.map((h) => (
+                                  setQuickHotelModalDayId(day.id);
+                                }}
+                                className="text-[11px] font-bold text-indigo-600 hover:underline"
+                              >
+                                + Add New Hotel
+                              </button>
+                            </div>
+
+                            <div className="space-y-2">
+                              <select
+                                value={day.hotel?.hotelId || ''}
+                                onChange={(e) => {
+                                  const selectedHotel = hotels.find(h => h.id === e.target.value);
+                                  if (selectedHotel) {
+                                    handleUpdateDayField(dayIndex, 'hotel', {
+                                      hotelId: selectedHotel.id,
+                                      name: selectedHotel.name,
+                                      city: selectedHotel.city,
+                                      roomCategory: selectedHotel.roomCategories[0] || 'Deluxe Room',
+                                      mealPlan: selectedHotel.mealPlans[0] || 'Breakfast Included (CP)',
+                                      starCategory: selectedHotel.starCategory
+                                    });
+                                  }
+                                }}
+                                className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none"
+                              >
+                                <option value="">-- Select Hotel for {day.overnightLocation} --</option>
+                                {matchingHotels.length > 0 && (
+                                  <optgroup label={`Partner Hotels in ${day.overnightLocation}`}>
+                                    {matchingHotels.map((h) => (
+                                      <option key={h.id} value={h.id}>
+                                        {h.name} ({h.starCategory}★) - {h.partnershipStatus}
+                                      </option>
+                                    ))}
+                                  </optgroup>
+                                )}
+                                <optgroup label="Other Destination Hotels">
+                                  {hotels.filter(h => h.city.toLowerCase() !== day.overnightLocation.toLowerCase()).map((h) => (
                                     <option key={h.id} value={h.id}>
-                                      {h.name} ({h.starCategory}★) - {h.partnershipStatus}
+                                      {h.name} ({h.city} · {h.starCategory}★)
                                     </option>
                                   ))}
                                 </optgroup>
+                              </select>
+
+                              {day.hotel && (
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <input
+                                    type="text"
+                                    value={day.hotel.roomCategory}
+                                    onChange={(e) => {
+                                      const updated = { ...day.hotel!, roomCategory: e.target.value };
+                                      handleUpdateDayField(dayIndex, 'hotel', updated);
+                                    }}
+                                    placeholder="Room Category"
+                                    className="px-2 py-1 bg-white border border-slate-200 rounded text-[11px]"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={day.hotel.mealPlan}
+                                    onChange={(e) => {
+                                      const updated = { ...day.hotel!, mealPlan: e.target.value };
+                                      handleUpdateDayField(dayIndex, 'hotel', updated);
+                                    }}
+                                    placeholder="Meal Plan"
+                                    className="px-2 py-1 bg-white border border-slate-200 rounded text-[11px]"
+                                  />
+                                </div>
                               )}
-                              <optgroup label="Other Destination Hotels">
-                                {hotels.filter(h => h.city.toLowerCase() !== day.overnightLocation.toLowerCase()).map((h) => (
-                                  <option key={h.id} value={h.id}>
-                                    {h.name} ({h.city} · {h.starCategory}★)
-                                  </option>
-                                ))}
-                              </optgroup>
-                            </select>
 
-                            {day.hotel && (
-                              <div className="grid grid-cols-2 gap-2 text-xs">
-                                <input
-                                  type="text"
-                                  value={day.hotel.roomCategory}
-                                  onChange={(e) => {
-                                    const updated = { ...day.hotel!, roomCategory: e.target.value };
-                                    handleUpdateDayField(dayIndex, 'hotel', updated);
-                                  }}
-                                  placeholder="Room Category"
-                                  className="px-2 py-1 bg-white border border-slate-200 rounded text-[11px]"
-                                />
-                                <input
-                                  type="text"
-                                  value={day.hotel.mealPlan}
-                                  onChange={(e) => {
-                                    const updated = { ...day.hotel!, mealPlan: e.target.value };
-                                    handleUpdateDayField(dayIndex, 'hotel', updated);
-                                  }}
-                                  placeholder="Meal Plan"
-                                  className="px-2 py-1 bg-white border border-slate-200 rounded text-[11px]"
-                                />
-                              </div>
-                            )}
-
-                            {matchingHotels.length === 0 && (
-                              <div className="text-[11px] text-slate-500 flex items-center justify-between">
-                                <span>No local partner hotels registered in {day.overnightLocation} yet.</span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setQuickHotelData({
-                                      ...quickHotelData,
-                                      city: day.overnightLocation
-                                    });
-                                    setQuickHotelModalDayId(day.id);
-                                  }}
-                                  className="text-indigo-600 font-semibold hover:underline text-[11px]"
-                                >
-                                  + Register hotel now
-                                </button>
-                              </div>
-                            )}
+                              {matchingHotels.length === 0 && (
+                                <div className="text-[11px] text-slate-500 flex items-center justify-between">
+                                  <span>No local partner hotels registered in {day.overnightLocation} yet.</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setQuickHotelData({
+                                        ...quickHotelData,
+                                        city: day.overnightLocation
+                                      });
+                                      setQuickHotelModalDayId(day.id);
+                                    }}
+                                    className="text-indigo-600 font-semibold hover:underline text-[11px]"
+                                  >
+                                    + Register hotel now
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                          )
                         ) : (
                         <div className="p-3.5 rounded-xl bg-slate-50/70 border border-dashed border-slate-200 text-xs text-slate-500 flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -3921,15 +4519,357 @@ export default function ItineraryBuilder({
 
           {itinerary.showCostInItinerary && (
             <div className="space-y-6">
-              
-              {/* Financial Inputs */}
+
+              {/* Itemized / Component Price Split Toggle */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-900">
+                      Itemized Component Price Split
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+                      Transport & Logistics vs Accommodation
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-500">
+                    Separate rates line-by-line: Transport & Logistics (car, chauffeur, transfers, sightseeing) and Accommodation (hotels).
+                  </span>
+                </div>
+                <label className="inline-flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={itinerary.itemizedPriceSplit ?? false}
+                    onChange={(e) => handleToggleItemizedSplit(e.target.checked)}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-xs font-semibold text-slate-800">
+                    {itinerary.itemizedPriceSplit ? 'Itemized Split On' : 'Lump Sum Total'}
+                  </span>
+                </label>
+              </div>
+
+              {/* Multi-Tiered Package Pricing Matrix (If hotel tiers enabled) */}
+              {itinerary.hotelTiersEnabled && (
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50/50 via-white to-slate-50 border border-amber-200 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/80 pb-3">
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-amber-600" />
+                        Multi-Tiered Package Pricing Matrix (3★, 4★, 5★ Packages)
+                      </h3>
+                      <p className="text-[11px] text-slate-500">
+                        Set comparative quotes for each star rating tier. Clicking a tier selects it as the active proposal quote.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-amber-200 text-xs">
+                      <span className="text-[10px] font-bold text-slate-500 px-1.5">Active Quote:</span>
+                      {(['3_star', '4_star', '5_star'] as HotelStarTier[]).map(t => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => handleSelectHotelTier(t)}
+                          className={`px-2.5 py-1 rounded-lg font-bold text-xs transition ${
+                            itinerary.selectedHotelTier === t
+                              ? 'bg-[#151521] text-amber-300 shadow-sm'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                          }`}
+                        >
+                          {t === '3_star' ? '3★ Comfort' : t === '4_star' ? '4★ Deluxe' : '5★ Luxury'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* 3-Star Comfort Package */}
+                    <div className={`p-4 rounded-xl border-2 transition ${
+                      itinerary.selectedHotelTier === '3_star'
+                        ? 'border-amber-500 bg-amber-50/30 shadow-md ring-2 ring-amber-400/40'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-black text-xs text-amber-900 flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                          3-Star Comfort Package
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectHotelTier('3_star')}
+                          className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                            itinerary.selectedHotelTier === '3_star'
+                              ? 'bg-amber-500 text-slate-950'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          {itinerary.selectedHotelTier === '3_star' ? '✓ Active Quote' : 'Set Active'}
+                        </button>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                            Total 3★ Package Rate (INR)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1.5 font-bold text-slate-400 text-xs">₹</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="500"
+                              value={itinerary.pricingTiers?.threeStar?.totalCost || 0}
+                              onChange={(e) => handleTierPricingChange('threeStar', 'totalCost', parseFloat(e.target.value) || 0)}
+                              className="w-full pl-6 pr-2 py-1.5 text-sm font-black bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            />
+                          </div>
+                        </div>
+
+                        {itinerary.itemizedPriceSplit && (
+                          <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
+                            <div>
+                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                                Transport & Logistics Rate (₹)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                step="500"
+                                value={itinerary.pricingTiers?.threeStar?.transportCost ?? 0}
+                                onChange={(e) => handleTierPricingChange('threeStar', 'transportCost', parseFloat(e.target.value) || 0)}
+                                className="w-full px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                                Accommodation Rate (₹)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                step="500"
+                                value={itinerary.pricingTiers?.threeStar?.accommodationCost ?? 0}
+                                onChange={(e) => handleTierPricingChange('threeStar', 'accommodationCost', parseFloat(e.target.value) || 0)}
+                                className="w-full px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 4-Star Deluxe Package */}
+                    <div className={`p-4 rounded-xl border-2 transition ${
+                      itinerary.selectedHotelTier === '4_star'
+                        ? 'border-blue-500 bg-blue-50/30 shadow-md ring-2 ring-blue-400/40'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-black text-xs text-blue-900 flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 text-blue-500 fill-blue-500" />
+                          4-Star Deluxe Package
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectHotelTier('4_star')}
+                          className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                            itinerary.selectedHotelTier === '4_star'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          {itinerary.selectedHotelTier === '4_star' ? '✓ Active Quote' : 'Set Active'}
+                        </button>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                            Total 4★ Package Rate (INR)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1.5 font-bold text-slate-400 text-xs">₹</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="500"
+                              value={itinerary.pricingTiers?.fourStar?.totalCost || 0}
+                              onChange={(e) => handleTierPricingChange('fourStar', 'totalCost', parseFloat(e.target.value) || 0)}
+                              className="w-full pl-6 pr-2 py-1.5 text-sm font-black bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+
+                        {itinerary.itemizedPriceSplit && (
+                          <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
+                            <div>
+                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                                Transport & Logistics Rate (₹)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                step="500"
+                                value={itinerary.pricingTiers?.fourStar?.transportCost ?? 0}
+                                onChange={(e) => handleTierPricingChange('fourStar', 'transportCost', parseFloat(e.target.value) || 0)}
+                                className="w-full px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                                Accommodation Rate (₹)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                step="500"
+                                value={itinerary.pricingTiers?.fourStar?.accommodationCost ?? 0}
+                                onChange={(e) => handleTierPricingChange('fourStar', 'accommodationCost', parseFloat(e.target.value) || 0)}
+                                className="w-full px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 5-Star Luxury Package */}
+                    <div className={`p-4 rounded-xl border-2 transition ${
+                      itinerary.selectedHotelTier === '5_star'
+                        ? 'border-purple-500 bg-purple-50/30 shadow-md ring-2 ring-purple-400/40'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-black text-xs text-purple-900 flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 text-purple-500 fill-purple-500" />
+                          5-Star Luxury Package
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectHotelTier('5_star')}
+                          className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                            itinerary.selectedHotelTier === '5_star'
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          {itinerary.selectedHotelTier === '5_star' ? '✓ Active Quote' : 'Set Active'}
+                        </button>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                            Total 5★ Package Rate (INR)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1.5 font-bold text-slate-400 text-xs">₹</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="500"
+                              value={itinerary.pricingTiers?.fiveStar?.totalCost || 0}
+                              onChange={(e) => handleTierPricingChange('fiveStar', 'totalCost', parseFloat(e.target.value) || 0)}
+                              className="w-full pl-6 pr-2 py-1.5 text-sm font-black bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                            />
+                          </div>
+                        </div>
+
+                        {itinerary.itemizedPriceSplit && (
+                          <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
+                            <div>
+                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                                Transport & Logistics Rate (₹)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                step="500"
+                                value={itinerary.pricingTiers?.fiveStar?.transportCost ?? 0}
+                                onChange={(e) => handleTierPricingChange('fiveStar', 'transportCost', parseFloat(e.target.value) || 0)}
+                                className="w-full px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">
+                                Accommodation Rate (₹)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                step="500"
+                                value={itinerary.pricingTiers?.fiveStar?.accommodationCost ?? 0}
+                                onChange={(e) => handleTierPricingChange('fiveStar', 'accommodationCost', parseFloat(e.target.value) || 0)}
+                                className="w-full px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Single Tier Itemized Split Inputs (If NOT multi-tier but itemized split enabled) */}
+              {!itinerary.hotelTiersEnabled && itinerary.itemizedPriceSplit && (
+                <div className="p-4 rounded-xl bg-blue-50/50 border border-blue-200 space-y-3">
+                  <span className="text-xs font-bold text-blue-950 block">
+                    Itemized Cost Split Breakdown
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Transport & Logistics Rate (INR)
+                      </label>
+                      <p className="text-[10px] text-slate-500 mb-1">Car, chauffeur, fuel, toll, intercity transfers & sightseeing</p>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2 font-bold text-slate-400">₹</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="500"
+                          value={itinerary.transportRate ?? 0}
+                          onChange={(e) => handleTransportRateChange(parseFloat(e.target.value) || 0)}
+                          className="w-full pl-8 pr-3 py-2 text-sm font-bold bg-white border border-slate-200 rounded-lg text-slate-900"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Accommodation Rate (INR)
+                      </label>
+                      <p className="text-[10px] text-slate-500 mb-1">Hotels & lodging total cost</p>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2 font-bold text-slate-400">₹</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="500"
+                          value={itinerary.accommodationRate ?? 0}
+                          onChange={(e) => handleAccommodationRateChange(parseFloat(e.target.value) || 0)}
+                          className="w-full pl-8 pr-3 py-2 text-sm font-bold bg-white border border-slate-200 rounded-lg text-slate-900"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Active Financial Inputs & Payment Ledger */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 
                 {/* Total Cost */}
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Total Tour Package Price (INR)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Total Package Price (INR)
+                    </label>
+                    {itinerary.hotelTiersEnabled && (
+                      <span className="text-[10px] font-bold text-amber-700">
+                        {itinerary.selectedHotelTier === '3_star' ? '3★' : itinerary.selectedHotelTier === '5_star' ? '5★' : '4★'} Active
+                      </span>
+                    )}
+                  </div>
                   <div className="relative">
                     <span className="absolute left-3 top-2 font-bold text-slate-400">₹</span>
                     <input

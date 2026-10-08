@@ -1,6 +1,6 @@
 export type BookingStatus = 'Draft' | 'Generated' | 'Sent' | 'Confirmed' | 'Cancelled' | 'Completed';
 export type PaymentStatus = 'Unpaid' | 'Partially Paid' | 'Paid' | 'Refunded' | 'Cancelled';
-export type CostDisplayType = 'total_only' | 'breakdown';
+export type CostDisplayType = 'total_only' | 'breakdown' | 'itemized_split';
 
 export interface ChildInfo {
   id: string;
@@ -96,6 +96,26 @@ export interface CitySightseeing {
   trainToNext?: InterCityTrainDetails;
 }
 
+export type HotelStarTier = '3_star' | '4_star' | '5_star';
+
+export interface DayHotelTiers {
+  threeStar?: DayHotelSelection;
+  fourStar?: DayHotelSelection;
+  fiveStar?: DayHotelSelection;
+}
+
+export interface TierPricingData {
+  totalCost: number;
+  transportCost?: number;
+  accommodationCost?: number;
+}
+
+export interface PricingTiers {
+  threeStar?: TierPricingData;
+  fourStar?: TierPricingData;
+  fiveStar?: TierPricingData;
+}
+
 export interface ItineraryDay {
   id: string;
   dayNumber: number;
@@ -110,6 +130,7 @@ export interface ItineraryDay {
   transfer?: DayTransfer;
   meals: DayMealPlan;
   hotel?: DayHotelSelection;
+  hotelTiers?: DayHotelTiers;
   images: string[];
   notes?: string;
   // Day 1 / Arrival Details
@@ -184,6 +205,12 @@ export interface Itinerary {
   vehicleDisplay: string;
   days: ItineraryDay[];
   includeHotels?: boolean;
+  hotelTiersEnabled?: boolean;
+  selectedHotelTier?: HotelStarTier;
+  pricingTiers?: PricingTiers;
+  itemizedPriceSplit?: boolean;
+  transportRate?: number;
+  accommodationRate?: number;
   showCostInItinerary: boolean;
   costDisplayType: CostDisplayType;
   currency: string;
