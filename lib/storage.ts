@@ -17,7 +17,7 @@ const STORAGE_KEYS = {
   SETTINGS: 'lobo_settings_v1',
   VEHICLES: 'lobo_vehicles_v1',
   DESTINATIONS: 'lobo_destinations_v5',
-  ATTRACTIONS: 'lobo_attractions_v7',
+  ATTRACTIONS: 'lobo_attractions_v8',
   HOTELS: 'lobo_hotels_v1',
   ITINERARIES: 'lobo_itineraries_v3',
   NEXT_REF: 'lobo_next_ref_v1',
@@ -90,6 +90,7 @@ function refreshAllCaches(): void {
       localStorage.removeItem('lobo_destinations_v4');
       localStorage.removeItem('lobo_attractions_v2');
       localStorage.removeItem('lobo_attractions_v3');
+      localStorage.removeItem('lobo_attractions_v7');
     } catch (_) {}
     
     // Load itineraries v3 with fallback to v2 or INITIAL_ITINERARIES

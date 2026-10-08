@@ -682,6 +682,18 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     unesco: false,
     image: 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TQn-LJrHPGp2eXgMz1_Np4CE7oD9ozDUYkH91Na8f5LXXu-00uCwULxT2ENFlgp0JAmiF4-3s59FUhACEO5wB6rsB56RYQKlnle_joR9O1stIYNXAuRfTKcL7hLHMM9-dlla85qw=s1360-w1360-h1020-rw'
   },
+  {
+    id: 'jaipur-jhalana-safari',
+    destinationId: 'jaipur',
+    destinationName: 'Jaipur',
+    name: 'Jhalana Leopard Safari',
+    shortDescription: 'India’s premier urban leopard reserve offering thrilling open-top 4x4 Gypsy wildlife safaris.',
+    detailedDescription: 'Located in the Aravalli foothills of Jaipur, Jhalana Safari Park is India’s first designated leopard conservation reserve. Spanning over 20 sq km of dry deciduous forest, it offers high leopard sighting probability alongside striped hyenas, desert foxes, golden jackals, nilgai, and over 100 bird species explored via guided open-jeep safaris.',
+    duration: '2.5–3 Hours',
+    category: 'Wildlife & Safari',
+    unesco: false,
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Leopard-Jhalana-01.jpg/1280px-Leopard-Jhalana-01.jpg'
+  },
 
   // ==========================================
   // MATHURA & VRINDAVAN
@@ -2468,6 +2480,11 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'chitrakoot-ramghat': 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmWLux5g3HxIeP_P-PW_DMzTouOrmGTDoiZYngSR5Kl_00aDXyCJoZLwCb5Jws-OFhR8J_huvuLTGP5aNG2Oi14iuyihQ3r4PCMhJ0KNKecYhH1rYuL7H522LBbFy6XTiHjRC9p7a3Kjd6B=s1360-w1360-h1020-rw',
   'ramghat': 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmWLux5g3HxIeP_P-PW_DMzTouOrmGTDoiZYngSR5Kl_00aDXyCJoZLwCb5Jws-OFhR8J_huvuLTGP5aNG2Oi14iuyihQ3r4PCMhJ0KNKecYhH1rYuL7H522LBbFy6XTiHjRC9p7a3Kjd6B=s1360-w1360-h1020-rw',
   'ramghat in chitrakoot': 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmWLux5g3HxIeP_P-PW_DMzTouOrmGTDoiZYngSR5Kl_00aDXyCJoZLwCb5Jws-OFhR8J_huvuLTGP5aNG2Oi14iuyihQ3r4PCMhJ0KNKecYhH1rYuL7H522LBbFy6XTiHjRC9p7a3Kjd6B=s1360-w1360-h1020-rw',
+  // Jaipur - Jhalana Leopard Safari
+  'jaipur-jhalana-safari': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Leopard-Jhalana-01.jpg/1280px-Leopard-Jhalana-01.jpg',
+  'jhalana leopard safari': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Leopard-Jhalana-01.jpg/1280px-Leopard-Jhalana-01.jpg',
+  'jhalana safari': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Leopard-Jhalana-01.jpg/1280px-Leopard-Jhalana-01.jpg',
+  'jhalana': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Leopard-Jhalana-01.jpg/1280px-Leopard-Jhalana-01.jpg',
 };
 
 export function getAttractionImage(attractionNameOrId: string, defaultImage?: string): string {
