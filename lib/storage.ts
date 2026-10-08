@@ -27,6 +27,7 @@ const STORAGE_KEYS = {
 };
 
 // In-memory cache for synchronous snapshots
+let isInitialized = false;
 let itinerariesCache: Itinerary[] | null = null;
 let hotelsCache: Hotel[] | null = null;
 let destinationsCache: Destination[] | null = null;
@@ -114,6 +115,8 @@ function refreshAllCaches(): void {
         localStorage.setItem(STORAGE_KEYS.ITINERARIES, JSON.stringify(loadedItins));
       } catch (_) {}
     }
+    itinerariesCache = loadedItins;
+
     // Auto-merge newly loaded hotels catalog
     const storedHotels = getStorageItem<Hotel[]>(STORAGE_KEYS.HOTELS, []);
     const hotelMap = new Map<string, Hotel>();
@@ -186,6 +189,7 @@ function refreshAllCaches(): void {
     fleetCache = getStorageItem<FleetVehicle[]>(STORAGE_KEYS.FLEET, INITIAL_FLEET);
     driversCache = getStorageItem<Driver[]>(STORAGE_KEYS.DRIVERS, INITIAL_DRIVERS);
     bookingsCache = getStorageItem<OperationalBooking[]>(STORAGE_KEYS.BOOKINGS, INITIAL_OPERATIONAL_BOOKINGS);
+    isInitialized = true;
   } finally {
     isRefreshing = false;
   }
@@ -246,7 +250,7 @@ export function useItineraries(): Itinerary[] {
   return useSyncExternalStore(
     subscribeStorage,
     () => {
-      if (!itinerariesCache) refreshAllCaches();
+      if (!isInitialized) refreshAllCaches();
       return itinerariesCache || INITIAL_ITINERARIES;
     },
     () => INITIAL_ITINERARIES
@@ -257,7 +261,7 @@ export function useHotels(): Hotel[] {
   return useSyncExternalStore(
     subscribeStorage,
     () => {
-      if (!hotelsCache) refreshAllCaches();
+      if (!isInitialized) refreshAllCaches();
       return hotelsCache || INITIAL_HOTELS;
     },
     () => INITIAL_HOTELS
@@ -268,7 +272,7 @@ export function useDestinations(): Destination[] {
   return useSyncExternalStore(
     subscribeStorage,
     () => {
-      if (!destinationsCache) refreshAllCaches();
+      if (!isInitialized) refreshAllCaches();
       return destinationsCache || INITIAL_DESTINATIONS;
     },
     () => INITIAL_DESTINATIONS
@@ -279,7 +283,7 @@ export function useAttractions(): Attraction[] {
   return useSyncExternalStore(
     subscribeStorage,
     () => {
-      if (!attractionsCache) refreshAllCaches();
+      if (!isInitialized) refreshAllCaches();
       return attractionsCache || INITIAL_ATTRACTIONS;
     },
     () => INITIAL_ATTRACTIONS
@@ -290,7 +294,7 @@ export function useVehicles(): VehicleOption[] {
   return useSyncExternalStore(
     subscribeStorage,
     () => {
-      if (!vehiclesCache) refreshAllCaches();
+      if (!isInitialized) refreshAllCaches();
       return vehiclesCache || INITIAL_VEHICLES;
     },
     () => INITIAL_VEHICLES
@@ -301,7 +305,7 @@ export function useSettings(): AppSettings {
   return useSyncExternalStore(
     subscribeStorage,
     () => {
-      if (!settingsCache) refreshAllCaches();
+      if (!isInitialized) refreshAllCaches();
       return settingsCache || DEFAULT_SETTINGS;
     },
     () => DEFAULT_SETTINGS
@@ -488,6 +492,7 @@ export function resetAllToDefaults(): void {
   localStorage.removeItem(STORAGE_KEYS.FLEET);
   localStorage.removeItem(STORAGE_KEYS.DRIVERS);
   localStorage.removeItem(STORAGE_KEYS.BOOKINGS);
+  isInitialized = false;
   refreshAllCaches();
   window.dispatchEvent(new Event('lobo_storage_updated'));
 }
@@ -498,7 +503,7 @@ export function useFleet(): FleetVehicle[] {
   return useSyncExternalStore(
     subscribeStorage,
     () => {
-      if (!fleetCache) refreshAllCaches();
+      if (!isInitialized) refreshAllCaches();
       return fleetCache || INITIAL_FLEET;
     },
     () => INITIAL_FLEET
@@ -538,7 +543,7 @@ export function useDrivers(): Driver[] {
   return useSyncExternalStore(
     subscribeStorage,
     () => {
-      if (!driversCache) refreshAllCaches();
+      if (!isInitialized) refreshAllCaches();
       return driversCache || INITIAL_DRIVERS;
     },
     () => INITIAL_DRIVERS
@@ -578,7 +583,7 @@ export function useOperationalBookings(): OperationalBooking[] {
   return useSyncExternalStore(
     subscribeStorage,
     () => {
-      if (!bookingsCache) refreshAllCaches();
+      if (!isInitialized) refreshAllCaches();
       return bookingsCache || INITIAL_OPERATIONAL_BOOKINGS;
     },
     () => INITIAL_OPERATIONAL_BOOKINGS
