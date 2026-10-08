@@ -837,7 +837,7 @@ export default function RemindersScheduling({
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mb-3">
-                    Click any day to inspect planned stops. You can override today's location if the route changes in the field.
+                    Click any day to inspect planned stops. You can override today&apos;s location if the route changes in the field.
                   </p>
 
                   <div className="space-y-2">

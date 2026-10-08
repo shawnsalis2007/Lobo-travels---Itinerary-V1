@@ -353,45 +353,47 @@ export default function TravelVoucherView({
                 </div>
               </div>
 
-              {/* Confirmed Hotels Matrix (Comes Second) */}
-              <div className="space-y-1.5">
-                <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                  Confirmed Hotel Accommodations
-                </h3>
-                <div className="rounded-lg border border-slate-200 overflow-hidden">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#151521] text-amber-300 font-semibold text-[10px]">
-                      <tr>
-                        <th className="py-1.5 px-3">Day</th>
-                        <th className="py-1.5 px-3">Destination</th>
-                        <th className="py-1.5 px-3">Hotel Partner</th>
-                        <th className="py-1.5 px-3">Room Category</th>
-                        <th className="py-1.5 px-3">Meal Plan</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-700 text-[10px]">
-                      {itinerary.days.map((day) => (
-                        <tr key={day.id} className="hover:bg-slate-50/50">
-                          <td className="py-1.5 px-3 font-semibold text-slate-900">
-                            Day {day.dayNumber}
-                          </td>
-                          <td className="py-1.5 px-3">{day.overnightLocation}</td>
-                          <td className="py-1.5 px-3 font-bold text-slate-900">
-                            {day.hotel?.name || `Partner Hotel Confirmed (${day.overnightLocation})`}
-                          </td>
-                          <td className="py-1.5 px-3 text-slate-600">
-                            {day.hotel?.roomCategory || 'Deluxe Room'}
-                          </td>
-                          <td className="py-1.5 px-3 text-slate-600">
-                            {day.hotel?.mealPlan || 'Breakfast Included (CP)'}
-                          </td>
+              {/* Confirmed Hotels Matrix (Comes Second, Hidden if Hotels Not Included) */}
+              {itinerary.includeHotels !== false && (
+                <div className="space-y-1.5">
+                  <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                    Confirmed Hotel Accommodations
+                  </h3>
+                  <div className="rounded-lg border border-slate-200 overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#151521] text-amber-300 font-semibold text-[10px]">
+                        <tr>
+                          <th className="py-1.5 px-3">Day</th>
+                          <th className="py-1.5 px-3">Destination</th>
+                          <th className="py-1.5 px-3">Hotel Partner</th>
+                          <th className="py-1.5 px-3">Room Category</th>
+                          <th className="py-1.5 px-3">Meal Plan</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-slate-700 text-[10px]">
+                        {itinerary.days.map((day) => (
+                          <tr key={day.id} className="hover:bg-slate-50/50">
+                            <td className="py-1.5 px-3 font-semibold text-slate-900">
+                              Day {day.dayNumber}
+                            </td>
+                            <td className="py-1.5 px-3">{day.overnightLocation}</td>
+                            <td className="py-1.5 px-3 font-bold text-slate-900">
+                              {day.hotel?.name || `Partner Hotel Confirmed (${day.overnightLocation})`}
+                            </td>
+                            <td className="py-1.5 px-3 text-slate-600">
+                              {day.hotel?.roomCategory || 'Deluxe Room'}
+                            </td>
+                            <td className="py-1.5 px-3 text-slate-600">
+                              {day.hotel?.mealPlan || 'Breakfast Included (CP)'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              )}
 
             </div>
 

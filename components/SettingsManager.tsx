@@ -564,7 +564,6 @@ export default function SettingsManager({
 
               {/* GIS script warning */}
               {(typeof window === 'undefined' ||
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 !(window as any)?.google?.accounts?.oauth2) && (
                 <div className="p-3 bg-amber-50 border border-amber-300 rounded-lg text-amber-800 text-[11px] leading-relaxed">
                   ⚠️ Google Identity Services not detected. Add{' '}

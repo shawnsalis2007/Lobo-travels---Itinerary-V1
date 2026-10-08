@@ -36,14 +36,12 @@ export function initGoogleCalendarAuth(
     if (
       typeof window === 'undefined' ||
       !('google' in window) ||
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       !(window as any).google?.accounts?.oauth2
     ) {
       console.error('[calendar] GIS script not loaded — cannot init token client.');
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
       client_id: clientId,
       scope: SCOPES,
@@ -164,7 +162,6 @@ export async function listUserCalendars(
     throw new Error(`[calendar] listUserCalendars failed (${res.status}): ${text}`);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data: { items?: any[] } = await res.json();
   return (data.items ?? []).map((item) => ({
     id: item.id as string,
