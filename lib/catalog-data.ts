@@ -692,7 +692,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5–3 Hours',
     category: 'Wildlife & Safari',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1566708627877-859df13ae63e?auto=format&fit=crop&w=1200&q=80'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/3/33/Indian_leopard_in_Jawai_Bandh_April_2025_by_Tisha_Mukherjee_02.jpg'
   },
 
   // ==========================================
@@ -2481,10 +2481,10 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'ramghat': 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmWLux5g3HxIeP_P-PW_DMzTouOrmGTDoiZYngSR5Kl_00aDXyCJoZLwCb5Jws-OFhR8J_huvuLTGP5aNG2Oi14iuyihQ3r4PCMhJ0KNKecYhH1rYuL7H522LBbFy6XTiHjRC9p7a3Kjd6B=s1360-w1360-h1020-rw',
   'ramghat in chitrakoot': 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmWLux5g3HxIeP_P-PW_DMzTouOrmGTDoiZYngSR5Kl_00aDXyCJoZLwCb5Jws-OFhR8J_huvuLTGP5aNG2Oi14iuyihQ3r4PCMhJ0KNKecYhH1rYuL7H522LBbFy6XTiHjRC9p7a3Kjd6B=s1360-w1360-h1020-rw',
   // Jaipur - Jhalana Leopard Safari
-  'jaipur-jhalana-safari': 'https://images.unsplash.com/photo-1566708627877-859df13ae63e?auto=format&fit=crop&w=1200&q=80',
-  'jhalana leopard safari': 'https://images.unsplash.com/photo-1566708627877-859df13ae63e?auto=format&fit=crop&w=1200&q=80',
-  'jhalana safari': 'https://images.unsplash.com/photo-1566708627877-859df13ae63e?auto=format&fit=crop&w=1200&q=80',
-  'jhalana': 'https://images.unsplash.com/photo-1566708627877-859df13ae63e?auto=format&fit=crop&w=1200&q=80',
+  'jaipur-jhalana-safari': 'https://upload.wikimedia.org/wikipedia/commons/3/33/Indian_leopard_in_Jawai_Bandh_April_2025_by_Tisha_Mukherjee_02.jpg',
+  'jhalana leopard safari': 'https://upload.wikimedia.org/wikipedia/commons/3/33/Indian_leopard_in_Jawai_Bandh_April_2025_by_Tisha_Mukherjee_02.jpg',
+  'jhalana safari': 'https://upload.wikimedia.org/wikipedia/commons/3/33/Indian_leopard_in_Jawai_Bandh_April_2025_by_Tisha_Mukherjee_02.jpg',
+  'jhalana': 'https://upload.wikimedia.org/wikipedia/commons/3/33/Indian_leopard_in_Jawai_Bandh_April_2025_by_Tisha_Mukherjee_02.jpg',
 };
 
 export function getAttractionImage(attractionNameOrId: string, defaultImage?: string): string {
