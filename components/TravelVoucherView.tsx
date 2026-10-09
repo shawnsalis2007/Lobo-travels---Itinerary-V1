@@ -372,7 +372,7 @@ export default function TravelVoucherView({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-slate-700 text-[10px]">
-                        {itinerary.days.map((day) => (
+                        {itinerary.days.filter((day, idx) => !(idx === itinerary.days.length - 1 && day.departureDetails?.enabled)).map((day) => (
                           <tr key={day.id} className="hover:bg-slate-50/50">
                             <td className="py-1.5 px-3 font-semibold text-slate-900">
                               Day {day.dayNumber}

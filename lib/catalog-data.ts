@@ -442,6 +442,42 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     unesco: false,
     image: 'https://media.istockphoto.com/id/2259603090/photo/raj-ghat-mahatma-gandhi-memorial-in-delhi.webp?a=1&b=1&s=612x612&w=0&k=20&c=AQCqIo-KQAZH-dIOmLMfBMzuLbnQc-vPryEuq-2zm5A='
   },
+  {
+    id: 'delhi-rashtrapati-parliament',
+    destinationId: 'delhi',
+    destinationName: 'Delhi',
+    name: 'Rashtrapati Bhavan and Parliament',
+    shortDescription: 'Presidential palace and the Parliament of India along the grand Rajpath / Kartavya Path.',
+    detailedDescription: 'Drive past the majestic Rashtrapati Bhavan, North & South Blocks, and the iconic Indian Parliament House along Kartavya Path.',
+    duration: '45 Minutes',
+    category: 'National Monument',
+    unesco: false,
+    image: 'https://images.unsplash.com/photo-1598890777032-bde835ba27c2?w=600&auto=format&fit=crop&q=60'
+  },
+  {
+    id: 'delhi-national-war-memorial',
+    destinationId: 'delhi',
+    destinationName: 'Delhi',
+    name: 'National War Memorial',
+    shortDescription: 'Sprawling 40-acre national monument dedicated to armed forces personnel who made the supreme sacrifice.',
+    detailedDescription: 'Located near India Gate, this moving memorial comprises concentric circles—Amar Chakra, Veerta Chakra, Tyag Chakra, and Raksha Chakra—honoring Indian soldiers.',
+    duration: '1 Hour',
+    category: 'National Memorial',
+    unesco: false,
+    image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=60'
+  },
+  {
+    id: 'delhi-indira-gandhi-memorial',
+    destinationId: 'delhi',
+    destinationName: 'Delhi',
+    name: 'Indira Gandhi Memorial Museum',
+    shortDescription: 'Former residence of Prime Minister Indira Gandhi preserved as a poignant historical museum.',
+    detailedDescription: 'Located at 1 Safdarjung Road, preserved with personal artifacts, library, and photographs documenting her life, tenure, and India’s contemporary history.',
+    duration: '1 Hour',
+    category: 'Historical Museum',
+    unesco: false,
+    image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=600&auto=format&fit=crop&q=60'
+  },
 
   // ==========================================
   // AGRA
@@ -538,8 +574,8 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'fs-palace-complex',
     destinationId: 'fatehpur-sikri',
     destinationName: 'Fatehpur Sikri',
-    name: 'Fatehpur Sikri Royal Palaces & Panch Mahal',
-    shortDescription: 'Akbar’s five-story tiered pillared pavilion, Diwan-i-Khas central carved pillar, and Anup Talao pool.',
+    name: 'Fatehpur Sikri Royal Palaces',
+    shortDescription: 'Diwan-i-Khas central carved lotus pillar, Diwan-i-Aam, and Anup Talao ornamental pool.',
     detailedDescription: 'A marvel of secular Mughal palace architecture where Akbar engaged with scholars of all faiths around the iconic central carved lotus pillar of the Hall of Private Audience.',
     duration: '1.5 Hours',
     category: 'Historic Palace Complex',
@@ -650,8 +686,8 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'jaipur-nahargarh',
     destinationId: 'jaipur',
     destinationName: 'Jaipur',
-    name: 'Nahargarh Fort & Sunset Viewpoint',
-    shortDescription: 'Ridgetop fortress offering breathtaking 360-degree sunset panoramas over the entire Pink City.',
+    name: 'Nahargarh Fort',
+    shortDescription: 'Ridgetop fortress offering breathtaking 360-degree panoramas over the entire Pink City.',
     detailedDescription: 'Formed a northern defense barrier alongside Jaigarh and Amber. Features the Madhavendra Bhawan with interconnected royal suites for nine queens.',
     duration: '1.5 Hours',
     category: 'Fort & Panoramic View',
@@ -2217,6 +2253,16 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'delhi-raj-ghat': 'https://media.istockphoto.com/id/2259603090/photo/raj-ghat-mahatma-gandhi-memorial-in-delhi.webp?a=1&b=1&s=612x612&w=0&k=20&c=AQCqIo-KQAZH-dIOmLMfBMzuLbnQc-vPryEuq-2zm5A=',
   'raj ghat': 'https://media.istockphoto.com/id/2259603090/photo/raj-ghat-mahatma-gandhi-memorial-in-delhi.webp?a=1&b=1&s=612x612&w=0&k=20&c=AQCqIo-KQAZH-dIOmLMfBMzuLbnQc-vPryEuq-2zm5A=',
   'raj ghat (mahatma gandhi memorial)': 'https://media.istockphoto.com/id/2259603090/photo/raj-ghat-mahatma-gandhi-memorial-in-delhi.webp?a=1&b=1&s=612x612&w=0&k=20&c=AQCqIo-KQAZH-dIOmLMfBMzuLbnQc-vPryEuq-2zm5A=',
+
+  'delhi-rashtrapati-parliament': 'https://images.unsplash.com/photo-1598890777032-bde835ba27c2?w=600&auto=format&fit=crop&q=60',
+  'rashtrapati bhavan and parliament': 'https://images.unsplash.com/photo-1598890777032-bde835ba27c2?w=600&auto=format&fit=crop&q=60',
+  'rashtrapati bhavan': 'https://images.unsplash.com/photo-1598890777032-bde835ba27c2?w=600&auto=format&fit=crop&q=60',
+
+  'delhi-national-war-memorial': 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=60',
+  'national war memorial': 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=60',
+
+  'delhi-indira-gandhi-memorial': 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=600&auto=format&fit=crop&q=60',
+  'indira gandhi memorial museum': 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=600&auto=format&fit=crop&q=60',
 
   // Agra
   'agra-sikandra': 'https://plus.unsplash.com/premium_photo-1697730554395-4a79dfd66ccf?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8QWtiYXJzJTIwdG9tYnxlbnwwfHwwfHx8MA%3D%3D',

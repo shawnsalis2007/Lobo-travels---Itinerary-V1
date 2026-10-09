@@ -139,11 +139,11 @@ export default function Home() {
         {
           id: 'day-1',
           dayNumber: 1,
-          title: 'Arrival in Delhi & Capital Heritage Tour',
+          title: 'Arrival in Delhi & Welcome Orientation',
           destination: 'Delhi',
-          attractionIds: ['delhi-qutub', 'delhi-lotus'],
-          attractionNames: ['Qutub Minar', 'Lotus Temple'],
-          description: 'Arrive in New Delhi and meet your Lobo Travels chauffeur. Begin your sightseeing with the UNESCO-listed Qutub Minar and the serene Baháʼí Lotus Temple before checking into your hotel.',
+          attractionIds: [],
+          attractionNames: [],
+          description: 'Welcome to Delhi! Upon arrival, meet and greet with our representative and private chauffeur. Transfer to your hotel for check-in and leisure time to freshen up. The remainder of the day is at leisure to unwind or explore the local surroundings at your own pace.',
           isOvernightSameLocation: true,
           overnightLocation: 'Delhi',
           arrivalDetails: {
@@ -157,8 +157,8 @@ export default function Home() {
           meals: {
             breakfast: false,
             lunch: false,
-            dinner: true,
-            note: 'Dinner at hotel'
+            dinner: false,
+            note: ''
           },
           hotel: {
             name: 'The Lalit New Delhi',

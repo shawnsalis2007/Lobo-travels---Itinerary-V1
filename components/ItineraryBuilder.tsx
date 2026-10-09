@@ -114,8 +114,9 @@ function computePax(adults: number, children: number, childrenDetails: ChildInfo
   const total = ad + ch;
   let summary = `${ad} Adult${ad > 1 ? 's' : ''}`;
   if (ch > 0) {
-    const ages = childrenDetails.map(c => `Age ${c.age}`).join(', ');
-    summary += ` + ${ch} Child${ch > 1 ? 'ren' : ''}${ages ? ` (${ages})` : ''}`;
+    const validAges = (childrenDetails || []).filter(c => c && c.age > 0).map(c => `Age ${c.age}`);
+    const ages = validAges.length > 0 ? ` (${validAges.join(', ')})` : '';
+    summary += ` + ${ch} Child${ch > 1 ? 'ren' : ''}${ages}`;
   }
   return { totalPax: total, paxSummary: summary };
 }
@@ -199,14 +200,19 @@ export function generateAutoDayDescription(
 
       // Only describe sightseeing if NOT skipping sightseeing in this city
       if (!city.skipSightseeing) {
-        const sightsStr = city.attractionNames && city.attractionNames.length > 0
-          ? city.attractionNames.join(', ')
-          : '';
+        const isDrivePast = (name: string) => /rashtrapati\s+bhavan.*parliament|parliament.*rashtrapati/i.test(name);
+        const rawAttractions = city.attractionNames || [];
+        const hasDrivePastRP = rawAttractions.some(isDrivePast);
+        const walkingSights = rawAttractions.filter(n => !isDrivePast(n));
 
-        if (sightsStr) {
-          parts.push(`In ${city.destination}, proceed for sightseeing including ${sightsStr}.`);
-        } else {
+        if (walkingSights.length > 0) {
+          parts.push(`In ${city.destination}, proceed for sightseeing including ${walkingSights.join(', ')}.`);
+        } else if (!hasDrivePastRP) {
           parts.push(`Enjoy sightseeing and cultural highlights of ${city.destination}.`);
+        }
+
+        if (hasDrivePastRP) {
+          parts.push(`Drive past Rashtrapati Bhavan and Parliament.`);
         }
       }
 
@@ -299,21 +305,30 @@ export function generateAutoDayDescription(
     }
   }
 
-  const sightsStr = day.attractionNames && day.attractionNames.length > 0
-    ? day.attractionNames.join(', ')
-    : '';
+  const isDrivePast = (name: string) => /rashtrapati\s+bhavan.*parliament|parliament.*rashtrapati/i.test(name);
+  const rawAttractions = day.attractionNames || [];
+  const hasDrivePastRP = rawAttractions.some(isDrivePast);
+  const walkingSights = rawAttractions.filter(n => !isDrivePast(n));
 
-  if (sightsStr) {
-    parts.push(`proceed for a comprehensive sightseeing tour of ${day.destination}, visiting prominent landmarks including ${sightsStr}.`);
-  } else if (!isLastDay) {
-    parts.push(`proceed for a full-day sightseeing tour exploring the iconic architectural wonders, bazaars, and cultural sights of ${day.destination}.`);
-  } else {
+  if (walkingSights.length > 0) {
+    parts.push(`proceed for a comprehensive sightseeing tour of ${day.destination}, visiting prominent landmarks including ${walkingSights.join(', ')}.`);
+  } else if (!isLastDay && !hasDrivePastRP) {
+    if (day.arrivalDetails?.enabled) {
+      parts.push(`The remainder of the day is at leisure to unwind at the hotel or explore the local surroundings at your own pace.`);
+    } else {
+      parts.push(`proceed for a full-day sightseeing tour exploring the iconic architectural wonders, bazaars, and cultural sights of ${day.destination}.`);
+    }
+  } else if (isLastDay && !hasDrivePastRP) {
     // Final day with no sightseeing activities: do not generate placeholder tour
     if (includeHotels) {
       parts.push(`complete hotel check-out and prepare for departure.`);
     } else {
       parts.push(`prepare for your onward journey.`);
     }
+  }
+
+  if (hasDrivePastRP) {
+    parts.push(`Drive past Rashtrapati Bhavan and Parliament.`);
   }
 
   if (includeHotels && day.arrivalDetails?.enabled && day.arrivalDetails.includeHotelCheckIn !== false && day.arrivalDetails.checkInTiming === 'after_sightseeing') {
@@ -418,11 +433,11 @@ export default function ItineraryBuilder({
     const defaultDay: ItineraryDay = {
       id: 'day-' + Date.now(),
       dayNumber: 1,
-      title: 'Arrival & City Sightseeing',
+      title: 'Arrival & Welcome Orientation',
       destination: 'Delhi',
-      attractionIds: ['delhi-qutub', 'delhi-lotus'],
-      attractionNames: ['Qutub Minar Complex', 'Lotus Temple (Baháʼí House of Worship)'],
-      description: 'Welcome to Delhi! Upon arrival, meet and greet with our representative and private chauffeur. Transfer to hotel for check-in and freshen up. Later, proceed for a comprehensive sightseeing tour of Delhi, visiting prominent landmarks including Qutub Minar Complex, Lotus Temple. Overnight stay at your designated hotel in Delhi.',
+      attractionIds: [],
+      attractionNames: [],
+      description: 'Welcome to Delhi! Upon arrival, meet and greet with our representative and private chauffeur. Transfer to hotel for check-in and leisure time to freshen up. The remainder of the day is at leisure to unwind or explore the local surroundings at your own pace.',
       isOvernightSameLocation: true,
       overnightLocation: 'Delhi',
       arrivalDetails: {
@@ -985,7 +1000,7 @@ export default function ItineraryBuilder({
     const currentDetails = [...itinerary.childrenDetails];
     if (count > currentDetails.length) {
       for (let i = currentDetails.length; i < count; i++) {
-        currentDetails.push({ id: `c-${i + 1}`, age: 8 });
+        currentDetails.push({ id: `c-${i + 1}`, age: 0 });
       }
     } else if (count < currentDetails.length) {
       currentDetails.splice(count);
@@ -1418,17 +1433,19 @@ export default function ItineraryBuilder({
 
     if (exists) {
       updatedIds = day.attractionIds.filter(id => id !== attraction.id);
-      updatedNames = day.attractionNames.filter(name => name !== attraction.name);
       if (attraction.image) {
         updatedImages = updatedImages.filter(img => img !== attraction.image);
       }
     } else {
       updatedIds = [...day.attractionIds, attraction.id];
-      updatedNames = [...day.attractionNames, attraction.name];
       if (attraction.image && !updatedImages.includes(attraction.image)) {
         updatedImages.push(attraction.image);
       }
     }
+
+    updatedNames = updatedIds
+      .map(id => localAttractions.find(a => a.id === id)?.name || id)
+      .filter(Boolean);
 
     const updatedDays = [...itinerary.days];
     const updatedDay: ItineraryDay = {
@@ -1584,11 +1601,12 @@ export default function ItineraryBuilder({
     const exists = targetCity.attractionIds.includes(attraction.id);
     if (exists) {
       targetCity.attractionIds = targetCity.attractionIds.filter(id => id !== attraction.id);
-      targetCity.attractionNames = targetCity.attractionNames.filter(name => name !== attraction.name);
     } else {
       targetCity.attractionIds = [...targetCity.attractionIds, attraction.id];
-      targetCity.attractionNames = [...targetCity.attractionNames, attraction.name];
     }
+    targetCity.attractionNames = targetCity.attractionIds
+      .map(id => localAttractions.find(a => a.id === id)?.name || id)
+      .filter(Boolean);
 
     currentCities[cityIndex] = targetCity;
     targetDay.cities = currentCities;
@@ -2101,18 +2119,21 @@ export default function ItineraryBuilder({
             {/* Individual Child Ages */}
             {itinerary.children > 0 && (
               <div className="pt-2 border-t border-slate-200">
-                <span className="text-xs font-semibold text-slate-800 block mb-2">
-                  Specify Child Ages (required for hotel extra bed and sightseeing policies):
-                </span>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-slate-800">
+                    Child Ages <span className="text-slate-400 font-normal text-[11px]">(Optional — select or leave unspecified)</span>:
+                  </span>
+                </div>
                 <div className="flex flex-wrap gap-3">
                   {itinerary.childrenDetails.map((child, index) => (
-                    <div key={child.id || index} className="flex items-center gap-1.5 bg-white p-1.5 px-3 rounded-lg border border-slate-200 text-xs">
-                      <span className="text-slate-500">Child {index + 1}:</span>
+                    <div key={child.id || index} className="flex items-center gap-1.5 bg-white p-1.5 px-3 rounded-lg border border-slate-200 text-xs shadow-2xs">
+                      <span className="text-slate-500 font-medium">Child {index + 1}:</span>
                       <select
-                        value={child.age}
-                        onChange={(e) => updateChildAge(index, parseInt(e.target.value) || 5)}
-                        className="font-semibold text-slate-900 bg-transparent focus:outline-none"
+                        value={child.age || 0}
+                        onChange={(e) => updateChildAge(index, parseInt(e.target.value) || 0)}
+                        className="font-semibold text-slate-900 bg-transparent focus:outline-none cursor-pointer"
                       >
+                        <option value={0}>Age not specified (Skip)</option>
                         {Array.from({ length: 12 }, (_, i) => i + 1).map((age) => (
                           <option key={age} value={age}>
                             {age} {age === 1 ? 'year' : 'years'}
@@ -3597,8 +3618,41 @@ export default function ItineraryBuilder({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
                         
                         {/* Hotel Selection */}
-                        {itinerary.includeHotels !== false ? (
-                          itinerary.hotelTiersEnabled ? (
+                        {(() => {
+                          const isLastDay = dayIndex === itinerary.days.length - 1;
+                          const isDepartureActive = isLastDay && Boolean(day.departureDetails?.enabled);
+
+                          if (isDepartureActive) {
+                            return (
+                              <div className="p-3.5 rounded-xl bg-sky-50/60 border border-dashed border-sky-200 text-xs text-sky-800 flex items-center justify-between col-span-1 md:col-span-2">
+                                <div className="flex items-center gap-2">
+                                  <Plane className="w-4 h-4 text-sky-600 flex-shrink-0" />
+                                  <span>Hotel accommodation <strong>not applicable</strong>: Departure scheduled on final day (No overnight stay).</span>
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          if (itinerary.includeHotels === false) {
+                            return (
+                              <div className="p-3.5 rounded-xl bg-slate-50/70 border border-dashed border-slate-200 text-xs text-slate-500 flex items-center justify-between col-span-1 md:col-span-2">
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                                  <span>Hotels: <strong>Not Included</strong> (Hidden across generated itinerary)</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setItinerary(prev => ({ ...prev, includeHotels: true }))}
+                                  className="text-indigo-600 font-semibold hover:underline text-[11px]"
+                                >
+                                  Turn On
+                                </button>
+                              </div>
+                            );
+                          }
+
+                          if (itinerary.hotelTiersEnabled) {
+                            return (
                             /* Multi-Tiered Hotel Selection for Day */
                             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3 col-span-1 md:col-span-2">
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
@@ -3826,7 +3880,10 @@ export default function ItineraryBuilder({
                                 </div>
                               </div>
                             </div>
-                          ) : (
+                            );
+                          }
+
+                          return (
                           /* Standard Single Hotel Selection */
                           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                             <div className="flex items-center justify-between">
@@ -3931,22 +3988,8 @@ export default function ItineraryBuilder({
                               )}
                             </div>
                           </div>
-                          )
-                        ) : (
-                        <div className="p-3.5 rounded-xl bg-slate-50/70 border border-dashed border-slate-200 text-xs text-slate-500 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                            <span>Hotels: <strong>Not Included</strong> (Hidden across generated itinerary)</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setItinerary(prev => ({ ...prev, includeHotels: true }))}
-                            className="text-indigo-600 font-semibold hover:underline text-[11px]"
-                          >
-                            Turn On
-                          </button>
-                        </div>
-                        )}
+                          );
+                        })()}
 
                         {/* Meals Selection */}
                         <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">

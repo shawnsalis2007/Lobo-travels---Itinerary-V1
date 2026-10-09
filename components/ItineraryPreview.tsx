@@ -1110,7 +1110,7 @@ export default function ItineraryPreview({
                         })()}
 
                         {/* Hotel & Night Stay */}
-                        {itinerary.includeHotels !== false && (
+                        {itinerary.includeHotels !== false && !(day.dayNumber === itinerary.days.length && day.departureDetails?.enabled) && (
                           <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px] flex items-center justify-between text-slate-700">
                             <div className="flex items-center gap-1.5">
                               <Building2 className="w-3.5 h-3.5 text-indigo-600" />
@@ -1242,7 +1242,7 @@ export default function ItineraryPreview({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700 text-[11px]">
-                          {itinerary.days.map((day) => {
+                          {itinerary.days.filter((day, idx) => !(idx === itinerary.days.length - 1 && day.departureDetails?.enabled)).map((day) => {
                             const t3 = day.hotelTiers?.threeStar;
                             const t4 = day.hotelTiers?.fourStar;
                             const t5 = day.hotelTiers?.fiveStar;
@@ -1287,7 +1287,7 @@ export default function ItineraryPreview({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700 text-[11px]">
-                          {itinerary.days.map((day) => {
+                          {itinerary.days.filter((day, idx) => !(idx === itinerary.days.length - 1 && day.departureDetails?.enabled)).map((day) => {
                             const activeTierKey = itinerary.selectedHotelTier === '3_star' ? 'threeStar' : itinerary.selectedHotelTier === '5_star' ? 'fiveStar' : 'fourStar';
                             const displayedHotel = (itinerary.hotelTiersEnabled && day.hotelTiers?.[activeTierKey]) ? day.hotelTiers[activeTierKey] : day.hotel;
                             return (
@@ -1539,16 +1539,30 @@ export default function ItineraryPreview({
               </div>
 
               {/* Special Notes & Destination Reminders */}
-              {itinerary.specialNotes && (
-                <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-300 text-xs text-amber-950 space-y-1">
-                  <span className="font-bold block text-[11px] uppercase tracking-wider">
-                    Important Travel Guidelines & Notes:
-                  </span>
-                  <p className="text-[11px] text-slate-700 leading-relaxed">
-                    {itinerary.specialNotes}
-                  </p>
-                </div>
-              )}
+              {itinerary.specialNotes && (() => {
+                const lines = itinerary.specialNotes.includes('\n')
+                  ? itinerary.specialNotes.split('\n')
+                  : itinerary.specialNotes.split(/(?<=[.!?])\s+/);
+                const points = lines
+                  .map(line => line.trim().replace(/^[-•*]\s*/, ''))
+                  .filter(line => line.length > 0);
+
+                return (
+                  <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-300 text-xs text-amber-950 space-y-2">
+                    <span className="font-bold block text-[11px] uppercase tracking-wider text-amber-950">
+                      Important Travel Guidelines & Notes:
+                    </span>
+                    <ul className="space-y-1 text-[11px] text-slate-700 leading-relaxed">
+                      {points.map((pt, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-600 mt-1.5 flex-shrink-0" />
+                          <span>{pt}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })()}
 
               {/* Company Signoff & Verification */}
               <div className="p-3 rounded-xl bg-[#151521] text-white text-xs flex items-center justify-between">
