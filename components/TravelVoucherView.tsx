@@ -410,7 +410,7 @@ export default function TravelVoucherView({
           </div>
 
           {/* ===================================================================== */}
-          {/* VOUCHER PAGE 2: Financial Ledger, Inclusions, Terms & Chauffeur Guidelines */}
+          {/* VOUCHER PAGE 2: Financial Ledger, Inclusions & Tour Guidelines */}
           {/* ===================================================================== */}
           <div 
             className="pdf-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
@@ -493,30 +493,26 @@ export default function TravelVoucherView({
               </div>
 
               {/* Important Operating Instructions */}
-              <div className="p-3 rounded-lg bg-amber-50/70 border border-amber-300 text-xs text-amber-950 space-y-1 leading-relaxed">
-                <span className="font-bold block text-[11px] uppercase tracking-wider">
-                  Important Tour Instructions & Reconfirmation:
-                </span>
-                <p className="text-[10px] text-slate-700">
-                  {settings?.voucherTerms || ''}
-                </p>
-              </div>
+              {(() => {
+                const cleanedTerms = (settings?.voucherTerms || '')
+                  .replace(/Please reconfirm all hotel,?\s*sightseeing and transfer arrangements before the start of the tour\.?/gi, '')
+                  .replace(/Chauffeur duty hours:?\s*08:00\s*AM to 08:00\s*PM for [^.]*\.?/gi, '')
+                  .replace(/\s{2,}/g, ' ')
+                  .trim();
 
-              {/* Chauffeur Guidelines */}
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-[10px] text-slate-600 space-y-1">
-                <span className="font-bold text-slate-900 text-[11px] block uppercase tracking-wider">
-                  Chauffeur Duty & Fleet Service Guidelines:
-                </span>
-                <p>
-                  1. The chauffeur will report at the scheduled time with an air-conditioned vehicle sanitized for your journey.
-                </p>
-                <p>
-                  2. Chauffeur duty hours: 08:00 AM to 08:00 PM for all local sightseeing, except for scheduled early-morning airport transfers or sunrise visits.
-                </p>
-                <p>
-                  3. Please carry original government-issued photo identity cards (Aadhaar, Passport, or Voter ID) for all guests for hotel check-ins.
-                </p>
-              </div>
+                if (!cleanedTerms) return null;
+
+                return (
+                  <div className="p-3 rounded-lg bg-amber-50/70 border border-amber-300 text-xs text-amber-950 space-y-1 leading-relaxed">
+                    <span className="font-bold block text-[11px] uppercase tracking-wider">
+                      Important Tour Instructions:
+                    </span>
+                    <p className="text-[10px] text-slate-700">
+                      {cleanedTerms}
+                    </p>
+                  </div>
+                );
+              })()}
 
               {/* Footer & Contacts */}
               <div className="pt-4 border-t-2 border-[#151521] text-xs text-slate-600 space-y-1.5">

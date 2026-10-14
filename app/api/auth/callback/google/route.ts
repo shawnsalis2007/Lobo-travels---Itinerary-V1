@@ -214,7 +214,7 @@ export async function GET(req: NextRequest) {
                   website: 'lobotravels.com',
                   referencePrefix: 'LT-2026-',
                   nextReferenceSequence: 3,
-                  voucherTerms: 'Please reconfirm all hotel, sightseeing and transfer arrangements before the start of the tour. Valid government-issued photo ID is mandatory at all hotel check-ins and monument entrances. Chauffeur duty hours: 08:00 AM to 08:00 PM for local transfers except early morning scheduled transfers.',
+                  voucherTerms: 'Valid government-issued photo ID is mandatory at all hotel check-ins and monument entrances.',
                   defaultInclusions: [
                     'Private air-conditioned Kia Carens throughout the tour',
                     'Hotel Accommodation - 1 Room with triple occupancy',
