@@ -26,6 +26,7 @@ import {
   Info,
   Plane,
   Train,
+  Edit2,
   Edit3,
   RefreshCw,
   CheckCircle2,
@@ -64,7 +65,7 @@ import {
 } from '@/types';
 import { PRESET_ROUTES } from '@/lib/mock-data';
 import { INTERCITY_ROUTES } from '@/lib/catalog-data';
-import { saveAttraction as persistAttraction } from '@/lib/storage';
+import { saveAttraction as persistAttraction, saveDestination as persistDestination } from '@/lib/storage';
 import { SafeImage } from './SafeImage';
 
 export const COVER_IMAGE_PRESETS = [
@@ -142,32 +143,10 @@ export function generateAutoDayDescription(
   includeHotels: boolean = true
 ): string {
   const isLastDay = (totalDays !== undefined && dayIndex === totalDays - 1) || Boolean(day.departureDetails?.enabled);
-  // Meal summary helper
-  const getMealsSentence = () => {
-    const includedMeals: string[] = [];
-    if (day.meals?.breakfast) includedMeals.push('breakfast');
-    if (day.meals?.lunch) includedMeals.push('lunch');
-    if (day.meals?.dinner) includedMeals.push('dinner');
-
-    let text = '';
-    if (includedMeals.length === 3) {
-      text = 'All meals (breakfast, lunch, and dinner) are included for the day.';
-    } else if (includedMeals.length === 2 && day.meals.breakfast && day.meals.dinner) {
-      text = 'Breakfast and dinner are included for the day.';
-    } else if (includedMeals.length > 0) {
-      const mealNames = includedMeals.join(' and ');
-      text = `Included meals: ${mealNames.charAt(0).toUpperCase() + mealNames.slice(1)}.`;
-    }
-
-    if (day.meals?.note && day.meals.note.trim()) {
-      text = text ? `${text} (${day.meals.note.trim()})` : `Meals: ${day.meals.note.trim()}`;
-    }
-    return text;
-  };
 
   // Multi-city sightseeing narrative
   if (day.isMultiCity && day.cities && day.cities.length > 0) {
-    const parts: string[] = [];
+    const bullets: string[] = [];
 
     // Day 1 (or any day) arrival check
     if (day.arrivalDetails?.enabled) {
@@ -176,25 +155,24 @@ export function generateAutoDayDescription(
       const flightStr = arr.flightOrTrainNumber ? ` (${arr.flightOrTrainNumber})` : '';
       const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
       const startCity = day.cities[0]?.destination || day.destination;
-      parts.push(`Welcome to ${startCity}! Upon arrival at ${startCity} ${pointStr}${flightStr}${timeStr}, meet and greet with our representative and private chauffeur.`);
+      bullets.push(`• Welcome to ${startCity}! Upon arrival at ${startCity} ${pointStr}${flightStr}${timeStr}, meet and greet with our representative and private chauffeur.`);
       
       if (arr.includeHotelCheckIn !== false) {
         if (arr.checkInTiming !== 'after_sightseeing') {
-          parts.push(`Transfer directly to your hotel in ${startCity} for check-in and leisure time to freshen up before commencing the tour.`);
+          bullets.push(`• Transfer directly to your hotel in ${startCity} for check-in and leisure time to freshen up before commencing the tour.`);
         }
       }
     }
 
     day.cities.forEach((city, idx) => {
-      const isFirst = idx === 0;
       const isLast = idx === day.cities!.length - 1;
       const nextCity = day.cities![idx + 1]?.destination || city.driveToNext?.toCity;
 
       if (city.checkOut) {
         if (city.skipSightseeing && nextCity) {
-          parts.push(`Morning check-out from hotel in ${city.destination} and proceed directly on your journey to ${nextCity}.`);
+          bullets.push(`• Morning check-out from hotel in ${city.destination} and proceed directly on your journey to ${nextCity}.`);
         } else {
-          parts.push(`Morning check-out from hotel in ${city.destination}.`);
+          bullets.push(`• Morning check-out from hotel in ${city.destination}.`);
         }
       }
 
@@ -206,13 +184,13 @@ export function generateAutoDayDescription(
         const walkingSights = rawAttractions.filter(n => !isDrivePast(n));
 
         if (walkingSights.length > 0) {
-          parts.push(`In ${city.destination}, proceed for sightseeing including ${walkingSights.join(', ')}.`);
-        } else if (!hasDrivePastRP) {
-          parts.push(`Enjoy sightseeing and cultural highlights of ${city.destination}.`);
+          const sightLines = walkingSights.map(s => `  - ${s}`).join('\n');
+          bullets.push(`• In ${city.destination}, proceed for sightseeing visiting:\n${sightLines}`);
         }
+        // If highlights/attractions are not added for this city, do not include highlights!
 
         if (hasDrivePastRP) {
-          parts.push(`Drive past Rashtrapati Bhavan and Parliament.`);
+          bullets.push(`• Drive past Rashtrapati Bhavan and Parliament.`);
         }
       }
 
@@ -229,7 +207,7 @@ export function generateAutoDayDescription(
           const depPortStr = fl.departureAirport ? ` from ${fl.departureAirport}` : ` from ${city.destination}`;
           const arrPortStr = fl.arrivalAirport ? ` to ${fl.arrivalAirport} (${targetNext})` : ` to ${targetNext}`;
           const arrTimeStr = fl.arrivalTime ? `, arriving at ${fl.arrivalTime}` : '';
-          parts.push(`Later, transfer to the airport to board ${flightNumStr}${depPortStr}${depTimeStr}${arrPortStr}${arrTimeStr}. Upon arrival, our representative will receive you.`);
+          bullets.push(`• Later, transfer to the airport to board ${flightNumStr}${depPortStr}${depTimeStr}${arrPortStr}${arrTimeStr}. Upon arrival, our representative will receive you.`);
         } else if (transit === 'train' && city.trainToNext) {
           const tr = city.trainToNext;
           const trainStr = tr.trainName || tr.trainNumber ? `the ${tr.trainName || ''} (${tr.trainNumber || ''})` : 'your express train';
@@ -237,23 +215,22 @@ export function generateAutoDayDescription(
           const depStationStr = tr.departureStation ? ` from ${tr.departureStation}` : ` from ${city.destination}`;
           const arrStationStr = tr.arrivalStation ? ` for ${tr.arrivalStation} (${targetNext})` : ` for ${targetNext}`;
           const arrTimeStr = tr.arrivalTime ? `, arriving at ${tr.arrivalTime}` : '';
-          parts.push(`Later, transfer to the railway station to board ${trainStr}${depStationStr}${depTimeStr}${arrStationStr}${arrTimeStr}. Upon arrival, meet our chauffeur and proceed to your hotel.`);
+          bullets.push(`• Later, transfer to the railway station to board ${trainStr}${depStationStr}${depTimeStr}${arrStationStr}${arrTimeStr}. Upon arrival, meet our chauffeur and proceed to your hotel.`);
         } else if (city.driveToNext) {
           const viaStr = city.driveToNext.routeVia ? ` via ${city.driveToNext.routeVia}` : '';
-          // If not already said "proceed directly on your journey to nextCity"
           if (!city.checkOut || !city.skipSightseeing) {
-            parts.push(`Later, embark on a comfortable highway drive to ${targetNext}${viaStr}.`);
+            bullets.push(`• Later, embark on a comfortable highway drive to ${targetNext}${viaStr}.`);
           }
         }
       }
 
       if (city.checkIn) {
-        parts.push(`Upon arrival in ${city.destination}, transfer and check-in at your designated hotel.`);
+        bullets.push(`• Upon arrival in ${city.destination}, transfer and check-in at your designated hotel.`);
       }
     });
 
     if (day.arrivalDetails?.enabled && day.arrivalDetails.includeHotelCheckIn !== false && day.arrivalDetails.checkInTiming === 'after_sightseeing') {
-      parts.push(`Following the day's tour and travel, transfer to your hotel for smooth check-in and relaxation.`);
+      bullets.push(`• Following the day's tour and travel, transfer to your hotel for smooth check-in and relaxation.`);
     }
 
     // Departure logistics if configured on this day
@@ -263,45 +240,30 @@ export function generateAutoDayDescription(
       const numStr = dep.flightOrTrainNumber ? ` (${dep.flightOrTrainNumber})` : '';
       const timeStr = dep.departureTime ? ` scheduled at ${dep.departureTime}` : '';
       const dropCity = day.overnightLocation || day.destination;
-      parts.push(`Later, transfer to ${dropCity} ${pointStr}${numStr}${timeStr} for your onward journey home with fond travel memories.`);
-    }
-
-    const mealSentence = getMealsSentence();
-    if (mealSentence) {
-      parts.push(mealSentence);
+      bullets.push(`• Later, transfer to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished travel memories.`);
     }
 
     if (day.overnightLocation && !day.departureDetails?.enabled && !isLastDay) {
-      parts.push(`Overnight stay at your designated hotel in ${day.overnightLocation}.`);
+      bullets.push(`• Overnight stay at your designated hotel in ${day.overnightLocation}.`);
     }
 
-    return parts.join(' ');
+    return bullets.join('\n');
   }
 
   // Standard single destination day
-  const parts: string[] = [];
+  const bullets: string[] = [];
 
   if (day.arrivalDetails?.enabled) {
     const arr = day.arrivalDetails;
     const pointStr = arr.point === 'Airport' ? 'Airport' : arr.point === 'Railway Station' ? 'Railway Station' : arr.point;
     const flightStr = arr.flightOrTrainNumber ? ` (${arr.flightOrTrainNumber})` : '';
     const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
-    parts.push(`Welcome to ${day.destination}! Upon arrival at ${day.destination} ${pointStr}${flightStr}${timeStr}, meet and greet with our representative and private chauffeur.`);
+    bullets.push(`• Welcome to ${day.destination}! Upon arrival at ${day.destination} ${pointStr}${flightStr}${timeStr}, meet and greet with our representative and private chauffeur.`);
     
     if (includeHotels && arr.includeHotelCheckIn !== false) {
       if (arr.checkInTiming !== 'after_sightseeing') {
-        parts.push(`Transfer directly to your pre-booked hotel for check-in and leisure time to freshen up before commencing sightseeing.`);
+        bullets.push(`• Transfer directly to your pre-booked hotel for check-in and leisure time to freshen up before commencing sightseeing.`);
       }
-    }
-  } else if (dayIndex > 0) {
-    if (day.meals?.breakfast) {
-      if (includeHotels) {
-        parts.push(`After a wholesome breakfast at your hotel,`);
-      } else {
-        parts.push(`After a wholesome breakfast,`);
-      }
-    } else {
-      parts.push(`In the morning,`);
     }
   }
 
@@ -311,36 +273,37 @@ export function generateAutoDayDescription(
   const walkingSights = rawAttractions.filter(n => !isDrivePast(n));
 
   if (walkingSights.length > 0) {
-    parts.push(`proceed for a comprehensive sightseeing tour of ${day.destination}, visiting prominent landmarks including ${walkingSights.join(', ')}.`);
+    const sightLines = walkingSights.map(s => `  - ${s}`).join('\n');
+    bullets.push(`• Proceed for a comprehensive sightseeing tour of ${day.destination}, visiting prominent landmarks:\n${sightLines}`);
   } else if (!isLastDay && !hasDrivePastRP) {
     if (day.arrivalDetails?.enabled) {
-      parts.push(`The remainder of the day is at leisure to unwind at the hotel or explore the local surroundings at your own pace.`);
+      bullets.push(`• The remainder of the day is at leisure to unwind at the hotel or explore the local surroundings at your own pace.`);
     } else {
-      parts.push(`proceed for a full-day sightseeing tour exploring the iconic architectural wonders, bazaars, and cultural sights of ${day.destination}.`);
+      bullets.push(`• Day at leisure to explore ${day.destination} at your own pace.`);
     }
   } else if (isLastDay && !hasDrivePastRP) {
     // Final day with no sightseeing activities: do not generate placeholder tour
     if (includeHotels) {
-      parts.push(`complete hotel check-out and prepare for departure.`);
+      bullets.push(`• Complete hotel check-out and prepare for departure.`);
     } else {
-      parts.push(`prepare for your onward journey.`);
+      bullets.push(`• Prepare for your onward departure.`);
     }
   }
 
   if (hasDrivePastRP) {
-    parts.push(`Drive past Rashtrapati Bhavan and Parliament.`);
+    bullets.push(`• Drive past Rashtrapati Bhavan and Parliament.`);
   }
 
   if (includeHotels && day.arrivalDetails?.enabled && day.arrivalDetails.includeHotelCheckIn !== false && day.arrivalDetails.checkInTiming === 'after_sightseeing') {
-    parts.push(`Following the sightseeing tour, transfer to your hotel for smooth check-in and relaxation.`);
+    bullets.push(`• Following the sightseeing tour, transfer to your hotel for smooth check-in and relaxation.`);
   }
 
   // Highway transfer to overnight location without mentioning Kms or hours
   if (!day.departureDetails?.enabled && !isLastDay && !day.isOvernightSameLocation && day.overnightLocation && day.overnightLocation.toLowerCase() !== day.destination.toLowerCase()) {
     if (includeHotels) {
-      parts.push(`Later in the afternoon, commence your comfortable highway drive to ${day.overnightLocation}. Upon arrival, check-in to your hotel.`);
+      bullets.push(`• Later in the afternoon, commence your comfortable highway drive to ${day.overnightLocation}. Upon arrival, check-in to your hotel.`);
     } else {
-      parts.push(`Later in the afternoon, commence your comfortable highway drive to ${day.overnightLocation}.`);
+      bullets.push(`• Later in the afternoon, commence your comfortable highway drive to ${day.overnightLocation}.`);
     }
   }
 
@@ -351,23 +314,18 @@ export function generateAutoDayDescription(
     const numStr = dep.flightOrTrainNumber ? ` (${dep.flightOrTrainNumber})` : '';
     const timeStr = dep.departureTime ? ` scheduled at ${dep.departureTime}` : '';
     const dropCity = dep.dropLocation || day.destination;
-    parts.push(`Later, you will be transferred to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished memories.`);
-  }
-
-  const mealSentence = getMealsSentence();
-  if (mealSentence) {
-    parts.push(mealSentence);
+    bullets.push(`• Later, you will be transferred to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished memories.`);
   }
 
   if (!day.departureDetails?.enabled && !isLastDay) {
     if (includeHotels) {
-      parts.push(`Overnight stay at your designated hotel in ${day.overnightLocation || day.destination}.`);
+      bullets.push(`• Overnight stay at your designated hotel in ${day.overnightLocation || day.destination}.`);
     } else {
-      parts.push(`Overnight in ${day.overnightLocation || day.destination}.`);
+      bullets.push(`• Overnight in ${day.overnightLocation || day.destination}.`);
     }
   }
 
-  return parts.join(' ');
+  return bullets.join('\n');
 }
 
 export default function ItineraryBuilder({
@@ -394,6 +352,72 @@ export default function ItineraryBuilder({
   // Edit Attraction Modal state
   const [editingAttraction, setEditingAttraction] = useState<Attraction | null>(null);
   const [isEditAttractionOpen, setIsEditAttractionOpen] = useState(false);
+
+  // Local destinations list to support immediate updates when user edits or adds a destination
+  const [localDestinations, setLocalDestinations] = useState<Destination[]>(destinations);
+
+  React.useEffect(() => {
+    if (destinations && destinations.length > 0) {
+      setLocalDestinations(destinations);
+    }
+  }, [destinations]);
+
+  React.useEffect(() => {
+    if (initialAttractions && initialAttractions.length > 0) {
+      setLocalAttractions(initialAttractions);
+    }
+  }, [initialAttractions]);
+
+  // Destination custom text mode tracking per dayIndex: boolean
+  const [customDestMode, setCustomDestMode] = useState<Record<number, boolean>>({});
+  // Overnight custom text mode tracking per dayIndex: boolean
+  const [customOvernightMode, setCustomOvernightMode] = useState<Record<number, boolean>>({});
+  // City custom text mode tracking per `${dayIndex}-${cityIndex}`: boolean
+  const [customCityMode, setCustomCityMode] = useState<Record<string, boolean>>({});
+
+  // Add / Edit Destination Modal state
+  const [destModalState, setDestModalState] = useState<{
+    isOpen: boolean;
+    mode: 'add' | 'edit';
+    destId?: string;
+    name: string;
+    state: string;
+    shortDescription: string;
+    heroImage: string;
+    forDayIndex?: number;
+    forCityIndex?: number;
+  }>({
+    isOpen: false,
+    mode: 'add',
+    name: '',
+    state: 'Rajasthan',
+    shortDescription: '',
+    heroImage: ''
+  });
+
+  // Add Custom Attraction Modal state
+  const [addAttractionModalState, setAddAttractionModalState] = useState<{
+    isOpen: boolean;
+    forDayIndex: number;
+    forCityIndex?: number;
+    destinationName: string;
+    name: string;
+    duration: string;
+    category: string;
+    shortDescription: string;
+    image: string;
+    unesco: boolean;
+  }>({
+    isOpen: false,
+    forDayIndex: 0,
+    destinationName: '',
+    name: '',
+    duration: '1-2 Hours',
+    category: 'Sightseeing & Landmark',
+    shortDescription: '',
+    image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=60',
+    unesco: false
+  });
 
   // Quick hotel creation state
   const [quickHotelData, setQuickHotelData] = useState({
@@ -437,7 +461,7 @@ export default function ItineraryBuilder({
       destination: 'Delhi',
       attractionIds: [],
       attractionNames: [],
-      description: 'Welcome to Delhi! Upon arrival, meet and greet with our representative and private chauffeur. Transfer to hotel for check-in and leisure time to freshen up. The remainder of the day is at leisure to unwind or explore the local surroundings at your own pace.',
+      description: '• Welcome to Delhi! Upon arrival at Delhi Airport, meet and greet with our representative and private chauffeur.\n• Transfer directly to your pre-booked hotel for check-in and leisure time to freshen up before commencing sightseeing.\n• The remainder of the day is at leisure to unwind at the hotel or explore the local surroundings at your own pace.\n• Overnight stay at your designated hotel in Delhi.',
       isOvernightSameLocation: true,
       overnightLocation: 'Delhi',
       arrivalDetails: {
@@ -590,7 +614,7 @@ export default function ItineraryBuilder({
     });
 
     // 2. All destination hero and gallery images
-    destinations.forEach(dest => {
+    localDestinations.forEach(dest => {
       if (dest.heroImage && !seenUrls.has(dest.heroImage)) {
         seenUrls.add(dest.heroImage);
         items.push({
@@ -620,7 +644,7 @@ export default function ItineraryBuilder({
     });
 
     return items;
-  }, [localAttractions, destinations]);
+  }, [localAttractions, localDestinations]);
 
   // Unique destinations list for the search filter dropdown
   const uniqueDestNames = React.useMemo(() => {
@@ -1514,7 +1538,7 @@ export default function ItineraryBuilder({
     const targetDay = { ...updatedDays[dayIndex] };
     const currentCities = [...(targetDay.cities || [])];
     const lastCity = currentCities[currentCities.length - 1];
-    const newCityName = destinations.find(d => !currentCities.some(c => c.destination.toLowerCase() === d.name.toLowerCase()))?.name || 'Jaipur';
+    const newCityName = localDestinations.find(d => !currentCities.some(c => c.destination.toLowerCase() === d.name.toLowerCase()))?.name || 'Jaipur';
 
     if (lastCity) {
       const routeKey = `${lastCity.destination.toLowerCase()}-${newCityName.toLowerCase()}`.replace(/\s+/g, '-');
@@ -1687,8 +1711,218 @@ export default function ItineraryBuilder({
       return [editingAttraction, ...prev];
     });
 
+    // Also update any days that selected this attraction to reflect the updated name/image
+    setItinerary(prev => {
+      const updatedDays = prev.days.map((day, dIdx) => {
+        if (!day.attractionIds?.includes(editingAttraction.id)) return day;
+        const newNames = day.attractionIds.map(id => {
+          if (id === editingAttraction.id) return editingAttraction.name;
+          const a = localAttractions.find(att => att.id === id);
+          return a?.name || id;
+        });
+        const updatedDay = { ...day, attractionNames: newNames };
+        updatedDay.description = generateAutoDayDescription(updatedDay, dIdx, prev.days.length, prev.includeHotels);
+        return updatedDay;
+      });
+      return { ...prev, days: updatedDays };
+    });
+
     setIsEditAttractionOpen(false);
     setEditingAttraction(null);
+  };
+
+  // Destination Modal handlers
+  const handleOpenAddDestination = (dayIndex?: number, cityIndex?: number) => {
+    setDestModalState({
+      isOpen: true,
+      mode: 'add',
+      name: '',
+      state: 'Rajasthan',
+      shortDescription: '',
+      heroImage: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=60',
+      forDayIndex: dayIndex,
+      forCityIndex: cityIndex
+    });
+  };
+
+  const handleOpenEditCatalogueDestination = (destNameOrId: string, dayIndex?: number, cityIndex?: number) => {
+    const existing = localDestinations.find(
+      d => d.name.toLowerCase() === destNameOrId.toLowerCase() || d.id.toLowerCase() === destNameOrId.toLowerCase()
+    );
+
+    if (existing) {
+      setDestModalState({
+        isOpen: true,
+        mode: 'edit',
+        destId: existing.id,
+        name: existing.name,
+        state: existing.state,
+        shortDescription: existing.shortDescription || '',
+        heroImage: existing.heroImage || 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=60',
+        forDayIndex: dayIndex,
+        forCityIndex: cityIndex
+      });
+    } else {
+      // Not in list yet, treat as add
+      setDestModalState({
+        isOpen: true,
+        mode: 'add',
+        name: destNameOrId,
+        state: 'Rajasthan',
+        shortDescription: '',
+        heroImage: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=60',
+        forDayIndex: dayIndex,
+        forCityIndex: cityIndex
+      });
+    }
+  };
+
+  const handleSaveDestinationModal = () => {
+    if (!destModalState.name.trim()) return;
+    const cleanName = destModalState.name.trim();
+
+    if (destModalState.mode === 'edit' && destModalState.destId) {
+      const existing = localDestinations.find(d => d.id === destModalState.destId);
+      const updated: Destination = {
+        id: destModalState.destId,
+        name: cleanName,
+        state: destModalState.state.trim() || existing?.state || 'India',
+        shortDescription: destModalState.shortDescription.trim() || existing?.shortDescription || '',
+        detailedDescription: destModalState.shortDescription.trim() || existing?.detailedDescription || '',
+        recommendedDuration: existing?.recommendedDuration || '1-2 Days',
+        heroImage: destModalState.heroImage.trim() || existing?.heroImage || 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=60',
+        gallery: existing?.gallery || []
+      };
+
+      persistDestination(updated);
+      setLocalDestinations(prev => prev.map(d => d.id === updated.id ? updated : d));
+
+      // Also update any days using the old destination name
+      if (existing && existing.name.toLowerCase() !== cleanName.toLowerCase()) {
+        const oldName = existing.name.toLowerCase();
+        setItinerary(prev => {
+          const updatedDays = prev.days.map((day, dIdx) => {
+            let changed = false;
+            let newDest = day.destination;
+            let newOver = day.overnightLocation;
+            if (day.destination.toLowerCase() === oldName) {
+              newDest = cleanName;
+              changed = true;
+            }
+            if (day.overnightLocation.toLowerCase() === oldName) {
+              newOver = cleanName;
+              changed = true;
+            }
+            let newCities = day.cities;
+            if (day.isMultiCity && day.cities) {
+              newCities = day.cities.map(c => {
+                if (c.destination.toLowerCase() === oldName) {
+                  changed = true;
+                  return { ...c, destination: cleanName };
+                }
+                return c;
+              });
+            }
+            if (!changed) return day;
+            const updatedDay = { ...day, destination: newDest, overnightLocation: newOver, cities: newCities };
+            updatedDay.description = generateAutoDayDescription(updatedDay, dIdx, prev.days.length, prev.includeHotels);
+            return updatedDay;
+          });
+          return { ...prev, days: updatedDays };
+        });
+      }
+    } else {
+      const newDest: Destination = {
+        id: `dest-${cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString(36)}`,
+        name: cleanName,
+        state: destModalState.state.trim() || 'India',
+        shortDescription: destModalState.shortDescription.trim() || `Popular travel destination in ${destModalState.state || 'India'}.`,
+        detailedDescription: destModalState.shortDescription.trim() || `Explore the scenic beauty and attractions of ${cleanName}.`,
+        recommendedDuration: '1-2 Days',
+        heroImage: destModalState.heroImage.trim() || 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=60',
+        gallery: []
+      };
+
+      persistDestination(newDest);
+      setLocalDestinations(prev => [newDest, ...prev]);
+
+      if (typeof destModalState.forDayIndex === 'number') {
+        const dIdx = destModalState.forDayIndex;
+        if (typeof destModalState.forCityIndex === 'number') {
+          handleUpdateCityInDay(dIdx, destModalState.forCityIndex, 'destination', cleanName);
+        } else {
+          handleUpdateDayField(dIdx, 'destination', cleanName);
+        }
+      }
+    }
+
+    setDestModalState({
+      isOpen: false,
+      mode: 'add',
+      name: '',
+      state: 'Rajasthan',
+      shortDescription: '',
+      heroImage: ''
+    });
+  };
+
+  // Add Custom Attraction handlers
+  const handleOpenAddCustomAttraction = (dayIndex: number, destinationName: string, cityIndex?: number) => {
+    setAddAttractionModalState({
+      isOpen: true,
+      forDayIndex: dayIndex,
+      forCityIndex: cityIndex,
+      destinationName: destinationName || 'Sightseeing',
+      name: '',
+      duration: '1-2 Hours',
+      category: 'Sightseeing & Landmark',
+      shortDescription: '',
+      image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=60',
+      unesco: false
+    });
+  };
+
+  const handleSaveNewCustomAttraction = () => {
+    if (!addAttractionModalState.name.trim()) return;
+    const cleanName = addAttractionModalState.name.trim();
+    const destName = addAttractionModalState.destinationName.trim() || 'Sightseeing';
+    const destId = destName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+    const newAttr: Attraction = {
+      id: `attr-${cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString(36)}`,
+      destinationId: destId,
+      destinationName: destName,
+      name: cleanName,
+      duration: addAttractionModalState.duration.trim() || '1-2 Hours',
+      category: addAttractionModalState.category.trim() || 'Sightseeing & Landmark',
+      shortDescription: addAttractionModalState.shortDescription.trim() || `Popular attraction in ${destName}.`,
+      detailedDescription: addAttractionModalState.shortDescription.trim() || `Visit ${cleanName} in ${destName}.`,
+      image: addAttractionModalState.image.trim() || 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=60',
+      unesco: !!addAttractionModalState.unesco
+    };
+
+    persistAttraction(newAttr);
+    setLocalAttractions(prev => [newAttr, ...prev]);
+
+    // Automatically check into the day's attractions!
+    const dayIndex = addAttractionModalState.forDayIndex;
+    if (typeof addAttractionModalState.forCityIndex === 'number') {
+      handleToggleCityAttraction(dayIndex, addAttractionModalState.forCityIndex, newAttr);
+    } else {
+      handleToggleAttractionInDay(dayIndex, newAttr);
+    }
+
+    setAddAttractionModalState({
+      isOpen: false,
+      forDayIndex: 0,
+      destinationName: '',
+      name: '',
+      duration: '1-2 Hours',
+      category: 'Sightseeing & Landmark',
+      shortDescription: '',
+      image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=600&auto=format&fit=crop&q=60',
+      unesco: false
+    });
   };
 
   // AI Generator for Day Description
@@ -1759,7 +1993,7 @@ export default function ItineraryBuilder({
       if (!smartImg) {
         const firstDest = copy.days[0]?.destination || (copy.days[0]?.cities && copy.days[0].cities[0]?.destination);
         if (firstDest) {
-          const dest = destinations.find(d => d.name.toLowerCase() === firstDest.toLowerCase() || d.id.toLowerCase() === firstDest.toLowerCase());
+          const dest = localDestinations.find(d => d.name.toLowerCase() === firstDest.toLowerCase() || d.id.toLowerCase() === firstDest.toLowerCase());
           if (dest?.heroImage) {
             smartImg = dest.heroImage;
           }
@@ -2930,19 +3164,53 @@ export default function ItineraryBuilder({
                                   
                                   {/* City Bar */}
                                   <div className="flex flex-wrap items-center justify-between gap-3">
-                                    <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                                    <div className="flex items-center gap-1.5 flex-1 min-w-[240px]">
                                       <span className="w-5 h-5 rounded-full bg-purple-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0">
                                         {cityIdx + 1}
                                       </span>
-                                      <select
-                                        value={city.destination}
-                                        onChange={(e) => handleUpdateCityInDay(dayIndex, cityIdx, 'destination', e.target.value)}
-                                        className="font-bold text-xs bg-purple-50 border border-purple-200 rounded-lg px-2.5 py-1 text-purple-950 focus:outline-none"
+                                      {customCityMode[`${dayIndex}-${cityIdx}`] ? (
+                                        <input
+                                          type="text"
+                                          value={city.destination}
+                                          onChange={(e) => handleUpdateCityInDay(dayIndex, cityIdx, 'destination', e.target.value)}
+                                          placeholder="Enter city/destination name..."
+                                          className="font-bold text-xs bg-purple-50/70 border border-purple-300 rounded-lg px-2.5 py-1 text-purple-950 focus:outline-none flex-1 min-w-[130px]"
+                                        />
+                                      ) : (
+                                        <select
+                                          value={city.destination}
+                                          onChange={(e) => handleUpdateCityInDay(dayIndex, cityIdx, 'destination', e.target.value)}
+                                          className="font-bold text-xs bg-purple-50 border border-purple-200 rounded-lg px-2.5 py-1 text-purple-950 focus:outline-none flex-1 min-w-[130px]"
+                                        >
+                                          {localDestinations.map(d => (
+                                            <option key={d.id} value={d.name}>{d.name} ({d.state})</option>
+                                          ))}
+                                        </select>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => setCustomCityMode(prev => ({ ...prev, [`${dayIndex}-${cityIdx}`]: !prev[`${dayIndex}-${cityIdx}`] }))}
+                                        className="p-1 text-purple-700 hover:text-purple-950 hover:bg-purple-100 rounded transition"
+                                        title={customCityMode[`${dayIndex}-${cityIdx}`] ? 'Select from list' : 'Edit name / custom entry'}
                                       >
-                                        {destinations.map(d => (
-                                          <option key={d.id} value={d.name}>{d.name} ({d.state})</option>
-                                        ))}
-                                      </select>
+                                        <Edit2 className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenEditCatalogueDestination(city.destination, dayIndex, cityIdx)}
+                                        className="p-1 text-purple-700 hover:text-purple-950 hover:bg-purple-100 rounded transition"
+                                        title="Edit destination details in catalogue"
+                                      >
+                                        <Edit3 className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenAddDestination(dayIndex, cityIdx)}
+                                        className="p-1 text-indigo-700 hover:text-indigo-950 hover:bg-indigo-50 rounded transition flex items-center"
+                                        title="Add new destination to catalogue"
+                                      >
+                                        <Plus className="w-3 h-3" />
+                                      </button>
                                     </div>
 
                                     {/* Check-in, Check-out and Direct Transfer checkboxes */}
@@ -3000,12 +3268,30 @@ export default function ItineraryBuilder({
                                     </div>
                                   ) : (
                                     <div>
-                                      <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
-                                        Sights in {city.destination} ({city.attractionNames.length} selected):
-                                      </label>
+                                      <div className="flex items-center justify-between mb-1.5">
+                                        <label className="block text-[11px] font-bold text-slate-700">
+                                          Sights in {city.destination} ({city.attractionNames.length} selected):
+                                        </label>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleOpenAddCustomAttraction(dayIndex, city.destination, cityIdx)}
+                                          className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded bg-purple-100 hover:bg-purple-200 text-purple-800 transition"
+                                        >
+                                          <Plus className="w-2.5 h-2.5" />
+                                          <span>+ Add Custom Attraction</span>
+                                        </button>
+                                      </div>
                                       {cityAttractions.length === 0 ? (
-                                        <div className="text-[11px] text-slate-400 italic">
-                                          No preloaded attractions for {city.destination}.
+                                        <div className="p-2.5 bg-purple-50/50 border border-purple-100 rounded-lg text-[11px] text-slate-600 flex items-center justify-between">
+                                          <span>No preloaded attractions for {city.destination}.</span>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleOpenAddCustomAttraction(dayIndex, city.destination, cityIdx)}
+                                            className="px-2 py-0.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded text-[10px] flex items-center gap-1"
+                                          >
+                                            <Plus className="w-2.5 h-2.5" />
+                                            <span>Add Attraction</span>
+                                          </button>
                                         </div>
                                       ) : (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -3408,7 +3694,7 @@ export default function ItineraryBuilder({
                                 ))}
                               </optgroup>
                               <optgroup label="All Destinations">
-                                {destinations
+                                {localDestinations
                                   .filter(d => !day.cities?.some(c => c.destination.toLowerCase() === d.name.toLowerCase()))
                                   .map(d => (
                                     <option key={d.id} value={d.name}>
@@ -3425,20 +3711,71 @@ export default function ItineraryBuilder({
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50/70 border border-slate-200">
                             {/* Sightseeing Location */}
                             <div>
-                              <label className="block text-xs font-semibold text-slate-800 mb-1">
-                                Primary Sightseeing Destination <span className="text-rose-500">*</span>
-                              </label>
-                              <select
-                                value={day.destination}
-                                onChange={(e) => handleUpdateDayField(dayIndex, 'destination', e.target.value)}
-                                className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium"
-                              >
-                                {destinations.map((d) => (
-                                  <option key={d.id} value={d.name}>
-                                    {d.name} ({d.state})
-                                  </option>
-                                ))}
-                              </select>
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="block text-xs font-semibold text-slate-800">
+                                  Primary Sightseeing Destination <span className="text-rose-500">*</span>
+                                </label>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setCustomDestMode(prev => ({ ...prev, [dayIndex]: !prev[dayIndex] }))}
+                                    className="text-[11px] text-amber-700 hover:text-amber-900 font-medium flex items-center gap-1 hover:underline"
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                    <span>{customDestMode[dayIndex] ? 'Select List' : 'Edit / Custom Name'}</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenAddDestination(dayIndex)}
+                                    className="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-0.5 hover:underline"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                    <span>Add New</span>
+                                  </button>
+                                </div>
+                              </div>
+
+                              {customDestMode[dayIndex] ? (
+                                <div className="flex items-center gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={day.destination}
+                                    onChange={(e) => handleUpdateDayField(dayIndex, 'destination', e.target.value)}
+                                    placeholder="Enter destination name..."
+                                    className="flex-1 px-3 py-2 text-xs bg-amber-50/50 border border-amber-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500 font-semibold text-slate-900"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEditCatalogueDestination(day.destination, dayIndex)}
+                                    title="Edit this destination in database"
+                                    className="p-2 text-slate-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg border border-slate-200 transition"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1.5">
+                                  <select
+                                    value={day.destination}
+                                    onChange={(e) => handleUpdateDayField(dayIndex, 'destination', e.target.value)}
+                                    className="flex-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium"
+                                  >
+                                    {localDestinations.map((d) => (
+                                      <option key={d.id} value={d.name}>
+                                        {d.name} ({d.state})
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEditCatalogueDestination(day.destination, dayIndex)}
+                                    title="Edit this destination in database"
+                                    className="p-2 text-slate-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg border border-slate-200 transition"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
 
                             {/* Overnight Stay Checkbox & Location */}
@@ -3447,30 +3784,50 @@ export default function ItineraryBuilder({
                                 <label className="text-xs font-semibold text-slate-800">
                                   Overnight Stay Location
                                 </label>
-                                <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    checked={day.isOvernightSameLocation}
-                                    onChange={(e) => handleUpdateDayField(dayIndex, 'isOvernightSameLocation', e.target.checked)}
-                                    className="w-3.5 h-3.5 rounded text-indigo-600"
-                                  />
-                                  <span className="text-[11px] font-medium text-indigo-900">
-                                    Same as sightseeing ({day.destination})
-                                  </span>
-                                </label>
+                                <div className="flex items-center gap-2">
+                                  {!day.isOvernightSameLocation && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setCustomOvernightMode(prev => ({ ...prev, [dayIndex]: !prev[dayIndex] }))}
+                                      className="text-[11px] text-amber-700 hover:text-amber-900 font-medium flex items-center gap-1 hover:underline"
+                                    >
+                                      <Edit2 className="w-2.5 h-2.5" />
+                                      <span>{customOvernightMode[dayIndex] ? 'Select List' : 'Custom'}</span>
+                                    </button>
+                                  )}
+                                  <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={day.isOvernightSameLocation}
+                                      onChange={(e) => handleUpdateDayField(dayIndex, 'isOvernightSameLocation', e.target.checked)}
+                                      className="w-3.5 h-3.5 rounded text-indigo-600"
+                                    />
+                                    <span className="text-[11px] font-medium text-indigo-900">
+                                      Same as sightseeing ({day.destination})
+                                    </span>
+                                  </label>
+                                </div>
                               </div>
 
                               {day.isOvernightSameLocation ? (
                                 <div className="px-3 py-2 text-xs bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 font-medium">
                                   Overnight in {day.destination} (Local Stay)
                                 </div>
+                              ) : customOvernightMode[dayIndex] ? (
+                                <input
+                                  type="text"
+                                  value={day.overnightLocation}
+                                  onChange={(e) => handleUpdateDayField(dayIndex, 'overnightLocation', e.target.value)}
+                                  placeholder="Type overnight city..."
+                                  className="w-full px-3 py-2 text-xs bg-amber-50/50 border border-amber-300 rounded-lg focus:outline-none font-semibold text-slate-900"
+                                />
                               ) : (
                                 <select
                                   value={day.overnightLocation}
                                   onChange={(e) => handleUpdateDayField(dayIndex, 'overnightLocation', e.target.value)}
                                   className="w-full px-3 py-2 text-xs bg-white border border-amber-300 rounded-lg focus:outline-none font-medium text-amber-900"
                                 >
-                                  {destinations.map((d) => (
+                                  {localDestinations.map((d) => (
                                     <option key={d.id} value={d.name}>
                                       Overnight in {d.name}
                                     </option>
@@ -3507,18 +3864,36 @@ export default function ItineraryBuilder({
 
                           {/* Attractions Selection for Single Destination */}
                           <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <label className="text-xs font-bold text-slate-900">
-                                Attractions to Cover in {day.destination} ({day.attractionNames.length} Selected)
-                              </label>
-                              <span className="text-[11px] text-slate-400">
-                                Click attraction to toggle · Click pencil icon to edit info & image
-                              </span>
+                            <div className="flex flex-wrap items-center justify-between mb-2 gap-2">
+                              <div>
+                                <label className="text-xs font-bold text-slate-900">
+                                  Attractions to Cover in {day.destination} ({day.attractionNames.length} Selected)
+                                </label>
+                                <div className="text-[11px] text-slate-400">
+                                  Click attraction to toggle · Click pencil icon to edit info & image
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenAddCustomAttraction(dayIndex, day.destination)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-500 hover:bg-amber-600 text-white shadow-2xs transition"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>+ Add Custom Attraction</span>
+                              </button>
                             </div>
 
                             {matchingAttractions.length === 0 ? (
-                              <div className="p-3 bg-slate-50 rounded-lg text-xs text-slate-500">
-                                No preloaded attractions registered for {day.destination}. You can enter custom sights in the narrative below.
+                              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 flex items-center justify-between">
+                                <span>No preloaded attractions registered for {day.destination}.</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenAddCustomAttraction(dayIndex, day.destination)}
+                                  className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-md text-[11px] flex items-center gap-1"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                  <span>Add Attraction</span>
+                                </button>
                               </div>
                             ) : (
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -5353,6 +5728,218 @@ export default function ItineraryBuilder({
                 className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-lg transition"
               >
                 Close Library
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ADD / EDIT DESTINATION MODAL */}
+      {/* ========================================================================= */}
+      {destModalState.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-2xs p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">
+                  {destModalState.mode === 'edit' ? 'Edit Destination Details' : 'Add Custom Destination'}
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  {destModalState.mode === 'edit' ? 'Update destination details in database.' : 'Create a custom destination to use across itineraries.'}
+                </p>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setDestModalState(prev => ({ ...prev, isOpen: false }))} 
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Destination Name *</label>
+                <input
+                  type="text"
+                  value={destModalState.name}
+                  onChange={(e) => setDestModalState(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g. Ranthambore, Pushkar, Varanasi..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-semibold text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">State / Region</label>
+                <input
+                  type="text"
+                  value={destModalState.state}
+                  onChange={(e) => setDestModalState(prev => ({ ...prev, state: e.target.value }))}
+                  placeholder="e.g. Rajasthan, Uttar Pradesh, Delhi..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Highlights / Short Description</label>
+                <textarea
+                  rows={2}
+                  value={destModalState.shortDescription}
+                  onChange={(e) => setDestModalState(prev => ({ ...prev, shortDescription: e.target.value }))}
+                  placeholder="Scenic wildlife reserve known for Bengal tigers and royal fort..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Hero Image URL</label>
+                <input
+                  type="text"
+                  value={destModalState.heroImage}
+                  onChange={(e) => setDestModalState(prev => ({ ...prev, heroImage: e.target.value }))}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
+                />
+                {destModalState.heroImage && (
+                  <div className="mt-2 h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                    <SafeImage src={destModalState.heroImage} alt={destModalState.name} className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setDestModalState(prev => ({ ...prev, isOpen: false }))}
+                className="px-3.5 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveDestinationModal}
+                disabled={!destModalState.name.trim()}
+                className="px-4 py-2 bg-[#151521] hover:bg-[#26214F] text-amber-300 font-bold rounded-lg shadow-sm disabled:opacity-50"
+              >
+                {destModalState.mode === 'edit' ? 'Save Changes' : 'Save Destination'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ADD CUSTOM ATTRACTION MODAL */}
+      {/* ========================================================================= */}
+      {addAttractionModalState.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-2xs p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">Add Custom Attraction</h3>
+                <p className="text-[11px] text-slate-500">
+                  Add a monument, activity, or sightseeing spot to <strong className="text-amber-700">{addAttractionModalState.destinationName}</strong>.
+                </p>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setAddAttractionModalState(prev => ({ ...prev, isOpen: false }))} 
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Attraction / Monument Name *</label>
+                <input
+                  type="text"
+                  value={addAttractionModalState.name}
+                  onChange={(e) => setAddAttractionModalState(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g. Jhalana Leopard Safari, Chokhi Dhani, City Walk..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Image URL</label>
+                <input
+                  type="text"
+                  value={addAttractionModalState.image}
+                  onChange={(e) => setAddAttractionModalState(prev => ({ ...prev, image: e.target.value }))}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
+                />
+                {addAttractionModalState.image && (
+                  <div className="mt-2 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                    <SafeImage src={addAttractionModalState.image} alt={addAttractionModalState.name || 'Attraction Preview'} className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Category</label>
+                  <input
+                    type="text"
+                    value={addAttractionModalState.category}
+                    onChange={(e) => setAddAttractionModalState(prev => ({ ...prev, category: e.target.value }))}
+                    placeholder="e.g. Wildlife & Safari, Monument, Temple..."
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Recommended Duration</label>
+                  <input
+                    type="text"
+                    value={addAttractionModalState.duration}
+                    onChange={(e) => setAddAttractionModalState(prev => ({ ...prev, duration: e.target.value }))}
+                    placeholder="e.g. 2 Hours, Half Day..."
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Short Description</label>
+                <textarea
+                  rows={2}
+                  value={addAttractionModalState.shortDescription}
+                  onChange={(e) => setAddAttractionModalState(prev => ({ ...prev, shortDescription: e.target.value }))}
+                  placeholder="Highlights and notable experiences..."
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg"
+                />
+              </div>
+
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={addAttractionModalState.unesco}
+                  onChange={(e) => setAddAttractionModalState(prev => ({ ...prev, unesco: e.target.checked }))}
+                  className="w-4 h-4 rounded text-indigo-600"
+                />
+                <span className="font-semibold text-slate-800">UNESCO World Heritage Site</span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setAddAttractionModalState(prev => ({ ...prev, isOpen: false }))}
+                className="px-3.5 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveNewCustomAttraction}
+                disabled={!addAttractionModalState.name.trim()}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg shadow-sm disabled:opacity-50"
+              >
+                Add to Day & Catalogue
               </button>
             </div>
           </div>

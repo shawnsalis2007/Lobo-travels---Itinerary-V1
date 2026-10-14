@@ -452,7 +452,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '45 Minutes',
     category: 'National Monument',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1598890777032-bde835ba27c2?w=600&auto=format&fit=crop&q=60'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/Rashtrapati_Bhavan-1.jpg'
   },
   {
     id: 'delhi-national-war-memorial',
@@ -464,7 +464,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'National Memorial',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=60'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/e/e9/Newly_inaugurated_National_War_Memorial_New_Delhi.jpg'
   },
   {
     id: 'delhi-indira-gandhi-memorial',
@@ -476,7 +476,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Historical Museum',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=600&auto=format&fit=crop&q=60'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Indira_Gandhi_Memorial_Museum.jpg'
   },
 
   // ==========================================
@@ -2254,15 +2254,15 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'raj ghat': 'https://media.istockphoto.com/id/2259603090/photo/raj-ghat-mahatma-gandhi-memorial-in-delhi.webp?a=1&b=1&s=612x612&w=0&k=20&c=AQCqIo-KQAZH-dIOmLMfBMzuLbnQc-vPryEuq-2zm5A=',
   'raj ghat (mahatma gandhi memorial)': 'https://media.istockphoto.com/id/2259603090/photo/raj-ghat-mahatma-gandhi-memorial-in-delhi.webp?a=1&b=1&s=612x612&w=0&k=20&c=AQCqIo-KQAZH-dIOmLMfBMzuLbnQc-vPryEuq-2zm5A=',
 
-  'delhi-rashtrapati-parliament': 'https://images.unsplash.com/photo-1598890777032-bde835ba27c2?w=600&auto=format&fit=crop&q=60',
-  'rashtrapati bhavan and parliament': 'https://images.unsplash.com/photo-1598890777032-bde835ba27c2?w=600&auto=format&fit=crop&q=60',
-  'rashtrapati bhavan': 'https://images.unsplash.com/photo-1598890777032-bde835ba27c2?w=600&auto=format&fit=crop&q=60',
+  'delhi-rashtrapati-parliament': 'https://upload.wikimedia.org/wikipedia/commons/2/2e/Rashtrapati_Bhavan-1.jpg',
+  'rashtrapati bhavan and parliament': 'https://upload.wikimedia.org/wikipedia/commons/2/2e/Rashtrapati_Bhavan-1.jpg',
+  'rashtrapati bhavan': 'https://upload.wikimedia.org/wikipedia/commons/2/2e/Rashtrapati_Bhavan-1.jpg',
 
-  'delhi-national-war-memorial': 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=60',
-  'national war memorial': 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&auto=format&fit=crop&q=60',
+  'delhi-national-war-memorial': 'https://upload.wikimedia.org/wikipedia/commons/e/e9/Newly_inaugurated_National_War_Memorial_New_Delhi.jpg',
+  'national war memorial': 'https://upload.wikimedia.org/wikipedia/commons/e/e9/Newly_inaugurated_National_War_Memorial_New_Delhi.jpg',
 
-  'delhi-indira-gandhi-memorial': 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=600&auto=format&fit=crop&q=60',
-  'indira gandhi memorial museum': 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=600&auto=format&fit=crop&q=60',
+  'delhi-indira-gandhi-memorial': 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Indira_Gandhi_Memorial_Museum.jpg',
+  'indira gandhi memorial museum': 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Indira_Gandhi_Memorial_Museum.jpg',
 
   // Agra
   'agra-sikandra': 'https://plus.unsplash.com/premium_photo-1697730554395-4a79dfd66ccf?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8QWtiYXJzJTIwdG9tYnxlbnwwfHwwfHx8MA%3D%3D',

@@ -129,6 +129,53 @@ export default function ItineraryPreview({
     return cities.join(' • ');
   }, [itinerary.days]);
 
+  // Helper to render clean bullet points and indented sub-bullet attractions
+  const renderFormattedDescription = (text: string) => {
+    if (!text || !text.trim()) return null;
+    const lines = text.split('\n').map(l => l.trimEnd()).filter(Boolean);
+    const hasBullets = lines.some(l => l.trimStart().startsWith('•') || l.trimStart().startsWith('-') || l.trimStart().startsWith('*'));
+
+    if (!hasBullets) {
+      return <p className="whitespace-pre-line">{text}</p>;
+    }
+
+    return (
+      <div className="space-y-1">
+        {lines.map((line, idx) => {
+          const trimmed = line.trimStart();
+          const isSubBullet = line.startsWith('  -') || line.startsWith('    -') || line.startsWith('\t-') || (trimmed.startsWith('- ') && !line.startsWith('•'));
+          const isMainBullet = trimmed.startsWith('• ') || trimmed.startsWith('•') || trimmed.startsWith('* ');
+
+          if (isSubBullet) {
+            const content = trimmed.replace(/^[-*]\s*/, '');
+            return (
+              <div key={idx} className="ml-5 flex items-start gap-1.5 text-slate-600">
+                <span className="text-amber-600 font-bold text-[11px] leading-tight select-none">•</span>
+                <span className="flex-1 font-medium">{content}</span>
+              </div>
+            );
+          }
+
+          if (isMainBullet) {
+            const content = trimmed.replace(/^[•*]\s*/, '');
+            return (
+              <div key={idx} className="flex items-start gap-1.5 text-slate-800">
+                <span className="text-amber-500 font-bold text-sm leading-tight select-none">•</span>
+                <span className="flex-1">{content}</span>
+              </div>
+            );
+          }
+
+          return (
+            <p key={idx} className="text-slate-700">
+              {line}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
   // Helper to retrieve authentic photos of key highlight sights and monuments for a day
   const getDayPhotos = React.useCallback((day: ItineraryDay) => {
     const isLastDay = day.dayNumber === itinerary.days.length;
@@ -1037,9 +1084,9 @@ export default function ItineraryPreview({
 
                         {/* Sightseeing Narrative Description */}
                         {day.description && day.description.trim() ? (
-                          <p className="text-xs text-slate-700 leading-relaxed font-sans">
-                            {day.description}
-                          </p>
+                          <div className="text-xs text-slate-700 leading-relaxed font-sans">
+                            {renderFormattedDescription(day.description)}
+                          </div>
                         ) : null}
 
                         {/* Key Highlight Attractions & Monuments Photos Grid (Strictly Square 1:1 Images) */}
