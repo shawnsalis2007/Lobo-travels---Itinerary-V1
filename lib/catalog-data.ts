@@ -452,7 +452,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '45 Minutes',
     category: 'National Monument',
     unesco: false,
-    image: 'https://images.pexels.com/photos/38958652/pexels-photo-38958652.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
+    image: 'https://images.pexels.com/photos/3881113/pexels-photo-3881113.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
   },
   {
     id: 'delhi-national-war-memorial',
@@ -2254,9 +2254,9 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'raj ghat': 'https://media.istockphoto.com/id/2259603090/photo/raj-ghat-mahatma-gandhi-memorial-in-delhi.webp?a=1&b=1&s=612x612&w=0&k=20&c=AQCqIo-KQAZH-dIOmLMfBMzuLbnQc-vPryEuq-2zm5A=',
   'raj ghat (mahatma gandhi memorial)': 'https://media.istockphoto.com/id/2259603090/photo/raj-ghat-mahatma-gandhi-memorial-in-delhi.webp?a=1&b=1&s=612x612&w=0&k=20&c=AQCqIo-KQAZH-dIOmLMfBMzuLbnQc-vPryEuq-2zm5A=',
 
-  'delhi-rashtrapati-parliament': 'https://images.pexels.com/photos/38958652/pexels-photo-38958652.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-  'rashtrapati bhavan and parliament': 'https://images.pexels.com/photos/38958652/pexels-photo-38958652.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-  'rashtrapati bhavan': 'https://images.pexels.com/photos/38958652/pexels-photo-38958652.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  'delhi-rashtrapati-parliament': 'https://images.pexels.com/photos/3881113/pexels-photo-3881113.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  'rashtrapati bhavan and parliament': 'https://images.pexels.com/photos/3881113/pexels-photo-3881113.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+  'rashtrapati bhavan': 'https://images.pexels.com/photos/3881113/pexels-photo-3881113.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
 
   'delhi-national-war-memorial': 'https://upload.wikimedia.org/wikipedia/commons/e/e9/Newly_inaugurated_National_War_Memorial_New_Delhi.jpg',
   'national war memorial': 'https://upload.wikimedia.org/wikipedia/commons/e/e9/Newly_inaugurated_National_War_Memorial_New_Delhi.jpg',
