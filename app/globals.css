@@ -12,8 +12,13 @@
     color: #151521;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
-  /* Itinerary Day Cards & Break-Inside Avoid */
-  .itinerary-day-card,
+  /* Itinerary Day Cards & Break Rules */
+  .itinerary-day-card {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  .monument-photo-card,
   .page-break-inside-avoid,
   .break-inside-avoid {
     page-break-inside: avoid;
@@ -25,7 +30,7 @@
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm 10mm 16mm 10mm;
+    margin: 10mm 10mm 18mm 10mm;
   }
   
   body {
@@ -45,22 +50,33 @@
     display: block !important;
   }
 
-  .page-break-before {
-    page-break-before: always !important;
-    break-before: page !important;
+  /* Continuous Natural Flow across Pages - No forced page breaks */
+  .itinerary-day-card {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    -webkit-column-break-inside: auto !important;
   }
 
-  .page-break-after {
-    page-break-after: always !important;
-    break-after: page !important;
+  /* Keep day headers and individual photo thumbnails intact across page transitions */
+  .day-card-header {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
 
-  .itinerary-day-card,
-  .page-break-inside-avoid,
-  .break-inside-avoid {
+  .monument-photo-card {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     -webkit-column-break-inside: avoid !important;
+  }
+
+  .bullet-point,
+  .sub-bullet-point {
+    orphans: 3 !important;
+    widows: 3 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   /* Fixed Footer Across All Pages in Print */
@@ -83,8 +99,10 @@
 
   /* Document body / page containers in print:
      Ensure sufficient bottom padding so daily content never overlaps with or obscures the footer.
-     Enable clean page breaks and prevent content overflow cuts. */
-  .pdf-page {
+     Enable continuous flow across page breaks without forced cutoffs. */
+  .pdf-page,
+  .daily-schedule-page,
+  .proposal-section {
     width: 100% !important;
     min-height: auto !important;
     max-height: none !important;
@@ -94,18 +112,19 @@
     margin: 0 !important;
     border: none !important;
     box-shadow: none !important;
-    page-break-after: always !important;
-    break-after: page !important;
     box-sizing: border-box !important;
-  }
-
-  .pdf-page:last-child {
     page-break-after: auto !important;
     break-after: auto !important;
   }
 
+  /* Clean page break after cover page */
+  .cover-page {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
   .print-content-container {
-    padding-bottom: 18mm !important;
+    padding-bottom: 20mm !important;
   }
 
   .print-shadow-none {

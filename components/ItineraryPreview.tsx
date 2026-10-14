@@ -149,7 +149,7 @@ export default function ItineraryPreview({
           if (isSubBullet) {
             const content = trimmed.replace(/^[-*]\s*/, '');
             return (
-              <div key={idx} className="ml-5 flex items-start gap-1.5 text-slate-600">
+              <div key={idx} className="sub-bullet-point ml-5 flex items-start gap-1.5 text-slate-600">
                 <span className="text-amber-600 font-bold text-[11px] leading-tight select-none">•</span>
                 <span className="flex-1 font-medium">{content}</span>
               </div>
@@ -159,7 +159,7 @@ export default function ItineraryPreview({
           if (isMainBullet) {
             const content = trimmed.replace(/^[•*]\s*/, '');
             return (
-              <div key={idx} className="flex items-start gap-1.5 text-slate-800">
+              <div key={idx} className="bullet-point flex items-start gap-1.5 text-slate-800">
                 <span className="text-amber-500 font-bold text-sm leading-tight select-none">•</span>
                 <span className="flex-1">{content}</span>
               </div>
@@ -275,104 +275,7 @@ export default function ItineraryPreview({
     return 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80';
   }, [itinerary.coverImage, itinerary.days, activeDestinations, getDayPhotos]);
 
-  // Helper to accurately estimate rendered pixel height of a single day card
-  const estimateDayCardHeight = React.useCallback((day: ItineraryDay): number => {
-    // 1. Base card frame: border, padding (p-4 = 32px), header bar (h-7 = 28px + title + overnight line)
-    let height = 110;
-
-    // 2. Arrival details banner (Day 1)
-    if (day.dayNumber === 1 && day.arrivalDetails?.enabled) {
-      height += 46;
-    }
-
-    // 3. Departure details banner
-    if (day.departureDetails?.enabled) {
-      height += 46;
-    }
-
-    // 4. Multi-city circuit legs banner
-    if (day.isMultiCity && day.cities && day.cities.length > 0) {
-      height += 36 + Math.ceil(day.cities.length / 2) * 28;
-    }
-
-    // 5. Inter-city transfer banner
-    if (!day.isMultiCity && day.transfer) {
-      height += 42;
-    }
-
-    // 6. Sights covered badges
-    if (day.attractionNames && day.attractionNames.length > 0) {
-      const badgeRows = Math.ceil(day.attractionNames.length / 3);
-      height += 12 + badgeRows * 26;
-    }
-
-    // 7. Sightseeing narrative description (bullet points and text)
-    const desc = day.description || '';
-    if (desc.trim()) {
-      const bulletCount = (desc.match(/[•\*\-]/g) || []).length;
-      const lineCount = desc.split('\n').filter(l => l.trim().length > 0).length;
-      const estimatedLines = Math.max(bulletCount, lineCount, Math.ceil(desc.length / 65));
-      height += 14 + estimatedLines * 20;
-    }
-
-    // 8. Sightseeing photos grid (Square 1:1 image + caption label + margins)
-    const photos = getDayPhotos(day);
-    if (photos.length > 0) {
-      height += 155;
-    }
-
-    // 9. Hotel accommodation box
-    const isLastDay = day.dayNumber === itinerary.days.length;
-    const isDeparture = Boolean(day.departureDetails?.enabled);
-    if (itinerary.includeHotels !== false && !(isLastDay && isDeparture)) {
-      height += 44;
-    }
-
-    return height;
-  }, [getDayPhotos, itinerary.days.length, itinerary.includeHotels]);
-
-  // Intelligently pack days onto A4 pages ensuring zero content overflow and clean page breaks
-  const dayChunks = React.useMemo(() => {
-    const days = itinerary.days;
-    if (days.length === 0) return [];
-    if (days.length === 1) return [[days[0]]];
-
-    // Total A4 page height is 1123px.
-    // Page top padding (40px) + bottom padding (48px) + top header (55px) + pinned footer (45px) = 188px.
-    // Remaining available height = 1123 - 188 = 935px.
-    // Setting safe budget to 840px leaves generous breathing room and guarantees zero overflow.
-    const MAX_PAGE_BUDGET = 840;
-    const chunks: ItineraryDay[][] = [];
-    let currentChunk: ItineraryDay[] = [];
-    let currentHeight = 0;
-
-    for (const day of days) {
-      const dayH = estimateDayCardHeight(day);
-
-      // We allow at most 2 days per page for standard readability and premium layout.
-      // If currentChunk already has 2 days, or adding this day exceeds the page budget:
-      const wouldExceedBudget = currentChunk.length > 0 && (currentHeight + dayH + 16 > MAX_PAGE_BUDGET);
-      const isChunkFull = currentChunk.length >= 2;
-
-      if (currentChunk.length > 0 && (wouldExceedBudget || isChunkFull)) {
-        chunks.push(currentChunk);
-        currentChunk = [day];
-        currentHeight = dayH;
-      } else {
-        currentChunk.push(day);
-        currentHeight += (currentChunk.length === 1 ? dayH : dayH + 16);
-      }
-    }
-
-    if (currentChunk.length > 0) {
-      chunks.push(currentChunk);
-    }
-
-    return chunks;
-  }, [itinerary.days, estimateDayCardHeight]);
-
-  // Total pages = 1 (Cover) + dayChunks.length (Day Pages) + 1 (Accommodations & Terms)
-  const totalPages = 1 + dayChunks.length + 1;
+  // Continuous flow layout: daily schedule flows continuously across pages without artificial chunking
 
   // Handle inline edits
   const updateField = (field: keyof Itinerary, val: any) => {
@@ -621,7 +524,7 @@ export default function ItineraryPreview({
           {/* PAGE 1: COVER PAGE (Fixed A4: 794px × 1123px) */}
           {/* ===================================================================== */}
           <div 
-            className="pdf-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
+            className="proposal-section pdf-page cover-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
             style={{ width: '794px', height: '1123px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
           >
             <div>
@@ -904,342 +807,335 @@ export default function ItineraryPreview({
                 <span>{settings?.website || 'lobotravels.com'}</span>
               </div>
               <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
-              <div>Page 1 of {totalPages}</div>
+              <div>Proposal Cover</div>
             </div>
           </div>
 
           {/* ===================================================================== */}
-          {/* DAY-BY-DAY SIGHTSEEING PAGES (2 Days Per Fixed A4 Page) */}
+          {/* CONTINUOUS DAILY SIGHTSEEING SCHEDULE */}
           {/* ===================================================================== */}
-          {dayChunks.map((chunk, chunkIdx) => {
-            const pageNum = 2 + chunkIdx;
-            return (
-              <div
-                key={`page-days-${chunkIdx}`}
-                className="pdf-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
-                style={{ width: '794px', height: '1123px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
-              >
-                <div className="flex-1 flex flex-col justify-start pb-6 print-content-container">
-                  {/* Top Page Header */}
-                  <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 shrink-0">
-                    <div>
-                      <h3 className="text-sm font-black tracking-tight text-[#151521] uppercase">
-                        Daily Sightseeing & Travel Schedule
-                      </h3>
-                      <p className="text-[10px] text-slate-500">
-                        {itinerary.tourName} · {chunk.length === 1 ? `Day ${chunk[0].dayNumber}` : `Days ${chunk[0].dayNumber} to ${chunk[chunk.length - 1].dayNumber}`}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-mono text-xs font-bold text-[#26214F]">
-                        {itinerary.referenceNumber}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Day Cards */}
-                  <div className="space-y-4 pb-2">
-                    {chunk.map((day) => (
-                      <div 
-                        key={day.id} 
-                        className="itinerary-day-card rounded-xl border border-slate-200 p-4 space-y-3 bg-white shadow-2xs break-inside-avoid page-break-inside-avoid"
-                        style={{
-                          pageBreakInside: 'avoid',
-                          breakInside: 'avoid',
-                        }}
-                      >
-                        {/* Day Card Header Bar */}
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="w-7 h-7 rounded-lg bg-[#151521] text-amber-300 font-black text-xs flex items-center justify-center">
-                              D{day.dayNumber}
-                            </span>
-                            <div>
-                              <h4 className="font-black text-sm text-slate-900 leading-tight">
-                                {day.title}
-                              </h4>
-                              {(() => {
-                                const isLastDay = day.dayNumber === itinerary.days.length;
-                                const isDepartureActive = Boolean(day.departureDetails?.enabled);
-                                const hasSightseeing = Boolean(
-                                  (day.attractionNames && day.attractionNames.length > 0) ||
-                                  (day.attractionIds && day.attractionIds.length > 0)
-                                );
-
-                                return (
-                                  <div className="text-[10px] text-slate-500 font-medium">
-                                    {(!isLastDay || hasSightseeing) && (
-                                      <>
-                                        Sightseeing: <strong>{day.isMultiCity ? (day.cities?.map(c => c.destination).join(' & ') || day.destination) : day.destination}</strong>
-                                        {(!isLastDay && !isDepartureActive && day.overnightLocation && itinerary.includeHotels !== false) || (isLastDay || isDepartureActive) ? ' · ' : ''}
-                                      </>
-                                    )}
-                                    {!isLastDay && !isDepartureActive && itinerary.includeHotels !== false && day.overnightLocation && (
-                                      <>
-                                        Overnight: <strong>{day.overnightLocation}</strong>
-                                      </>
-                                    )}
-                                    {(isDepartureActive || isLastDay) && (
-                                      <>
-                                        Drop-off: <strong>{day.departureDetails?.point || 'Airport / Station'}</strong>
-                                        {day.departureDetails?.flightOrTrainNumber ? ` (${day.departureDetails.flightOrTrainNumber})` : ''}
-                                        {day.departureDetails?.departureTime ? ` at ${day.departureDetails.departureTime}` : ''}
-                                      </>
-                                    )}
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                          </div>
-
-                          {/* Meal badges */}
-                          <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500">
-                            <Utensils className="w-3 h-3 text-amber-600" />
-                            <span>
-                              {[day.meals.breakfast && 'B', day.meals.lunch && 'L', day.meals.dinner && 'D'].filter(Boolean).join(' • ') || 'At leisure'}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Day 1 Arrival Banner if enabled */}
-                        {day.dayNumber === 1 && day.arrivalDetails?.enabled && (
-                          <div className="p-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-xs flex items-center justify-between text-indigo-950">
-                            <div className="flex items-center gap-2">
-                              <Plane className="w-3.5 h-3.5 text-indigo-600" />
-                              <span className="font-bold">Arrival: {day.arrivalDetails.point}</span>
-                              {day.arrivalDetails.flightOrTrainNumber && (
-                                <span className="text-[11px] font-mono text-indigo-800">
-                                  ({day.arrivalDetails.flightOrTrainNumber})
-                                </span>
-                              )}
-                              {day.arrivalDetails.arrivalTime && (
-                                <span className="text-[11px] text-indigo-700">
-                                  at {day.arrivalDetails.arrivalTime}
-                                </span>
-                              )}
-                            </div>
-                            {itinerary.includeHotels !== false && (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-200/60 text-indigo-900">
-                                {day.arrivalDetails.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Final Day Departure Banner if enabled */}
-                        {day.departureDetails?.enabled && (
-                          <div className="p-2.5 rounded-lg bg-sky-50 border border-sky-200 text-xs flex items-center justify-between text-sky-950">
-                            <div className="flex items-center gap-2">
-                              <Plane className="w-3.5 h-3.5 text-sky-600" />
-                              <span className="font-bold">Departure / Drop: {day.departureDetails.point}</span>
-                              {day.departureDetails.flightOrTrainNumber && (
-                                <span className="text-[11px] font-mono text-sky-800">
-                                  ({day.departureDetails.flightOrTrainNumber})
-                                </span>
-                              )}
-                              {day.departureDetails.departureTime && (
-                                <span className="text-[11px] text-sky-700">
-                                  at {day.departureDetails.departureTime}
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-sky-200/60 text-sky-900">
-                              Return Transfer
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Multi-City Circuit Legs Banner (Car, Flight, Train) */}
-                        {day.isMultiCity && day.cities && day.cities.length > 0 && (
-                          <div className="p-2.5 rounded-lg bg-purple-50 border border-purple-200 text-xs space-y-1.5">
-                            <span className="font-bold text-purple-950 block text-[10px] uppercase tracking-wider">
-                              Multi-City Circuit Route:
-                            </span>
-                            <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-purple-900 font-medium">
-                              {day.cities.map((city, cIdx) => (
-                                <React.Fragment key={city.id || cIdx}>
-                                  <span className="bg-white px-2 py-0.5 rounded border border-purple-200 font-semibold text-slate-800">
-                                    {city.destination}
-                                    {city.checkOut && ' (Check-Out)'}
-                                    {city.checkIn && ' (Check-In)'}
-                                  </span>
-
-                                  {/* Inter-city transit between cities */}
-                                  {cIdx < day.cities!.length - 1 && (
-                                    <>
-                                      {city.transitType === 'flight' ? (
-                                        <span className="text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200 flex items-center gap-1 font-bold text-[10px]">
-                                          <Plane className="w-3 h-3 text-indigo-600" />
-                                          <span>Flight {city.flightToNext?.airline ? `${city.flightToNext.airline} ` : ''}{city.flightToNext?.flightNumber || ''}</span>
-                                          {city.flightToNext?.departureTime && (
-                                            <span className="text-indigo-950 font-normal">({city.flightToNext.departureTime} → {city.flightToNext.arrivalTime || ''})</span>
-                                          )}
-                                        </span>
-                                      ) : city.transitType === 'train' ? (
-                                        <span className="text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1 font-bold text-[10px]">
-                                          <Train className="w-3 h-3 text-emerald-600" />
-                                          <span>Train {city.trainToNext?.trainName || ''} {city.trainToNext?.trainNumber || ''}</span>
-                                          {city.trainToNext?.departureTime && (
-                                            <span className="text-emerald-950 font-normal">({city.trainToNext.departureTime} → {city.trainToNext.arrivalTime || ''})</span>
-                                          )}
-                                        </span>
-                                      ) : (
-                                        <span className="text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-200 flex items-center gap-1 font-semibold text-[10px]">
-                                          <Car className="w-3 h-3 text-amber-600" />
-                                          <span>Drive{city.driveToNext?.routeVia ? ` via ${city.driveToNext.routeVia}` : ''}</span>
-                                        </span>
-                                      )}
-                                      <span className="text-purple-400 font-bold">➔</span>
-                                    </>
-                                  )}
-                                </React.Fragment>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Inter-City Transfer Banner if single destination with different overnight */}
-                        {!day.isMultiCity && day.transfer && (
-                          <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] flex items-center justify-between text-amber-950">
-                            <div className="flex items-center gap-1.5 font-semibold">
-                              <Car className="w-3.5 h-3.5 text-amber-600" />
-                              <span>Inter-City Transfer: {day.transfer.from} → {day.transfer.to}</span>
-                            </div>
-                            <span className="text-amber-800 font-bold">
-                              {day.transfer.distanceKm} km · {day.transfer.driveTime}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Sights Covered Badges */}
-                        {day.attractionNames && day.attractionNames.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5">
-                            {day.attractionNames.map((name, i) => (
-                              <span 
-                                key={i} 
-                                className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[10px] font-semibold border border-slate-200"
-                              >
-                                ✓ {name}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Sightseeing Narrative Description */}
-                        {day.description && day.description.trim() ? (
-                          <div className="text-xs text-slate-700 leading-relaxed font-sans">
-                            {renderFormattedDescription(day.description)}
-                          </div>
-                        ) : null}
-
-                        {/* Key Highlight Attractions & Monuments Photos Grid (Strictly Square 1:1 Images) */}
-                        {(() => {
-                          const dayPhotos = getDayPhotos(day);
-                          if (dayPhotos.length === 0) return null;
-                          const isDense = chunk.length >= 3;
-                          const photoDim = isDense ? 96 : 110;
-
-                          return (
-                            <div className="pt-1">
-                              <div className="flex items-center justify-between mb-1.5">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                                  <Camera className="w-3 h-3 text-amber-600" />
-                                  Featured Sightseeing Highlights & Monuments:
-                                </span>
-                                <span className="text-[9px] text-slate-400 font-medium">
-                                  {dayPhotos.length} {dayPhotos.length === 1 ? 'Site' : 'Sites'} Photographed
-                                </span>
-                              </div>
-                              <div className="flex flex-wrap items-start gap-2.5">
-                                {dayPhotos.map((photo, pIdx) => (
-                                  <div 
-                                    key={photo.id || pIdx} 
-                                    className="rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex flex-col shadow-2xs group flex-shrink-0"
-                                    style={{ width: `${photoDim}px` }}
-                                  >
-                                    <div 
-                                      className="relative bg-slate-200 overflow-hidden"
-                                      style={{ 
-                                        width: `${photoDim}px`, 
-                                        height: `${photoDim}px`,
-                                        minWidth: `${photoDim}px`,
-                                        minHeight: `${photoDim}px`,
-                                        maxWidth: `${photoDim}px`,
-                                        maxHeight: `${photoDim}px`
-                                      }}
-                                    >
-                                      <SafeImage src={photo.image} alt={photo.name} loading="eager" className="w-full h-full object-cover block transition duration-300 group-hover:scale-105" 
-                                        style={{ 
-                                          width: `${photoDim}px`, 
-                                          height: `${photoDim}px`,
-                                          minWidth: `${photoDim}px`,
-                                          minHeight: `${photoDim}px`,
-                                          maxWidth: `${photoDim}px`,
-                                          maxHeight: `${photoDim}px`,
-                                          objectFit: 'cover'
-                                        }}
-                                      />
-                                      {photo.unesco && (
-                                        <span className="absolute top-1 left-1 bg-amber-500 text-slate-950 font-black text-[7px] px-1.5 py-0.5 rounded shadow leading-none">
-                                          UNESCO
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div 
-                                      className="p-1 px-1.5 bg-white text-[10px] font-semibold text-slate-800 truncate" 
-                                      title={photo.name}
-                                      style={{ width: `${photoDim}px` }}
-                                    >
-                                      {photo.name}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })()}
-
-                        {/* Hotel & Night Stay */}
-                        {itinerary.includeHotels !== false && !(day.dayNumber === itinerary.days.length && day.departureDetails?.enabled) && (
-                          <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px] flex items-center justify-between text-slate-700">
-                            <div className="flex items-center gap-1.5">
-                              <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                              <span>
-                                <strong>Hotel:</strong> {day.hotel?.name || `Partner Hotel in ${day.overnightLocation}`} ({day.hotel?.roomCategory || 'Deluxe Room'})
-                              </span>
-                            </div>
-                            <span className="text-[10px] text-slate-500 font-medium">
-                              {day.hotel?.mealPlan || 'Breakfast Included (CP)'}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+          <div
+            className="proposal-section daily-schedule-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
+            style={{ width: '794px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
+          >
+            <div className="flex-1 flex flex-col justify-start pb-6 print-content-container">
+              {/* Top Page Header */}
+              <div className="day-schedule-header flex items-center justify-between border-b border-slate-200 pb-3 mb-4 shrink-0">
+                <div>
+                  <h3 className="text-sm font-black tracking-tight text-[#151521] uppercase">
+                    Daily Sightseeing & Travel Schedule
+                  </h3>
+                  <p className="text-[10px] text-slate-500">
+                    {itinerary.tourName} · {itinerary.days.length} Days Comprehensive Itinerary
+                  </p>
                 </div>
-
-                {/* Pinned Page Footer */}
-                <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
-                    <span>·</span>
-                    <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
-                    <span>·</span>
-                    <span>{settings?.website || 'lobotravels.com'}</span>
-                  </div>
-                  <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
-                  <div>Page {pageNum} of {totalPages}</div>
+                <div className="text-right">
+                  <span className="font-mono text-xs font-bold text-[#26214F]">
+                    {itinerary.referenceNumber}
+                  </span>
                 </div>
               </div>
-            );
-          })}
+
+              {/* Day Cards */}
+              <div className="space-y-4 pb-2">
+                {itinerary.days.map((day) => (
+                  <div 
+                    key={day.id} 
+                    className="itinerary-day-card rounded-xl border border-slate-200 p-4 space-y-3 bg-white shadow-2xs"
+                    style={{
+                      pageBreakInside: 'auto',
+                      breakInside: 'auto',
+                    }}
+                  >
+                    {/* Day Card Header Bar */}
+                    <div className="day-card-header flex items-center justify-between border-b border-slate-100 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-7 h-7 rounded-lg bg-[#151521] text-amber-300 font-black text-xs flex items-center justify-center">
+                          D{day.dayNumber}
+                        </span>
+                        <div>
+                          <h4 className="font-black text-sm text-slate-900 leading-tight">
+                            {day.title}
+                          </h4>
+                          {(() => {
+                            const isLastDay = day.dayNumber === itinerary.days.length;
+                            const isDepartureActive = Boolean(day.departureDetails?.enabled);
+                            const hasSightseeing = Boolean(
+                              (day.attractionNames && day.attractionNames.length > 0) ||
+                              (day.attractionIds && day.attractionIds.length > 0)
+                            );
+
+                            return (
+                              <div className="text-[10px] text-slate-500 font-medium">
+                                {(!isLastDay || hasSightseeing) && (
+                                  <>
+                                    Sightseeing: <strong>{day.isMultiCity ? (day.cities?.map(c => c.destination).join(' & ') || day.destination) : day.destination}</strong>
+                                    {(!isLastDay && !isDepartureActive && day.overnightLocation && itinerary.includeHotels !== false) || (isLastDay || isDepartureActive) ? ' · ' : ''}
+                                  </>
+                                )}
+                                {!isLastDay && !isDepartureActive && itinerary.includeHotels !== false && day.overnightLocation && (
+                                  <>
+                                    Overnight: <strong>{day.overnightLocation}</strong>
+                                  </>
+                                )}
+                                {(isDepartureActive || isLastDay) && (
+                                  <>
+                                    Drop-off: <strong>{day.departureDetails?.point || 'Airport / Station'}</strong>
+                                    {day.departureDetails?.flightOrTrainNumber ? ` (${day.departureDetails.flightOrTrainNumber})` : ''}
+                                    {day.departureDetails?.departureTime ? ` at ${day.departureDetails.departureTime}` : ''}
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+
+                      {/* Meal badges */}
+                      <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500">
+                        <Utensils className="w-3 h-3 text-amber-600" />
+                        <span>
+                          {[day.meals.breakfast && 'B', day.meals.lunch && 'L', day.meals.dinner && 'D'].filter(Boolean).join(' • ') || 'At leisure'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Day 1 Arrival Banner if enabled */}
+                    {day.dayNumber === 1 && day.arrivalDetails?.enabled && (
+                      <div className="p-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-xs flex items-center justify-between text-indigo-950">
+                        <div className="flex items-center gap-2">
+                          <Plane className="w-3.5 h-3.5 text-indigo-600" />
+                          <span className="font-bold">Arrival: {day.arrivalDetails.point}</span>
+                          {day.arrivalDetails.flightOrTrainNumber && (
+                            <span className="text-[11px] font-mono text-indigo-800">
+                              ({day.arrivalDetails.flightOrTrainNumber})
+                            </span>
+                          )}
+                          {day.arrivalDetails.arrivalTime && (
+                            <span className="text-[11px] text-indigo-700">
+                              at {day.arrivalDetails.arrivalTime}
+                            </span>
+                          )}
+                        </div>
+                        {itinerary.includeHotels !== false && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-200/60 text-indigo-900">
+                            {day.arrivalDetails.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Final Day Departure Banner if enabled */}
+                    {day.departureDetails?.enabled && (
+                      <div className="p-2.5 rounded-lg bg-sky-50 border border-sky-200 text-xs flex items-center justify-between text-sky-950">
+                        <div className="flex items-center gap-2">
+                          <Plane className="w-3.5 h-3.5 text-sky-600" />
+                          <span className="font-bold">Departure / Drop: {day.departureDetails.point}</span>
+                          {day.departureDetails.flightOrTrainNumber && (
+                            <span className="text-[11px] font-mono text-sky-800">
+                              ({day.departureDetails.flightOrTrainNumber})
+                            </span>
+                          )}
+                          {day.departureDetails.departureTime && (
+                            <span className="text-[11px] text-sky-700">
+                              at {day.departureDetails.departureTime}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-sky-200/60 text-sky-900">
+                          Return Transfer
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Multi-City Circuit Legs Banner (Car, Flight, Train) */}
+                    {day.isMultiCity && day.cities && day.cities.length > 0 && (
+                      <div className="p-2.5 rounded-lg bg-purple-50 border border-purple-200 text-xs space-y-1.5">
+                        <span className="font-bold text-purple-950 block text-[10px] uppercase tracking-wider">
+                          Multi-City Circuit Route:
+                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-purple-900 font-medium">
+                          {day.cities.map((city, cIdx) => (
+                            <React.Fragment key={city.id || cIdx}>
+                              <span className="bg-white px-2 py-0.5 rounded border border-purple-200 font-semibold text-slate-800">
+                                {city.destination}
+                                {city.checkOut && ' (Check-Out)'}
+                                {city.checkIn && ' (Check-In)'}
+                              </span>
+
+                              {/* Inter-city transit between cities */}
+                              {cIdx < day.cities!.length - 1 && (
+                                <>
+                                  {city.transitType === 'flight' ? (
+                                    <span className="text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200 flex items-center gap-1 font-bold text-[10px]">
+                                      <Plane className="w-3 h-3 text-indigo-600" />
+                                      <span>Flight {city.flightToNext?.airline ? `${city.flightToNext.airline} ` : ''}{city.flightToNext?.flightNumber || ''}</span>
+                                      {city.flightToNext?.departureTime && (
+                                        <span className="text-indigo-950 font-normal">({city.flightToNext.departureTime} → {city.flightToNext.arrivalTime || ''})</span>
+                                      )}
+                                    </span>
+                                  ) : city.transitType === 'train' ? (
+                                    <span className="text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1 font-bold text-[10px]">
+                                      <Train className="w-3 h-3 text-emerald-600" />
+                                      <span>Train {city.trainToNext?.trainName || ''} {city.trainToNext?.trainNumber || ''}</span>
+                                      {city.trainToNext?.departureTime && (
+                                        <span className="text-emerald-950 font-normal">({city.trainToNext.departureTime} → {city.trainToNext.arrivalTime || ''})</span>
+                                      )}
+                                    </span>
+                                  ) : (
+                                    <span className="text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-200 flex items-center gap-1 font-semibold text-[10px]">
+                                      <Car className="w-3 h-3 text-amber-600" />
+                                      <span>Drive{city.driveToNext?.routeVia ? ` via ${city.driveToNext.routeVia}` : ''}</span>
+                                    </span>
+                                  )}
+                                  <span className="text-purple-400 font-bold">➔</span>
+                                </>
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Inter-City Transfer Banner if single destination with different overnight */}
+                    {!day.isMultiCity && day.transfer && (
+                      <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] flex items-center justify-between text-amber-950">
+                        <div className="flex items-center gap-1.5 font-semibold">
+                          <Car className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Inter-City Transfer: {day.transfer.from} → {day.transfer.to}</span>
+                        </div>
+                        <span className="text-amber-800 font-bold">
+                          {day.transfer.distanceKm} km · {day.transfer.driveTime}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Sights Covered Badges */}
+                    {day.attractionNames && day.attractionNames.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {day.attractionNames.map((name, i) => (
+                          <span 
+                            key={i} 
+                            className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[10px] font-semibold border border-slate-200"
+                          >
+                            ✓ {name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Sightseeing Narrative Description */}
+                    {day.description && day.description.trim() ? (
+                      <div className="text-xs text-slate-700 leading-relaxed font-sans">
+                        {renderFormattedDescription(day.description)}
+                      </div>
+                    ) : null}
+
+                    {/* Key Highlight Attractions & Monuments Photos Grid (Strictly Square 1:1 Images) */}
+                    {(() => {
+                      const dayPhotos = getDayPhotos(day);
+                      if (dayPhotos.length === 0) return null;
+                      const photoDim = 110;
+
+                      return (
+                        <div className="pt-1">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                              <Camera className="w-3 h-3 text-amber-600" />
+                              Featured Sightseeing Highlights & Monuments:
+                            </span>
+                            <span className="text-[9px] text-slate-400 font-medium">
+                              {dayPhotos.length} {dayPhotos.length === 1 ? 'Site' : 'Sites'} Photographed
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-start gap-2.5">
+                            {dayPhotos.map((photo, pIdx) => (
+                              <div 
+                                key={photo.id || pIdx} 
+                                className="monument-photo-card rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex flex-col shadow-2xs group flex-shrink-0"
+                                style={{ width: `${photoDim}px`, breakInside: 'avoid', pageBreakInside: 'avoid' }}
+                              >
+                                <div 
+                                  className="relative bg-slate-200 overflow-hidden"
+                                  style={{ 
+                                    width: `${photoDim}px`, 
+                                    height: `${photoDim}px`,
+                                    minWidth: `${photoDim}px`,
+                                    minHeight: `${photoDim}px`,
+                                    maxWidth: `${photoDim}px`,
+                                    maxHeight: `${photoDim}px`
+                                  }}
+                                >
+                                  <SafeImage src={photo.image} alt={photo.name} loading="eager" className="w-full h-full object-cover block transition duration-300 group-hover:scale-105" 
+                                    style={{ 
+                                      width: `${photoDim}px`, 
+                                      height: `${photoDim}px`,
+                                      minWidth: `${photoDim}px`,
+                                      minHeight: `${photoDim}px`,
+                                      maxWidth: `${photoDim}px`,
+                                      maxHeight: `${photoDim}px`,
+                                      objectFit: 'cover'
+                                    }}
+                                  />
+                                  {photo.unesco && (
+                                    <span className="absolute top-1 left-1 bg-amber-500 text-slate-950 font-black text-[7px] px-1.5 py-0.5 rounded shadow leading-none">
+                                      UNESCO
+                                    </span>
+                                  )}
+                                </div>
+                                <div 
+                                  className="p-1 px-1.5 bg-white text-[10px] font-semibold text-slate-800 truncate" 
+                                  title={photo.name}
+                                  style={{ width: `${photoDim}px` }}
+                                >
+                                  {photo.name}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Hotel & Night Stay */}
+                    {itinerary.includeHotels !== false && !(day.dayNumber === itinerary.days.length && day.departureDetails?.enabled) && (
+                      <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px] flex items-center justify-between text-slate-700">
+                        <div className="flex items-center gap-1.5">
+                          <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>
+                            <strong>Hotel:</strong> {day.hotel?.name || `Partner Hotel in ${day.overnightLocation}`} ({day.hotel?.roomCategory || 'Deluxe Room'})
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          {day.hotel?.mealPlan || 'Breakfast Included (CP)'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Pinned Page Footer */}
+            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
+                <span>·</span>
+                <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
+                <span>·</span>
+                <span>{settings?.website || 'lobotravels.com'}</span>
+              </div>
+              <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
+              <div>Daily Sightseeing Schedule</div>
+            </div>
+          </div>
 
           {/* ===================================================================== */}
           {/* FINAL PAGE: ACCOMMODATIONS, COMMERCIALS, INCLUSIONS & TERMS */}
           {/* ===================================================================== */}
           <div 
-            className="pdf-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
-            style={{ width: '794px', height: '1123px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
+            className="proposal-section pdf-page accommodations-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
+            style={{ width: '794px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
           >
             <div className="space-y-5 flex-1 flex flex-col justify-start pb-6 print-content-container">
               
@@ -1680,7 +1576,7 @@ export default function ItineraryPreview({
                 <span>{settings?.website || 'lobotravels.com'}</span>
               </div>
               <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
-              <div>Page {totalPages} of {totalPages}</div>
+              <div>Accommodations & Terms</div>
             </div>
           </div>
 

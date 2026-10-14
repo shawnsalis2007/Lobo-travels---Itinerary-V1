@@ -42,6 +42,54 @@ async function inlineElementImages(root: HTMLElement): Promise<() => void> {
   };
 }
 
+function findCleanRow(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  targetY: number,
+  minY: number
+): number {
+  const checkWidth = Math.floor(width * 0.8);
+  const startX = Math.floor(width * 0.1);
+
+  for (let y = Math.floor(targetY); y >= Math.floor(minY); y -= 2) {
+    const imgData = ctx.getImageData(startX, y, checkWidth, 1).data;
+    let isRowClean = true;
+    for (let x = 0; x < imgData.length; x += 16) {
+      const r = imgData[x];
+      const g = imgData[x + 1];
+      const b = imgData[x + 2];
+      // Light background or whitespace check
+      if (r < 240 || g < 240 || b < 240) {
+        isRowClean = false;
+        break;
+      }
+    }
+    if (isRowClean) {
+      return y;
+    }
+  }
+  return Math.floor(targetY);
+}
+
+function drawFooter(
+  pdf: jsPDF,
+  footerTexts: { left: string; center: string; right: string },
+  pdfWidth: number,
+  pdfHeight: number
+) {
+  pdf.setFillColor(255, 255, 255);
+  pdf.rect(0, pdfHeight - 12, pdfWidth, 12, 'F');
+  pdf.setDrawColor(203, 213, 225); // #cbd5e1
+  pdf.setLineWidth(0.2);
+  pdf.line(10, pdfHeight - 12, pdfWidth - 10, pdfHeight - 12);
+
+  pdf.setFontSize(8);
+  pdf.setTextColor(100, 116, 139); // #64748b
+  if (footerTexts.left) pdf.text(footerTexts.left, 10, pdfHeight - 5);
+  if (footerTexts.center) pdf.text(footerTexts.center, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
+  if (footerTexts.right) pdf.text(footerTexts.right, pdfWidth - 10, pdfHeight - 5, { align: 'right' });
+}
+
 export async function exportElementToPdf(
   element: HTMLElement,
   filename: string,
@@ -70,56 +118,38 @@ export async function exportElementToPdf(
     const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
     const pdfHeight = pdf.internal.pageSize.getHeight(); // 297mm
 
-    // Check if the container is composed of explicit discrete A4 pages (.pdf-page)
-    const pageNodes = Array.from(element.querySelectorAll<HTMLElement>('.pdf-page'));
+    // Extract footer metadata if present
+    const footerEl = element.querySelector('.print-fixed-footer');
+    const footerTexts = {
+      left: footerEl?.querySelector('div:first-child')?.textContent?.replace(/\s+/g, ' ').trim() || '',
+      center: footerEl?.querySelector('.font-mono')?.textContent?.replace(/\s+/g, ' ').trim() || '',
+      right: footerEl?.querySelector('div:last-child')?.textContent?.replace(/\s+/g, ' ').trim() || 'Custom Tailored Travel Proposal',
+    };
 
-    if (pageNodes.length > 0) {
-      // Discrete Page-by-Page Rendering (guarantees zero mid-content cuts and pinned footers)
-      for (let i = 0; i < pageNodes.length; i++) {
-        const pageEl = pageNodes[i];
-        onProgress?.(`Rendering A4 page ${i + 1} of ${pageNodes.length}...`);
+    // Query distinct document sections (.proposal-section, .pdf-page, .daily-schedule-page)
+    let sectionNodes = Array.from(element.querySelectorAll<HTMLElement>('.proposal-section, .pdf-page'));
+    if (sectionNodes.length === 0) {
+      sectionNodes = [element];
+    }
 
-        let pageImgData: string;
-        try {
-          pageImgData = await toJpeg(pageEl, {
-            quality: 0.95,
-            backgroundColor: '#ffffff',
-            pixelRatio: 2,
-            skipFonts: true,
-            cacheBust: false,
-          });
-        } catch (renderErr) {
-          console.warn(`2x render fallback on page ${i + 1}:`, renderErr);
-          pageImgData = await toJpeg(pageEl, {
-            quality: 0.85,
-            backgroundColor: '#ffffff',
-            pixelRatio: 1.5,
-            skipFonts: true,
-            cacheBust: false,
-          });
-        }
+    let totalPagesAdded = 0;
 
-        if (i > 0) {
-          pdf.addPage();
-        }
-        pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
-      }
-    } else {
-      // Single continuous container rendering fallback
-      onProgress?.('Rendering document pages...');
+    for (let sIdx = 0; sIdx < sectionNodes.length; sIdx++) {
+      const sectionEl = sectionNodes[sIdx];
+      onProgress?.(`Rendering section ${sIdx + 1} of ${sectionNodes.length}...`);
 
       let imgData: string;
       try {
-        imgData = await toJpeg(element, {
+        imgData = await toJpeg(sectionEl, {
           quality: 0.95,
           backgroundColor: '#ffffff',
           pixelRatio: 2,
           skipFonts: true,
           cacheBust: false,
         });
-      } catch (primaryErr) {
-        console.warn('Primary 2x render warning, attempting 1.5x fallback', primaryErr);
-        imgData = await toJpeg(element, {
+      } catch (renderErr) {
+        console.warn(`Primary 2x render warning, attempting 1.5x fallback on section ${sIdx + 1}:`, renderErr);
+        imgData = await toJpeg(sectionEl, {
           quality: 0.85,
           backgroundColor: '#ffffff',
           pixelRatio: 1.5,
@@ -137,21 +167,67 @@ export async function exportElementToPdf(
 
       const canvasWidth = img.naturalWidth || img.width || 800;
       const canvasHeight = img.naturalHeight || img.height || 1123;
-      const totalPdfHeight = (canvasHeight * pdfWidth) / canvasWidth;
+      const pageHeightPx = Math.round((pdfHeight / pdfWidth) * canvasWidth);
+      const footerHeightMm = 14;
+      const footerHeightPx = Math.round((footerHeightMm / pdfWidth) * canvasWidth);
+      const usablePageHeightPx = pageHeightPx - footerHeightPx;
 
-      let heightLeft = totalPdfHeight;
-      let position = 0;
-      let page = 1;
+      // Section fits on a single A4 page
+      if (canvasHeight <= pageHeightPx + 20) {
+        if (totalPagesAdded > 0) {
+          pdf.addPage();
+        }
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+        drawFooter(pdf, footerTexts, pdfWidth, pdfHeight);
+        totalPagesAdded++;
+      } else {
+        // Multi-page continuous flow: slice across pages at clean whitespace boundaries
+        const sourceCanvas = document.createElement('canvas');
+        sourceCanvas.width = canvasWidth;
+        sourceCanvas.height = canvasHeight;
+        const sCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
+        if (!sCtx) throw new Error('Could not get 2D context for canvas');
+        sCtx.drawImage(img, 0, 0);
 
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalPdfHeight, undefined, 'FAST');
-      heightLeft -= pdfHeight;
+        let currentY = 0;
+        while (currentY < canvasHeight) {
+          const remaining = canvasHeight - currentY;
+          let sliceHeight = Math.min(usablePageHeightPx, remaining);
 
-      while (heightLeft > 2) {
-        position = -(page * pdfHeight);
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, totalPdfHeight, undefined, 'FAST');
-        heightLeft -= pdfHeight;
-        page++;
+          if (currentY + sliceHeight < canvasHeight) {
+            const minY = currentY + Math.floor(usablePageHeightPx * 0.72);
+            const cleanY = findCleanRow(sCtx, canvasWidth, currentY + sliceHeight, minY);
+            if (cleanY > minY) {
+              sliceHeight = cleanY - currentY;
+            }
+          }
+
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvasWidth;
+          pageCanvas.height = pageHeightPx;
+          const pCtx = pageCanvas.getContext('2d');
+          if (pCtx) {
+            pCtx.fillStyle = '#ffffff';
+            pCtx.fillRect(0, 0, canvasWidth, pageHeightPx);
+            pCtx.drawImage(sourceCanvas, 0, currentY, canvasWidth, sliceHeight, 0, 0, canvasWidth, sliceHeight);
+          }
+
+          const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+          pageCanvas.width = 0;
+          pageCanvas.height = 0;
+
+          if (totalPagesAdded > 0) {
+            pdf.addPage();
+          }
+          pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+          drawFooter(pdf, footerTexts, pdfWidth, pdfHeight);
+          totalPagesAdded++;
+
+          currentY += sliceHeight;
+        }
+
+        sourceCanvas.width = 0;
+        sourceCanvas.height = 0;
       }
     }
 
