@@ -275,62 +275,101 @@ export default function ItineraryPreview({
     return 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80';
   }, [itinerary.coverImage, itinerary.days, activeDestinations, getDayPhotos]);
 
-  // Intelligently pack days onto A4 pages to eliminate half-empty gaps and prevent content cutoff
+  // Helper to accurately estimate rendered pixel height of a single day card
+  const estimateDayCardHeight = React.useCallback((day: ItineraryDay): number => {
+    // 1. Base card frame: border, padding (p-4 = 32px), header bar (h-7 = 28px + title + overnight line)
+    let height = 110;
+
+    // 2. Arrival details banner (Day 1)
+    if (day.dayNumber === 1 && day.arrivalDetails?.enabled) {
+      height += 46;
+    }
+
+    // 3. Departure details banner
+    if (day.departureDetails?.enabled) {
+      height += 46;
+    }
+
+    // 4. Multi-city circuit legs banner
+    if (day.isMultiCity && day.cities && day.cities.length > 0) {
+      height += 36 + Math.ceil(day.cities.length / 2) * 28;
+    }
+
+    // 5. Inter-city transfer banner
+    if (!day.isMultiCity && day.transfer) {
+      height += 42;
+    }
+
+    // 6. Sights covered badges
+    if (day.attractionNames && day.attractionNames.length > 0) {
+      const badgeRows = Math.ceil(day.attractionNames.length / 3);
+      height += 12 + badgeRows * 26;
+    }
+
+    // 7. Sightseeing narrative description (bullet points and text)
+    const desc = day.description || '';
+    if (desc.trim()) {
+      const bulletCount = (desc.match(/[•\*\-]/g) || []).length;
+      const lineCount = desc.split('\n').filter(l => l.trim().length > 0).length;
+      const estimatedLines = Math.max(bulletCount, lineCount, Math.ceil(desc.length / 65));
+      height += 14 + estimatedLines * 20;
+    }
+
+    // 8. Sightseeing photos grid (Square 1:1 image + caption label + margins)
+    const photos = getDayPhotos(day);
+    if (photos.length > 0) {
+      height += 155;
+    }
+
+    // 9. Hotel accommodation box
+    const isLastDay = day.dayNumber === itinerary.days.length;
+    const isDeparture = Boolean(day.departureDetails?.enabled);
+    if (itinerary.includeHotels !== false && !(isLastDay && isDeparture)) {
+      height += 44;
+    }
+
+    return height;
+  }, [getDayPhotos, itinerary.days.length, itinerary.includeHotels]);
+
+  // Intelligently pack days onto A4 pages ensuring zero content overflow and clean page breaks
   const dayChunks = React.useMemo(() => {
     const days = itinerary.days;
-    const n = days.length;
-    if (n === 0) return [];
-    if (n === 1) return [[days[0]]];
+    if (days.length === 0) return [];
+    if (days.length === 1) return [[days[0]]];
 
-    // If 2 days: exactly 1 balanced page
-    if (n === 2) {
-      return [days];
-    }
-
-    // If 3 days: fit all 3 on 1 page if text is concise, avoiding a lonely half-empty page 2
-    if (n === 3) {
-      const hasLongDay = days.some(d => (d.description || '').length > 280 || d.isMultiCity);
-      if (!hasLongDay) {
-        return [days]; // All 3 on 1 full, balanced page!
-      }
-      return [days.slice(0, 2), days.slice(2, 3)];
-    }
-
-    // If 4 days: 2 days on page 1, 2 days on page 2
-    if (n === 4) {
-      return [days.slice(0, 2), days.slice(2, 4)];
-    }
-
-    // If 5 days: 3 days on page 1, 2 days on page 2
-    if (n === 5) {
-      return [days.slice(0, 3), days.slice(3, 5)];
-    }
-
-    // General dynamic chunking: 2 to 3 days per page
+    // Total A4 page height is 1123px.
+    // Page top padding (40px) + bottom padding (48px) + top header (55px) + pinned footer (45px) = 188px.
+    // Remaining available height = 1123 - 188 = 935px.
+    // Setting safe budget to 840px leaves generous breathing room and guarantees zero overflow.
+    const MAX_PAGE_BUDGET = 840;
     const chunks: ItineraryDay[][] = [];
-    let i = 0;
-    while (i < n) {
-      const remaining = n - i;
-      if (remaining === 4) {
-        chunks.push(days.slice(i, i + 2));
-        chunks.push(days.slice(i + 2, i + 4));
-        break;
-      } else if (remaining === 3) {
-        const hasLongDay = days.slice(i, i + 3).some(d => (d.description || '').length > 280 || d.isMultiCity);
-        if (!hasLongDay) {
-          chunks.push(days.slice(i, i + 3));
-        } else {
-          chunks.push(days.slice(i, i + 2));
-          chunks.push(days.slice(i + 2, i + 3));
-        }
-        break;
+    let currentChunk: ItineraryDay[] = [];
+    let currentHeight = 0;
+
+    for (const day of days) {
+      const dayH = estimateDayCardHeight(day);
+
+      // We allow at most 2 days per page for standard readability and premium layout.
+      // If currentChunk already has 2 days, or adding this day exceeds the page budget:
+      const wouldExceedBudget = currentChunk.length > 0 && (currentHeight + dayH + 16 > MAX_PAGE_BUDGET);
+      const isChunkFull = currentChunk.length >= 2;
+
+      if (currentChunk.length > 0 && (wouldExceedBudget || isChunkFull)) {
+        chunks.push(currentChunk);
+        currentChunk = [day];
+        currentHeight = dayH;
       } else {
-        chunks.push(days.slice(i, i + 2));
-        i += 2;
+        currentChunk.push(day);
+        currentHeight += (currentChunk.length === 1 ? dayH : dayH + 16);
       }
     }
+
+    if (currentChunk.length > 0) {
+      chunks.push(currentChunk);
+    }
+
     return chunks;
-  }, [itinerary.days]);
+  }, [itinerary.days, estimateDayCardHeight]);
 
   // Total pages = 1 (Cover) + dayChunks.length (Day Pages) + 1 (Accommodations & Terms)
   const totalPages = 1 + dayChunks.length + 1;
@@ -582,8 +621,8 @@ export default function ItineraryPreview({
           {/* PAGE 1: COVER PAGE (Fixed A4: 794px × 1123px) */}
           {/* ===================================================================== */}
           <div 
-            className="pdf-page bg-white text-[#151521] border border-slate-200 overflow-hidden relative font-sans flex flex-col justify-between"
-            style={{ width: '794px', height: '1123px', minHeight: '1123px', maxHeight: '1123px', padding: '48px', boxSizing: 'border-box' }}
+            className="pdf-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
+            style={{ width: '794px', height: '1123px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
           >
             <div>
               {/* Header */}
@@ -856,7 +895,7 @@ export default function ItineraryPreview({
             </div>
 
             {/* Pinned Page 1 Footer */}
-            <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
+            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
                 <span>·</span>
@@ -877,18 +916,18 @@ export default function ItineraryPreview({
             return (
               <div
                 key={`page-days-${chunkIdx}`}
-                className="pdf-page bg-white text-[#151521] border border-slate-200 overflow-hidden relative font-sans flex flex-col justify-between"
-                style={{ width: '794px', height: '1123px', minHeight: '1123px', maxHeight: '1123px', padding: '48px', boxSizing: 'border-box' }}
+                className="pdf-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
+                style={{ width: '794px', height: '1123px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
               >
-                <div>
+                <div className="flex-1 flex flex-col justify-start pb-6 print-content-container">
                   {/* Top Page Header */}
-                  <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-5">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 shrink-0">
                     <div>
                       <h3 className="text-sm font-black tracking-tight text-[#151521] uppercase">
                         Daily Sightseeing & Travel Schedule
                       </h3>
                       <p className="text-[10px] text-slate-500">
-                        {itinerary.tourName} · Days {chunk[0].dayNumber} to {chunk[chunk.length - 1].dayNumber}
+                        {itinerary.tourName} · {chunk.length === 1 ? `Day ${chunk[0].dayNumber}` : `Days ${chunk[0].dayNumber} to ${chunk[chunk.length - 1].dayNumber}`}
                       </p>
                     </div>
                     <div className="text-right">
@@ -898,12 +937,16 @@ export default function ItineraryPreview({
                     </div>
                   </div>
 
-                  {/* Day Cards (2 per page) */}
-                  <div className="space-y-4">
+                  {/* Day Cards */}
+                  <div className="space-y-4 pb-2">
                     {chunk.map((day) => (
                       <div 
                         key={day.id} 
-                        className="rounded-xl border border-slate-200 p-4 space-y-3 bg-white shadow-2xs"
+                        className="itinerary-day-card rounded-xl border border-slate-200 p-4 space-y-3 bg-white shadow-2xs break-inside-avoid page-break-inside-avoid"
+                        style={{
+                          pageBreakInside: 'avoid',
+                          breakInside: 'avoid',
+                        }}
                       >
                         {/* Day Card Header Bar */}
                         <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -1176,11 +1219,13 @@ export default function ItineraryPreview({
                 </div>
 
                 {/* Pinned Page Footer */}
-                <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
+                <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
                     <span>·</span>
                     <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
+                    <span>·</span>
+                    <span>{settings?.website || 'lobotravels.com'}</span>
                   </div>
                   <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
                   <div>Page {pageNum} of {totalPages}</div>
@@ -1193,10 +1238,10 @@ export default function ItineraryPreview({
           {/* FINAL PAGE: ACCOMMODATIONS, COMMERCIALS, INCLUSIONS & TERMS */}
           {/* ===================================================================== */}
           <div 
-            className="pdf-page bg-white text-[#151521] border border-slate-200 overflow-hidden relative font-sans flex flex-col justify-between"
-            style={{ width: '794px', height: '1123px', minHeight: '1123px', maxHeight: '1123px', padding: '48px', boxSizing: 'border-box' }}
+            className="pdf-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
+            style={{ width: '794px', height: '1123px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
           >
-            <div className="space-y-5">
+            <div className="space-y-5 flex-1 flex flex-col justify-start pb-6 print-content-container">
               
               {/* Header */}
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
@@ -1626,15 +1671,30 @@ export default function ItineraryPreview({
             </div>
 
             {/* Pinned Final Page Footer */}
-            <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
+            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
                 <span>·</span>
                 <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
+                <span>·</span>
+                <span>{settings?.website || 'lobotravels.com'}</span>
               </div>
               <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
               <div>Page {totalPages} of {totalPages}</div>
             </div>
+          </div>
+
+          {/* Global Repeating Fixed Print Footer across all printed pages */}
+          <div className="print-fixed-footer hidden print:flex">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
+              <span>·</span>
+              <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
+              <span>·</span>
+              <span>{settings?.website || 'lobotravels.com'}</span>
+            </div>
+            <div className="font-mono font-semibold">Ref: {itinerary.referenceNumber}</div>
+            <div>Custom Tailored Travel Proposal</div>
           </div>
 
         </div>

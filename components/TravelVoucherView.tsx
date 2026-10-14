@@ -141,8 +141,8 @@ export default function TravelVoucherView({
           {/* VOUCHER PAGE 1: Guest Coordinates, Accommodations & Operational Route */}
           {/* ===================================================================== */}
           <div 
-            className="pdf-page bg-white text-[#151521] border border-slate-200 overflow-hidden relative font-sans flex flex-col justify-between"
-            style={{ width: '794px', height: '1123px', minHeight: '1123px', maxHeight: '1123px', padding: '44px', boxSizing: 'border-box' }}
+            className="pdf-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
+            style={{ width: '794px', height: '1123px', minHeight: '1123px', padding: '40px 44px 44px 44px', boxSizing: 'border-box' }}
           >
             <div className="space-y-4">
               
@@ -398,7 +398,7 @@ export default function TravelVoucherView({
             </div>
 
             {/* Pinned Page 1 Footer */}
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
+            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-[#151521]">{(settings?.companyName || 'Lobo Travels')} Operations</span>
                 <span>·</span>
@@ -413,8 +413,8 @@ export default function TravelVoucherView({
           {/* VOUCHER PAGE 2: Financial Ledger, Inclusions, Terms & Chauffeur Guidelines */}
           {/* ===================================================================== */}
           <div 
-            className="pdf-page bg-white text-[#151521] border border-slate-200 overflow-hidden relative font-sans flex flex-col justify-between"
-            style={{ width: '794px', height: '1123px', minHeight: '1123px', maxHeight: '1123px', padding: '44px', boxSizing: 'border-box' }}
+            className="pdf-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
+            style={{ width: '794px', height: '1123px', minHeight: '1123px', padding: '40px 44px 44px 44px', boxSizing: 'border-box' }}
           >
             <div className="space-y-5">
               
@@ -535,7 +535,7 @@ export default function TravelVoucherView({
             </div>
 
             {/* Pinned Page 2 Footer */}
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
+            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
                 <span>·</span>
@@ -544,6 +544,17 @@ export default function TravelVoucherView({
               <div className="font-mono">Voucher Ref: {voucherReference}</div>
               <div>Page 2 of 2</div>
             </div>
+          </div>
+
+          {/* Global Repeating Fixed Print Footer across all printed pages */}
+          <div className="print-fixed-footer hidden print:flex">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-[#151521]">{(settings?.companyName || 'Lobo Travels')} Operations</span>
+              <span>·</span>
+              <span>24/7 Helpline: {settings?.phones?.[0] || '+91 9811240072'}</span>
+            </div>
+            <div className="font-mono font-semibold">Voucher Ref: {voucherReference}</div>
+            <div>Confirmed Service Voucher</div>
           </div>
 
         </div>
