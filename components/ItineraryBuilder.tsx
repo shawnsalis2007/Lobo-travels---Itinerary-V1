@@ -1274,8 +1274,8 @@ export default function ItineraryBuilder({
     targetDay.departureDetails = { ...currentDeparture, ...partialDeparture };
     let newDesc = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
     if (targetDay.departureDetails.enabled) {
-      newDesc = newDesc.replace(/\s*Overnight stay at your designated hotel in [^.]+\./gi, '');
-      newDesc = newDesc.replace(/\s*Overnight in [^.]+\./gi, '');
+      newDesc = newDesc.replace(/\s*•?\s*Overnight stay at your designated hotel in [^\n.]+\.?/gi, '');
+      newDesc = newDesc.replace(/\s*•?\s*Overnight in [^\n.]+\.?/gi, '');
     }
     targetDay.description = newDesc.trim();
 
@@ -2009,8 +2009,8 @@ export default function ItineraryBuilder({
       if (d.departureDetails?.enabled || isLast) {
         if (d.departureDetails?.enabled) {
           let desc = d.description || '';
-          desc = desc.replace(/\s*Overnight stay at your designated hotel in [^.]+\./gi, '');
-          desc = desc.replace(/\s*Overnight in [^.]+\./gi, '');
+          desc = desc.replace(/\s*•?\s*Overnight stay at your designated hotel in [^\n.]+\.?/gi, '');
+          desc = desc.replace(/\s*•?\s*Overnight in [^\n.]+\.?/gi, '');
           return { ...d, description: desc.trim() };
         }
       }
