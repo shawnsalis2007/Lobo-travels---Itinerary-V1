@@ -93,7 +93,7 @@ export function parseNaturalLanguagePrompt(
   if (matchedDests.length === 0) {
     // Sort destinations by length descending so "Mount Abu" matches before "Abu", etc.
     const sortedDests = [...context.destinations].sort((a, b) => b.name.length - a.name.length);
-    const foundIndices: { dest: string; index: number }[] = [];
+    const foundRanges: { dest: string; start: number; end: number }[] = [];
 
     for (const d of sortedDests) {
       const dNameLower = d.name.toLowerCase();
@@ -103,19 +103,28 @@ export function parseNaturalLanguagePrompt(
       const idx1 = lower.indexOf(dNameLower);
       const idx2 = baseName.length >= 3 ? lower.indexOf(baseName) : -1;
       
-      const matchIdx = idx1 !== -1 ? idx1 : idx2;
+      let matchIdx = -1;
+      let matchLen = 0;
+      if (idx1 !== -1) {
+        matchIdx = idx1;
+        matchLen = dNameLower.length;
+      } else if (idx2 !== -1) {
+        matchIdx = idx2;
+        matchLen = baseName.length;
+      }
+      
       if (matchIdx !== -1) {
-        // Prevent duplicate sub-matches
-        const alreadyCovered = foundIndices.some(f => Math.abs(f.index - matchIdx) < 4);
-        if (!alreadyCovered) {
-          foundIndices.push({ dest: d.name, index: matchIdx });
+        // Prevent duplicate sub-matches by checking range overlap
+        const overlaps = foundRanges.some(r => Math.max(r.start, matchIdx) < Math.min(r.end, matchIdx + matchLen));
+        if (!overlaps) {
+          foundRanges.push({ dest: d.name, start: matchIdx, end: matchIdx + matchLen });
         }
       }
     }
 
     // Sort by position of appearance in prompt
-    foundIndices.sort((a, b) => a.index - b.index);
-    matchedDests = foundIndices.map(f => f.dest);
+    foundRanges.sort((a, b) => a.start - b.start);
+    matchedDests = foundRanges.map(f => f.dest);
   }
 
   // Fallback destination if none detected

@@ -108,7 +108,7 @@ export default function Navbar({
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden xl:flex items-center space-x-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -132,7 +132,10 @@ export default function Navbar({
           {/* Actions */}
           <div className="flex items-center gap-2">
             <button
-              onClick={onNewItinerary}
+              onClick={() => {
+                onNewItinerary();
+                setMobileMenuOpen(false);
+              }}
               className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-sm transition active:scale-95"
             >
               <PlusCircle className="w-4 h-4 text-slate-950" />
@@ -143,7 +146,7 @@ export default function Navbar({
             {/* Mobile menu trigger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10"
+              className="xl:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -153,7 +156,7 @@ export default function Navbar({
 
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-3 border-t border-[#26214F] space-y-2 overflow-y-auto max-h-[70vh]">
+          <div className="xl:hidden py-3 border-t border-[#26214F] space-y-2 overflow-y-auto max-h-[75vh]">
             <div className="relative mb-3">
               <Search className="w-4 h-4 text-[#9899A1] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input

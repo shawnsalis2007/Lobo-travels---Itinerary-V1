@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   Send, 
@@ -65,6 +65,12 @@ export default function NaturalLanguageChatBar({
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [lastParsedParams, setLastParsedParams] = useState<ParsedPromptParams | null>(null);
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (initialPrompt) {
+      setPrompt(initialPrompt);
+    }
+  }, [initialPrompt]);
 
   const handleSubmit = (e?: React.FormEvent, customPrompt?: string) => {
     if (e) e.preventDefault();
@@ -170,13 +176,13 @@ export default function NaturalLanguageChatBar({
             <span className="text-[11px] font-semibold text-amber-200/90 flex items-center gap-1">
               <span>Quick Prompts:</span>
             </span>
-            <div className="flex flex-wrap gap-1.5 overflow-x-auto pb-1 text-[11px]">
+            <div className="flex flex-nowrap sm:flex-wrap gap-1.5 overflow-x-auto pb-1 text-[11px] scrollbar-none">
               {SAMPLE_PROMPTS.map((sample, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => handleSelectSample(sample)}
-                  className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-amber-400/20 text-slate-200 hover:text-amber-200 border border-white/10 hover:border-amber-400/30 transition text-left whitespace-nowrap active:scale-95 flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-amber-400/20 text-slate-200 hover:text-amber-200 border border-white/10 hover:border-amber-400/30 transition text-left whitespace-nowrap active:scale-95 flex items-center gap-1 flex-shrink-0"
                 >
                   <span className="text-amber-400">⚡</span>
                   <span>{sample}</span>
@@ -255,11 +261,11 @@ export default function NaturalLanguageChatBar({
 
           {/* Quick Jump Action Buttons */}
           {onNavigateStep && (
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-emerald-200">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-emerald-200">
               <button
                 type="button"
                 onClick={() => onNavigateStep(3)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-2xs transition"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-2xs transition"
               >
                 <Compass className="w-3.5 h-3.5" />
                 <span>Jump to Step 3 (Visual Day-by-Day Tour)</span>
@@ -269,7 +275,7 @@ export default function NaturalLanguageChatBar({
               <button
                 type="button"
                 onClick={() => onNavigateStep(5)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-emerald-100 text-emerald-900 font-bold text-xs border border-emerald-300 transition"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg bg-white hover:bg-emerald-100 text-emerald-900 font-bold text-xs border border-emerald-300 transition"
               >
                 <Eye className="w-3.5 h-3.5 text-emerald-700" />
                 <span>View Cover Image & Pricing (Step 5)</span>
