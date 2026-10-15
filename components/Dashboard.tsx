@@ -24,12 +24,19 @@ import {
   Users,
   Car
 } from 'lucide-react';
-import { Itinerary, BookingStatus } from '@/types';
+import { Itinerary, BookingStatus, Destination, Attraction, Hotel, VehicleOption, AppSettings } from '@/types';
 import { formatDateDMY } from '@/lib/utils';
+import NaturalLanguageChatBar from './NaturalLanguageChatBar';
 
 interface DashboardProps {
   itineraries: Itinerary[];
+  destinations?: Destination[];
+  attractions?: Attraction[];
+  hotels?: Hotel[];
+  vehicles?: VehicleOption[];
+  settings?: AppSettings;
   onNewItinerary: () => void;
+  onNewItineraryWithPrompt?: (prompt: string, generatedItinerary?: Itinerary) => void;
   onViewItinerary: (id: string) => void;
   onEditItinerary: (id: string) => void;
   onDuplicateItinerary: (id: string) => void;
@@ -41,7 +48,13 @@ interface DashboardProps {
 
 export default function Dashboard({
   itineraries,
+  destinations,
+  attractions,
+  hotels,
+  vehicles,
+  settings,
   onNewItinerary,
+  onNewItineraryWithPrompt,
   onViewItinerary,
   onEditItinerary,
   onDuplicateItinerary,
@@ -159,6 +172,20 @@ export default function Dashboard({
           <Car className="w-96 h-96 text-white" />
         </div>
       </div>
+
+      {/* Free Natural Language Assistant Bar on Dashboard */}
+      {destinations && attractions && hotels && vehicles && onNewItineraryWithPrompt && (
+        <NaturalLanguageChatBar
+          destinations={destinations}
+          attractions={attractions}
+          hotels={hotels}
+          vehicles={vehicles}
+          settings={settings}
+          onApplyItinerary={(itn, params) => {
+            onNewItineraryWithPrompt(params.rawPrompt, itn);
+          }}
+        />
+      )}
 
       {/* Top Statistics Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
