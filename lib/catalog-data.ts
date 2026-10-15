@@ -79,6 +79,16 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     gallery: []
   },
   {
+    id: 'mount-abu',
+    name: 'Mount Abu',
+    state: 'Rajasthan',
+    shortDescription: 'Rajasthan’s premier hill station nestled in the lush Aravalli hills, famed for Dilwara Jain Temples and Nakki Lake.',
+    detailedDescription: 'Perched at 1,220 meters, Mount Abu offers cool highland retreats, the world-famous carved marble Dilwara Temples, scenic boat cruises on Nakki Lake, and sunset views from Guru Shikhar.',
+    recommendedDuration: '1–2 Days',
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg/1280px-Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg',
+    gallery: []
+  },
+  {
     id: 'jaisalmer',
     name: 'Jaisalmer',
     state: 'Rajasthan',
@@ -568,7 +578,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'UNESCO Monumental Gate',
     unesco: true,
-    image: 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TBx36_Jb3ayLeo71J_lW7kABul7lXgXazWV8NjkEQgZZg1OuFiNGmkGa-QTiRUa3W7mY54XpUZ6ZLCu3fST_bCbQqF2AHlbrxMNQsH31BLdKDuCRRug3O9ZsXxbOsC7H9CteE=s1360-w1360-h1020-rw'
+    image: 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TMPYIz4AjWKkpA3pBtTf2SElQZU-Bw65sN081xs_mJC0ejrB_NPUqTUoP2MVZoK0Ywz2239TfFthjRLuE3ZD4Uem4sAO9mOQxKG37BByvXS6GAw5igEodf3AvccmrRpB61JvQ4=s1360-w1360-h1020-rw'
   },
   {
     id: 'fs-palace-complex',
@@ -604,7 +614,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Mughal Zenana Palace',
     unesco: true,
-    image: 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TMPYIz4AjWKkpA3pBtTf2SElQZU-Bw65sN081xs_mJC0ejrB_NPUqTUoP2MVZoK0Ywz2239TfFthjRLuE3ZD4Uem4sAO9mOQxKG37BByvXS6GAw5igEodf3AvccmrRpB61JvQ4=s1360-w1360-h1020-rw'
+    image: 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TBx36_Jb3ayLeo71J_lW7kABul7lXgXazWV8NjkEQgZZg1OuFiNGmkGa-QTiRUa3W7mY54XpUZ6ZLCu3fST_bCbQqF2AHlbrxMNQsH31BLdKDuCRRug3O9ZsXxbOsC7H9CteE=s1360-w1360-h1020-rw'
   },
   {
     id: 'fs-diwan-i-khas',
@@ -704,7 +714,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Cultural Evening & Dinner',
     unesco: false,
-    image: 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9Tyu7surSw6HkZ3Vwas2iSMdNL5QmRLktxTRN5rFp3w9tu9Yvh3wCglg4X2DMznzO3nQB6PAwAZLJn4GLI2BzjTnDMmCY72mgsCuqaAtRfhYzkm3XYvJoFhS43bt1k7R-Vm2EvS0VFf_fM=s1360-w1360-h1020-rw'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg/1280px-Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg'
   },
   {
     id: 'jaipur-patrika-gate',
@@ -909,6 +919,58 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     category: 'Hilltop Palace & Sunset',
     unesco: false,
     image: 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmuKHCm07tTvi_kQoSkxhTXysc422UarmQpl8ndRum8I_CHihe58mPmXhP8nfDnD_EG0c2rc7KddYfbL9H-N-U3_9rKH2rM534w9NycjfuNg_emOJsenNTkFKAcKro3Tt9l5AA-2g=s1360-w1360-h1020-rw'
+  },
+  {
+    id: 'udaipur-mount-abu-excursion',
+    destinationId: 'udaipur',
+    destinationName: 'Udaipur',
+    name: 'Mount Abu Day Excursion (Dilwara Temples & Nakki Lake)',
+    shortDescription: 'Full-day excursion to Rajasthan’s premier hill station visiting Dilwara Jain Temples and boating on Nakki Lake.',
+    detailedDescription: 'Scenic 3-hour hill drive ascending the Aravalli range to Mount Abu. Marvel at the world-renowned marble filigree of the 11th-century Dilwara Temples, stroll along Nakki Lake, and visit Toad Rock.',
+    duration: 'Full Day (8–9 Hours)',
+    category: 'Hill Station Excursion',
+    unesco: false,
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg/1280px-Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg'
+  },
+
+  // ==========================================
+  // MOUNT ABU
+  // ==========================================
+  {
+    id: 'mount-abu-dilwara',
+    destinationId: 'mount-abu',
+    destinationName: 'Mount Abu',
+    name: 'Dilwara Jain Temples',
+    shortDescription: '11th to 13th-century marble temple complex acclaimed for unmatched ornamental ceiling and pillar carvings.',
+    detailedDescription: 'A pilgrimage masterpiece of marble architecture comprising five ornate shrines, notably Vimal Vasahi and Luna Vasahi, famous for paper-thin translucent marble domes, lotus pendants, and intricate mythological friezes.',
+    duration: '2 Hours',
+    category: 'Heritage Marble Temple',
+    unesco: false,
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg/1280px-Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg'
+  },
+  {
+    id: 'mount-abu-nakki-lake',
+    destinationId: 'mount-abu',
+    destinationName: 'Mount Abu',
+    name: 'Nakki Lake & Toad Rock',
+    shortDescription: 'Ancient sacred hill lake framed by rolling hills, pedal boating, and the iconic Toad Rock viewpoint.',
+    detailedDescription: 'Legend states Nakki Lake was dug out using fingernails by gods. Enjoy scenic boating, promenade walks, and a gentle climb to Toad Rock for panoramic views of the water.',
+    duration: '1.5 Hours',
+    category: 'Scenic Lake & Viewpoint',
+    unesco: false,
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg/1280px-Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg'
+  },
+  {
+    id: 'mount-abu-guru-shikhar',
+    destinationId: 'mount-abu',
+    destinationName: 'Mount Abu',
+    name: 'Guru Shikhar & Sunset Point',
+    shortDescription: 'The highest peak in Rajasthan (1,722 m) housing Dattatreya Temple and breathtaking mountain vistas.',
+    detailedDescription: 'Crown summit of the Aravalli range offering dramatic 360-degree panoramas, ancient bell tower, and vantage points overlooking valleys cloaked in evening mist.',
+    duration: '2 Hours',
+    category: 'Mountain Peak & Panoramic View',
+    unesco: false,
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Guru_shikhar_-_mount_abu.jpg/1280px-Guru_shikhar_-_mount_abu.jpg'
   },
 
   // ==========================================
@@ -1276,7 +1338,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '4 Hours',
     category: 'Engineering Marvel & Excursion',
     unesco: false,
-    image: 'https://images.pexels.com/photos/29494193/pexels-photo-29494193.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg/1280px-Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg'
   },
   {
     id: 'manali-hadimba-temple',
@@ -2096,6 +2158,12 @@ export const INTERCITY_ROUTES: Record<string, { distanceKm: number; driveTime: s
   'jodhpur-pushkar': { distanceKm: 190, driveTime: '3.5 Hours', routeVia: 'NH 25' },
   'jaipur-udaipur': { distanceKm: 395, driveTime: '6.5–7 Hours', routeVia: 'NH 48 via Chittorgarh' },
   'udaipur-jaipur': { distanceKm: 395, driveTime: '6.5–7 Hours', routeVia: 'NH 48 via Chittorgarh' },
+  'udaipur-mount-abu': { distanceKm: 160, driveTime: '3 Hours', routeVia: 'NH 27' },
+  'mount-abu-udaipur': { distanceKm: 160, driveTime: '3 Hours', routeVia: 'NH 27' },
+  'jaipur-mount-abu': { distanceKm: 490, driveTime: '8.5 Hours', routeVia: 'NH 48 & NH 27' },
+  'mount-abu-jaipur': { distanceKm: 490, driveTime: '8.5 Hours', routeVia: 'NH 48 & NH 27' },
+  'jodhpur-mount-abu': { distanceKm: 260, driveTime: '4.5 Hours', routeVia: 'NH 62' },
+  'mount-abu-jodhpur': { distanceKm: 260, driveTime: '4.5 Hours', routeVia: 'NH 62' },
   'jodhpur-udaipur': { distanceKm: 260, driveTime: '5 Hours', routeVia: 'Ranakpur Jain Temples' },
   'udaipur-jodhpur': { distanceKm: 260, driveTime: '5 Hours', routeVia: 'Ranakpur Jain Temples' },
   'jodhpur-jaisalmer': { distanceKm: 280, driveTime: '4.5–5 Hours', routeVia: 'NH 11' },
@@ -2184,6 +2252,12 @@ export const FEATURED_COVER_PRESETS: CoverImagePreset[] = [
     name: 'City Palace & Lake Pichola',
     destination: 'Udaipur',
     url: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1200&q=80'
+  },
+  {
+    id: 'cov-mount-abu',
+    name: 'Nakki Lake & Aravalli Hills',
+    destination: 'Mount Abu',
+    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg/1280px-Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg'
   },
   {
     id: 'cov-golden-temple',
@@ -2287,17 +2361,17 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'church of akbar': 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Agra%2C_Akbar%27s_church.JPG',
 
   // Fatehpur Sikri
-  'fs-buland-darwaza': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TBx36_Jb3ayLeo71J_lW7kABul7lXgXazWV8NjkEQgZZg1OuFiNGmkGa-QTiRUa3W7mY54XpUZ6ZLCu3fST_bCbQqF2AHlbrxMNQsH31BLdKDuCRRug3O9ZsXxbOsC7H9CteE=s1360-w1360-h1020-rw',
-  'buland darwaza': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TBx36_Jb3ayLeo71J_lW7kABul7lXgXazWV8NjkEQgZZg1OuFiNGmkGa-QTiRUa3W7mY54XpUZ6ZLCu3fST_bCbQqF2AHlbrxMNQsH31BLdKDuCRRug3O9ZsXxbOsC7H9CteE=s1360-w1360-h1020-rw',
-  'buland darwaza & sheikh salim chishti shrine': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TBx36_Jb3ayLeo71J_lW7kABul7lXgXazWV8NjkEQgZZg1OuFiNGmkGa-QTiRUa3W7mY54XpUZ6ZLCu3fST_bCbQqF2AHlbrxMNQsH31BLdKDuCRRug3O9ZsXxbOsC7H9CteE=s1360-w1360-h1020-rw',
+  'fs-buland-darwaza': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TMPYIz4AjWKkpA3pBtTf2SElQZU-Bw65sN081xs_mJC0ejrB_NPUqTUoP2MVZoK0Ywz2239TfFthjRLuE3ZD4Uem4sAO9mOQxKG37BByvXS6GAw5igEodf3AvccmrRpB61JvQ4=s1360-w1360-h1020-rw',
+  'buland darwaza': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TMPYIz4AjWKkpA3pBtTf2SElQZU-Bw65sN081xs_mJC0ejrB_NPUqTUoP2MVZoK0Ywz2239TfFthjRLuE3ZD4Uem4sAO9mOQxKG37BByvXS6GAw5igEodf3AvccmrRpB61JvQ4=s1360-w1360-h1020-rw',
+  'buland darwaza & sheikh salim chishti shrine': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TMPYIz4AjWKkpA3pBtTf2SElQZU-Bw65sN081xs_mJC0ejrB_NPUqTUoP2MVZoK0Ywz2239TfFthjRLuE3ZD4Uem4sAO9mOQxKG37BByvXS6GAw5igEodf3AvccmrRpB61JvQ4=s1360-w1360-h1020-rw',
 
   'fs-panch-mahal': 'https://images.unsplash.com/photo-1742303300027-a4c32eafe389?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   'panch mahal': 'https://images.unsplash.com/photo-1742303300027-a4c32eafe389?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 
-  'fs-jodha-bai-palace': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TMPYIz4AjWKkpA3pBtTf2SElQZU-Bw65sN081xs_mJC0ejrB_NPUqTUoP2MVZoK0Ywz2239TfFthjRLuE3ZD4Uem4sAO9mOQxKG37BByvXS6GAw5igEodf3AvccmrRpB61JvQ4=s1360-w1360-h1020-rw',
-  "jodha bai's palace": 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TMPYIz4AjWKkpA3pBtTf2SElQZU-Bw65sN081xs_mJC0ejrB_NPUqTUoP2MVZoK0Ywz2239TfFthjRLuE3ZD4Uem4sAO9mOQxKG37BByvXS6GAw5igEodf3AvccmrRpB61JvQ4=s1360-w1360-h1020-rw',
-  "joda bai's palace": 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TMPYIz4AjWKkpA3pBtTf2SElQZU-Bw65sN081xs_mJC0ejrB_NPUqTUoP2MVZoK0Ywz2239TfFthjRLuE3ZD4Uem4sAO9mOQxKG37BByvXS6GAw5igEodf3AvccmrRpB61JvQ4=s1360-w1360-h1020-rw',
-  "jodha bai palace": 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TMPYIz4AjWKkpA3pBtTf2SElQZU-Bw65sN081xs_mJC0ejrB_NPUqTUoP2MVZoK0Ywz2239TfFthjRLuE3ZD4Uem4sAO9mOQxKG37BByvXS6GAw5igEodf3AvccmrRpB61JvQ4=s1360-w1360-h1020-rw',
+  'fs-jodha-bai-palace': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TBx36_Jb3ayLeo71J_lW7kABul7lXgXazWV8NjkEQgZZg1OuFiNGmkGa-QTiRUa3W7mY54XpUZ6ZLCu3fST_bCbQqF2AHlbrxMNQsH31BLdKDuCRRug3O9ZsXxbOsC7H9CteE=s1360-w1360-h1020-rw',
+  "jodha bai's palace": 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TBx36_Jb3ayLeo71J_lW7kABul7lXgXazWV8NjkEQgZZg1OuFiNGmkGa-QTiRUa3W7mY54XpUZ6ZLCu3fST_bCbQqF2AHlbrxMNQsH31BLdKDuCRRug3O9ZsXxbOsC7H9CteE=s1360-w1360-h1020-rw',
+  "joda bai's palace": 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TBx36_Jb3ayLeo71J_lW7kABul7lXgXazWV8NjkEQgZZg1OuFiNGmkGa-QTiRUa3W7mY54XpUZ6ZLCu3fST_bCbQqF2AHlbrxMNQsH31BLdKDuCRRug3O9ZsXxbOsC7H9CteE=s1360-w1360-h1020-rw',
+  "jodha bai palace": 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TBx36_Jb3ayLeo71J_lW7kABul7lXgXazWV8NjkEQgZZg1OuFiNGmkGa-QTiRUa3W7mY54XpUZ6ZLCu3fST_bCbQqF2AHlbrxMNQsH31BLdKDuCRRug3O9ZsXxbOsC7H9CteE=s1360-w1360-h1020-rw',
 
   'fs-diwan-i-khas': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Diwan-i-khas%2C_Red_fort.jpg/500px-Diwan-i-khas%2C_Red_fort.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail',
   'diwan-i-khas': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Diwan-i-khas%2C_Red_fort.jpg/500px-Diwan-i-khas%2C_Red_fort.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail',
@@ -2325,10 +2399,10 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'nahargarh fort': 'https://images.unsplash.com/photo-1591284080149-58e039950b29?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   'nahargarh fort & sunset viewpoint': 'https://images.unsplash.com/photo-1591284080149-58e039950b29?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 
-  'jaipur-chokhi-dhani': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9Tyu7surSw6HkZ3Vwas2iSMdNL5QmRLktxTRN5rFp3w9tu9Yvh3wCglg4X2DMznzO3nQB6PAwAZLJn4GLI2BzjTnDMmCY72mgsCuqaAtRfhYzkm3XYvJoFhS43bt1k7R-Vm2EvS0VFf_fM=s1360-w1360-h1020-rw',
-  'choki dhani': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9Tyu7surSw6HkZ3Vwas2iSMdNL5QmRLktxTRN5rFp3w9tu9Yvh3wCglg4X2DMznzO3nQB6PAwAZLJn4GLI2BzjTnDMmCY72mgsCuqaAtRfhYzkm3XYvJoFhS43bt1k7R-Vm2EvS0VFf_fM=s1360-w1360-h1020-rw',
-  'chokhi dhani': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9Tyu7surSw6HkZ3Vwas2iSMdNL5QmRLktxTRN5rFp3w9tu9Yvh3wCglg4X2DMznzO3nQB6PAwAZLJn4GLI2BzjTnDMmCY72mgsCuqaAtRfhYzkm3XYvJoFhS43bt1k7R-Vm2EvS0VFf_fM=s1360-w1360-h1020-rw',
-  'chokhi dhani ethnic cultural village': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9Tyu7surSw6HkZ3Vwas2iSMdNL5QmRLktxTRN5rFp3w9tu9Yvh3wCglg4X2DMznzO3nQB6PAwAZLJn4GLI2BzjTnDMmCY72mgsCuqaAtRfhYzkm3XYvJoFhS43bt1k7R-Vm2EvS0VFf_fM=s1360-w1360-h1020-rw',
+  'jaipur-chokhi-dhani': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg/1280px-Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg',
+  'choki dhani': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg/1280px-Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg',
+  'chokhi dhani': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg/1280px-Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg',
+  'chokhi dhani ethnic cultural village': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg/1280px-Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg',
 
   'jaipur-patrika-gate': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TQn-LJrHPGp2eXgMz1_Np4CE7oD9ozDUYkH91Na8f5LXXu-00uCwULxT2ENFlgp0JAmiF4-3s59FUhACEO5wB6rsB56RYQKlnle_joR9O1stIYNXAuRfTKcL7hLHMM9-dlla85qw=s1360-w1360-h1020-rw',
   'patrika gate': 'https://lh3.googleusercontent.com/gps-cs-s/ANWiy9TQn-LJrHPGp2eXgMz1_Np4CE7oD9ozDUYkH91Na8f5LXXu-00uCwULxT2ENFlgp0JAmiF4-3s59FUhACEO5wB6rsB56RYQKlnle_joR9O1stIYNXAuRfTKcL7hLHMM9-dlla85qw=s1360-w1360-h1020-rw',
@@ -2388,6 +2462,26 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'bagore ki haveli & dharohar folk dance show': 'https://images.unsplash.com/photo-1722080711528-095791cd14d4?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8QmFnb3JlJTIwS2klMjBIYXZlbGl8ZW58MHx8MHx8fDA%3D',
 
   'udaipur-monsoon-palace': 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmuKHCm07tTvi_kQoSkxhTXysc422UarmQpl8ndRum8I_CHihe58mPmXhP8nfDnD_EG0c2rc7KddYfbL9H-N-U3_9rKH2rM534w9NycjfuNg_emOJsenNTkFKAcKro3Tt9l5AA-2g=s1360-w1360-h1020-rw',
+
+  // Mount Abu & Udaipur Excursion
+  'udaipur-mount-abu-excursion': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg/1280px-Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg',
+  'mount abu day excursion': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg/1280px-Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg',
+  'mount abu day excursion (dilwara temples & nakki lake)': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg/1280px-Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg',
+  'mount-abu': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg/1280px-Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg',
+  'mount abu': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg/1280px-Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg',
+
+  'mount-abu-dilwara': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg/1280px-Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg',
+  'dilwara jain temples': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg/1280px-Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg',
+  'dilwara temples': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg/1280px-Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg',
+  'dilwara': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg/1280px-Marble_Carved_Ceilings_Showing_Jain_Mythology_in_Dilwara_Temple%2C_Mt._Abu.jpg',
+
+  'mount-abu-nakki-lake': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg/1280px-Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg',
+  'nakki lake': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg/1280px-Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg',
+  'nakki lake & toad rock': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg/1280px-Mt_Abu%27s_Nakki_Lake_During_Sunset.jpg',
+
+  'mount-abu-guru-shikhar': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Guru_shikhar_-_mount_abu.jpg/1280px-Guru_shikhar_-_mount_abu.jpg',
+  'guru shikhar': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Guru_shikhar_-_mount_abu.jpg/1280px-Guru_shikhar_-_mount_abu.jpg',
+  'guru shikhar & sunset point': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Guru_shikhar_-_mount_abu.jpg/1280px-Guru_shikhar_-_mount_abu.jpg',
   'monsoon palace': 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmuKHCm07tTvi_kQoSkxhTXysc422UarmQpl8ndRum8I_CHihe58mPmXhP8nfDnD_EG0c2rc7KddYfbL9H-N-U3_9rKH2rM534w9NycjfuNg_emOJsenNTkFKAcKro3Tt9l5AA-2g=s1360-w1360-h1020-rw',
   'sajjangarh monsoon palace sunset lookout': 'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmuKHCm07tTvi_kQoSkxhTXysc422UarmQpl8ndRum8I_CHihe58mPmXhP8nfDnD_EG0c2rc7KddYfbL9H-N-U3_9rKH2rM534w9NycjfuNg_emOJsenNTkFKAcKro3Tt9l5AA-2g=s1360-w1360-h1020-rw',
 
@@ -2415,6 +2509,12 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'solang valley': 'https://www.snowvalleyresorts.com/wp-content/uploads/featurd-image-min-915x513.webp',
   'solang': 'https://www.snowvalleyresorts.com/wp-content/uploads/featurd-image-min-915x513.webp',
   'solang valley adventure activities': 'https://www.snowvalleyresorts.com/wp-content/uploads/featurd-image-min-915x513.webp',
+
+  'manali-atal-tunnel': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg/1280px-Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg',
+  'atal tunnel': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg/1280px-Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg',
+  'atal tunnel entrance': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg/1280px-Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg',
+  'atal tunnel & sissu waterfall': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg/1280px-Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg',
+  'atal tunnel & sissu waterfall (lahaul valley)': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg/1280px-Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg',
 
   'manali-hadimba-temple': 'https://media.istockphoto.com/id/1334792935/photo/hidimba-devi-or-hadimba-temple-manali.webp?a=1&b=1&s=612x612&w=0&k=20&c=r3fEFiD_DH2rJ_DuIbAP1Au9cpnxtRvsL-k6fF4KON8=',
   'hadimba temple': 'https://media.istockphoto.com/id/1334792935/photo/hidimba-devi-or-hadimba-temple-manali.webp?a=1&b=1&s=612x612&w=0&k=20&c=r3fEFiD_DH2rJ_DuIbAP1Au9cpnxtRvsL-k6fF4KON8=',
