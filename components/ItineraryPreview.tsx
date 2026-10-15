@@ -797,8 +797,8 @@ export default function ItineraryPreview({
               </div>
             </div>
 
-            {/* Pinned Page 1 Footer */}
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
+            {/* Pinned Page 1 Footer (Screen Preview Only) */}
+            <div className="proposal-inner-footer pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
                 <span>·</span>
@@ -1114,30 +1114,11 @@ export default function ItineraryPreview({
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* Pinned Page Footer */}
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
-                <span>·</span>
-                <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
-                <span>·</span>
-                <span>{settings?.website || 'lobotravels.com'}</span>
-              </div>
-              <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
-              <div>Daily Sightseeing Schedule</div>
-            </div>
-          </div>
-
-          {/* ===================================================================== */}
-          {/* FINAL PAGE: ACCOMMODATIONS, COMMERCIALS, INCLUSIONS & TERMS */}
-          {/* ===================================================================== */}
-          <div 
-            className="proposal-section pdf-page accommodations-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
-            style={{ width: '794px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
-          >
-            <div className="space-y-5 flex-1 flex flex-col justify-start pb-6 print-content-container">
+              {/* ===================================================================== */}
+              {/* COMMERCIALS, INCLUSIONS & TOUR GUIDELINES (Flows Immediately After Days) */}
+              {/* ===================================================================== */}
+              <div className="space-y-5 pt-8 mt-6 border-t-2 border-slate-200">
               
               {/* Header */}
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
@@ -1565,20 +1546,8 @@ export default function ItineraryPreview({
               </div>
 
             </div>
-
-            {/* Pinned Final Page Footer */}
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
-                <span>·</span>
-                <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
-                <span>·</span>
-                <span>{settings?.website || 'lobotravels.com'}</span>
-              </div>
-              <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
-              <div>Accommodations & Terms</div>
-            </div>
           </div>
+        </div>
 
           {/* Global Repeating Fixed Print Footer across all printed pages */}
           <div className="print-fixed-footer hidden print:flex">

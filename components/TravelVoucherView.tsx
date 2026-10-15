@@ -398,7 +398,7 @@ export default function TravelVoucherView({
             </div>
 
             {/* Pinned Page 1 Footer */}
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
+            <div className="proposal-inner-footer pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-[#151521]">{(settings?.companyName || 'Lobo Travels')} Operations</span>
                 <span>·</span>
@@ -531,7 +531,7 @@ export default function TravelVoucherView({
             </div>
 
             {/* Pinned Page 2 Footer */}
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
+            <div className="proposal-inner-footer pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
                 <span>·</span>

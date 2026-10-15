@@ -75,19 +75,25 @@ function drawFooter(
   pdf: jsPDF,
   footerTexts: { left: string; center: string; right: string },
   pdfWidth: number,
-  pdfHeight: number
+  pdfHeight: number,
+  pageNumber: number,
+  totalPages: number
 ) {
+  const footerY = pdfHeight - 12;
   pdf.setFillColor(255, 255, 255);
-  pdf.rect(0, pdfHeight - 12, pdfWidth, 12, 'F');
+  pdf.rect(0, footerY, pdfWidth, 12, 'F');
   pdf.setDrawColor(203, 213, 225); // #cbd5e1
   pdf.setLineWidth(0.2);
-  pdf.line(10, pdfHeight - 12, pdfWidth - 10, pdfHeight - 12);
+  pdf.line(10, footerY, pdfWidth - 10, footerY);
 
   pdf.setFontSize(8);
   pdf.setTextColor(100, 116, 139); // #64748b
   if (footerTexts.left) pdf.text(footerTexts.left, 10, pdfHeight - 5);
   if (footerTexts.center) pdf.text(footerTexts.center, pdfWidth / 2, pdfHeight - 5, { align: 'center' });
-  if (footerTexts.right) pdf.text(footerTexts.right, pdfWidth - 10, pdfHeight - 5, { align: 'right' });
+  
+  // Clean page numbering: Page X / Y
+  const pageStr = `Page ${pageNumber} / ${totalPages}`;
+  pdf.text(pageStr, pdfWidth - 10, pdfHeight - 5, { align: 'right' });
 }
 
 export async function exportElementToPdf(
@@ -102,8 +108,32 @@ export async function exportElementToPdf(
   element.style.transform = 'none';
 
   let restoreImages: (() => void) | null = null;
+  let restoreExcludes: (() => void) | null = null;
 
   try {
+    // Extract footer metadata before hiding preview-only elements
+    const footerEl = element.querySelector('.print-fixed-footer');
+    const footerTexts = {
+      left: footerEl?.querySelector('div:first-child')?.textContent?.replace(/\s+/g, ' ').trim() || '',
+      center: footerEl?.querySelector('.font-mono')?.textContent?.replace(/\s+/g, ' ').trim() || '',
+      right: footerEl?.querySelector('div:last-child')?.textContent?.replace(/\s+/g, ' ').trim() || 'Custom Tailored Travel Proposal',
+    };
+
+    // Temporarily hide inner preview footers and print-fixed-footer during screenshot capture
+    // so they are NEVER captured into the document image slices
+    const excludedNodes = Array.from(
+      element.querySelectorAll<HTMLElement>('.print\\:hidden, .print-fixed-footer, .proposal-inner-footer')
+    );
+    const originalDisplays = excludedNodes.map(node => node.style.display);
+    excludedNodes.forEach(node => {
+      node.style.display = 'none';
+    });
+    restoreExcludes = () => {
+      excludedNodes.forEach((node, idx) => {
+        node.style.display = originalDisplays[idx];
+      });
+    };
+
     onProgress?.('Inlining document assets...');
     // Pre-convert all images to base64 data URIs so foreignObject never makes cross-origin requests
     restoreImages = await inlineElementImages(element);
@@ -117,14 +147,6 @@ export async function exportElementToPdf(
 
     const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
     const pdfHeight = pdf.internal.pageSize.getHeight(); // 297mm
-
-    // Extract footer metadata if present
-    const footerEl = element.querySelector('.print-fixed-footer');
-    const footerTexts = {
-      left: footerEl?.querySelector('div:first-child')?.textContent?.replace(/\s+/g, ' ').trim() || '',
-      center: footerEl?.querySelector('.font-mono')?.textContent?.replace(/\s+/g, ' ').trim() || '',
-      right: footerEl?.querySelector('div:last-child')?.textContent?.replace(/\s+/g, ' ').trim() || 'Custom Tailored Travel Proposal',
-    };
 
     // Query distinct document sections (.proposal-section, .pdf-page, .daily-schedule-page)
     let sectionNodes = Array.from(element.querySelectorAll<HTMLElement>('.proposal-section, .pdf-page'));
@@ -168,9 +190,11 @@ export async function exportElementToPdf(
       const canvasWidth = img.naturalWidth || img.width || 800;
       const canvasHeight = img.naturalHeight || img.height || 1123;
       const pageHeightPx = Math.round((pdfHeight / pdfWidth) * canvasWidth);
+      const topMarginMm = 14;
+      const topMarginPx = Math.round((topMarginMm / pdfWidth) * canvasWidth);
       const footerHeightMm = 14;
       const footerHeightPx = Math.round((footerHeightMm / pdfWidth) * canvasWidth);
-      const usablePageHeightPx = pageHeightPx - footerHeightPx;
+      const usablePageHeightPx = pageHeightPx - topMarginPx - footerHeightPx;
 
       // Section fits on a single A4 page
       if (canvasHeight <= pageHeightPx + 20) {
@@ -178,7 +202,6 @@ export async function exportElementToPdf(
           pdf.addPage();
         }
         pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
-        drawFooter(pdf, footerTexts, pdfWidth, pdfHeight);
         totalPagesAdded++;
       } else {
         // Multi-page continuous flow: slice across pages at clean whitespace boundaries
@@ -191,11 +214,18 @@ export async function exportElementToPdf(
 
         let currentY = 0;
         while (currentY < canvasHeight) {
+          const isFirstSlice = currentY === 0;
+          // Top margin / padding: first slice uses the section's DOM padding; subsequent continuation slices start at topMarginPx
+          const destY = isFirstSlice ? 0 : topMarginPx;
+          const maxAllowedSliceHeight = isFirstSlice
+            ? (pageHeightPx - footerHeightPx)
+            : usablePageHeightPx;
+
           const remaining = canvasHeight - currentY;
-          let sliceHeight = Math.min(usablePageHeightPx, remaining);
+          let sliceHeight = Math.min(maxAllowedSliceHeight, remaining);
 
           if (currentY + sliceHeight < canvasHeight) {
-            const minY = currentY + Math.floor(usablePageHeightPx * 0.72);
+            const minY = currentY + Math.floor(sliceHeight * 0.72);
             const cleanY = findCleanRow(sCtx, canvasWidth, currentY + sliceHeight, minY);
             if (cleanY > minY) {
               sliceHeight = cleanY - currentY;
@@ -209,7 +239,7 @@ export async function exportElementToPdf(
           if (pCtx) {
             pCtx.fillStyle = '#ffffff';
             pCtx.fillRect(0, 0, canvasWidth, pageHeightPx);
-            pCtx.drawImage(sourceCanvas, 0, currentY, canvasWidth, sliceHeight, 0, 0, canvasWidth, sliceHeight);
+            pCtx.drawImage(sourceCanvas, 0, currentY, canvasWidth, sliceHeight, 0, destY, canvasWidth, sliceHeight);
           }
 
           const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
@@ -220,7 +250,6 @@ export async function exportElementToPdf(
             pdf.addPage();
           }
           pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
-          drawFooter(pdf, footerTexts, pdfWidth, pdfHeight);
           totalPagesAdded++;
 
           currentY += sliceHeight;
@@ -231,12 +260,22 @@ export async function exportElementToPdf(
       }
     }
 
+    // Single fixed footer pass across all pages: rendered strictly once per page at the absolute bottom
+    const totalPages = pdf.getNumberOfPages();
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+      pdf.setPage(pageNum);
+      drawFooter(pdf, footerTexts, pdfWidth, pdfHeight, pageNum, totalPages);
+    }
+
     onProgress?.('Saving PDF file...');
     pdf.save(filename);
   } catch (error) {
     console.error('Direct PDF export encountered an issue, launching browser print fallback:', error);
     window.print();
   } finally {
+    if (restoreExcludes) {
+      restoreExcludes();
+    }
     if (restoreImages) {
       restoreImages();
     }
