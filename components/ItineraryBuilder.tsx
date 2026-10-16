@@ -1448,8 +1448,32 @@ export default function ItineraryBuilder({
 
     if (enabled) {
       if (!targetDay.cities || targetDay.cities.length === 0) {
-        const city1Name = targetDay.destination || 'Agra';
-        const city2Name = targetDay.overnightLocation !== city1Name ? targetDay.overnightLocation : 'Fatehpur Sikri';
+        const isDepDay = Boolean(targetDay.departureDetails?.enabled) || dayIndex === itinerary.days.length - 1;
+        const city1Name = targetDay.destination || 'Delhi';
+        
+        let city2Name: string;
+        if (isDepDay) {
+          const returnFlight = itinerary.flightBookings?.flights?.find(f => f.type === 'departure');
+          const flightCity = returnFlight?.departureCity;
+          const depDropCity = targetDay.departureDetails?.dropLocation;
+          const tourStartCity = itinerary.days[0]?.destination;
+
+          if (flightCity && flightCity.toLowerCase() !== city1Name.toLowerCase()) {
+            city2Name = flightCity;
+          } else if (depDropCity && !depDropCity.toLowerCase().includes(city1Name.toLowerCase())) {
+            const matchingDest = localDestinations.find(d => depDropCity.toLowerCase().includes(d.name.toLowerCase()));
+            city2Name = matchingDest ? matchingDest.name : depDropCity;
+          } else if (tourStartCity && tourStartCity.toLowerCase() !== city1Name.toLowerCase()) {
+            city2Name = tourStartCity;
+          } else {
+            const altDest = localDestinations.find(d => d.name.toLowerCase() !== city1Name.toLowerCase());
+            city2Name = altDest ? altDest.name : (city1Name === 'Delhi' ? 'Jaipur' : 'Delhi');
+          }
+        } else {
+          city2Name = targetDay.overnightLocation && targetDay.overnightLocation !== city1Name
+            ? targetDay.overnightLocation
+            : (localDestinations.find(d => d.name.toLowerCase() !== city1Name.toLowerCase())?.name || (city1Name === 'Delhi' ? 'Agra' : 'Delhi'));
+        }
         
         const routeKey = `${city1Name.toLowerCase()}-${city2Name.toLowerCase()}`.replace(/\s+/g, '-');
         const routeData = INTERCITY_ROUTES[routeKey] || { distanceKm: 40, driveTime: '1 Hour', routeVia: 'Highway' };
@@ -1475,7 +1499,7 @@ export default function ItineraryBuilder({
             attractionIds: [],
             attractionNames: [],
             checkOut: false,
-            checkIn: true
+            checkIn: !isDepDay
           }
         ];
         targetDay.overnightLocation = city2Name;
@@ -1505,13 +1529,14 @@ export default function ItineraryBuilder({
       };
     }
 
+    const isDepDay = Boolean(targetDay.departureDetails?.enabled) || dayIndex === itinerary.days.length - 1;
     currentCities.push({
       id: 'c-' + Date.now(),
       destination: newCityName,
       attractionIds: [],
       attractionNames: [],
       checkOut: false,
-      checkIn: true
+      checkIn: !isDepDay
     });
 
     targetDay.cities = currentCities;
@@ -1556,6 +1581,11 @@ export default function ItineraryBuilder({
 
     currentCities[cityIndex] = targetCity;
     targetDay.cities = currentCities;
+
+    // Keep overnightLocation synced with the final city in the multi-city array
+    if (currentCities.length > 0) {
+      targetDay.overnightLocation = currentCities[currentCities.length - 1].destination;
+    }
 
     // Collect all attraction names & images across cities
     const allAttractionNames: string[] = [];

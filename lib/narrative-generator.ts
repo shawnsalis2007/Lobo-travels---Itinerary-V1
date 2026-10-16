@@ -89,7 +89,7 @@ export function generateAutoDayDescription(
         }
       }
 
-      if (city.checkIn) {
+      if (city.checkIn && !day.departureDetails?.enabled) {
         bullets.push(`• Upon arrival in ${city.destination}, transfer and check-in at your designated hotel.`);
       }
     });
@@ -103,12 +103,13 @@ export function generateAutoDayDescription(
       const pointStr = dep.point === 'Airport' ? 'Airport' : dep.point === 'Railway Station' ? 'Railway Station' : dep.point;
       const numStr = dep.flightOrTrainNumber ? ` (${dep.flightOrTrainNumber})` : '';
       const timeStr = dep.departureTime ? ` scheduled at ${dep.departureTime}` : '';
-      const dropCity = day.overnightLocation || day.destination;
+      const finalCity = day.cities[day.cities.length - 1]?.destination || day.destination;
+      const dropCity = finalCity;
       bullets.push(`• Later, transfer to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished travel memories.`);
     }
 
     if (!day.departureDetails?.enabled) {
-      const stayCity = day.overnightLocation || day.destination;
+      const stayCity = day.cities[day.cities.length - 1]?.destination || day.overnightLocation || day.destination;
       bullets.push(`• Overnight stay in ${stayCity}.`);
     }
 
@@ -196,7 +197,7 @@ export function generateAutoDayDescription(
  */
 export function ensureOvernightStayText(description: string, day: ItineraryDay): string {
   let desc = (description || '').trim();
-  const stayCity = day.overnightLocation || day.destination || 'the destination';
+  const stayCity = (day.isMultiCity && day.cities && day.cities.length > 0 ? day.cities[day.cities.length - 1]?.destination : day.overnightLocation) || day.destination || 'the destination';
 
   if (day.departureDetails?.enabled) {
     // Departure is active: completely remove any overnight stay line
