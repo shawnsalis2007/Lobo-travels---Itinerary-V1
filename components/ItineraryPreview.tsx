@@ -990,14 +990,9 @@ export default function ItineraryPreview({
 
                     {/* Inter-City Transfer Banner if single destination with different overnight */}
                     {!day.isMultiCity && day.transfer && (
-                      <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] flex items-center justify-between text-amber-950">
-                        <div className="flex items-center gap-1.5 font-semibold">
-                          <Car className="w-3.5 h-3.5 text-amber-600" />
-                          <span>Inter-City Transfer: {day.transfer.from} → {day.transfer.to}</span>
-                        </div>
-                        <span className="text-amber-800 font-bold">
-                          {day.transfer.distanceKm} km · {day.transfer.driveTime}
-                        </span>
+                      <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] flex items-center gap-1.5 font-semibold text-amber-950">
+                        <Car className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Inter-City Transfer: {day.transfer.from} → {day.transfer.to}</span>
                       </div>
                     )}
 

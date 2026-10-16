@@ -92,7 +92,7 @@ export default function Navbar({
             <Search className="w-4 h-4 text-[#9899A1] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search Ref (e.g. LT-2026-0001), client..."
+              placeholder="Search Ref (e.g. LT-2026-0251), client..."
               value={searchQuery}
               onChange={(e) => onSearch(e.target.value)}
               className="w-full pl-9 pr-3 py-1.5 text-xs bg-[#26214F]/60 text-white placeholder-[#9899A1] rounded-lg border border-[#26214F] focus:outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400 transition"

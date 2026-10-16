@@ -302,7 +302,7 @@ export default function ItineraryBuilder({
 
     return {
       id: 'itn-' + Date.now().toString(36),
-      referenceNumber: `${settings?.referencePrefix || 'LT-2026-'}0001`,
+      referenceNumber: `${settings?.referencePrefix || 'LT-2026-'}0251`,
       tourName: 'Golden Triangle Tour – Delhi, Agra & Jaipur',
       clientName: '',
       clientPhone: '',
@@ -3838,14 +3838,9 @@ export default function ItineraryBuilder({
                           {/* Automatic Transfer Alert when overnight differs */}
                           {day.transfer && (
                             <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-300 text-xs space-y-2">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5 font-bold text-amber-950">
-                                  <Car className="w-4 h-4 text-amber-600" />
-                                  <span>Inter-City Transfer: {day.transfer.from} → {day.transfer.to}</span>
-                                </div>
-                                <span className="text-[11px] font-semibold text-amber-800">
-                                  Approx. {day.transfer.distanceKm} km · {day.transfer.driveTime}
-                                </span>
+                              <div className="flex items-center gap-1.5 font-bold text-amber-950">
+                                <Car className="w-4 h-4 text-amber-600" />
+                                <span>Inter-City Transfer: {day.transfer.from} → {day.transfer.to}</span>
                               </div>
                               <input
                                 type="text"

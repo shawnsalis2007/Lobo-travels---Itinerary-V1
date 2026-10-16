@@ -213,7 +213,7 @@ export async function GET(req: NextRequest) {
                   address: 'Shop No. 12, NDMC Market Near CNG Pump, Mandir Marg, New Delhi - 110001',
                   website: 'lobotravels.com',
                   referencePrefix: 'LT-2026-',
-                  nextReferenceSequence: 3,
+                  nextReferenceSequence: 251,
                   voucherTerms: 'Valid government-issued photo ID is mandatory at all hotel check-ins and monument entrances.',
                   defaultInclusions: [
                     'Private air-conditioned Kia Carens throughout the tour',

@@ -409,7 +409,11 @@ export function deleteHotel(id: string): void {
 export function getNextReferenceNumber(): string {
   const settings = getSettings();
   const prefix = settings.referencePrefix || 'LT-2026-';
-  const currentSeq = getStorageItem<number>(STORAGE_KEYS.NEXT_REF, settings.nextReferenceSequence || 3);
+  const defaultSeq = Math.max(251, settings.nextReferenceSequence || 251);
+  let currentSeq = getStorageItem<number>(STORAGE_KEYS.NEXT_REF, defaultSeq);
+  if (typeof currentSeq !== 'number' || currentSeq < 251) {
+    currentSeq = 251;
+  }
   const formatted = `${prefix}${String(currentSeq).padStart(4, '0')}`;
   setStorageItem(STORAGE_KEYS.NEXT_REF, currentSeq + 1);
   return formatted;

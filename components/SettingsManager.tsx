@@ -420,7 +420,7 @@ export default function SettingsManager({
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono font-bold text-slate-900"
               />
               <span className="text-[11px] text-slate-400 mt-1 block">
-                Next generated record will appear as: {formData.referencePrefix}000X
+                Next generated record will appear as: {formData.referencePrefix}0251
               </span>
             </div>
           </div>

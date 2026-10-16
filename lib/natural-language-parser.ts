@@ -501,7 +501,7 @@ export function generateItineraryFromPrompt(
     : `${adults} Adults`;
 
   const uniqueId = 'itn-' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-  const nextRef = `${context.settings?.referencePrefix || 'LT-2026-'}0001`;
+  const nextRef = `${context.settings?.referencePrefix || 'LT-2026-'}0251`;
 
   // Distribute destinations across daysCount
   const days: ItineraryDay[] = [];
