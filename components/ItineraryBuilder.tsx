@@ -1076,7 +1076,7 @@ export default function ItineraryBuilder({
     const updatedDays = [...itinerary.days];
     const targetDay = { ...updatedDays[dayIndex] };
     const currentDeparture = targetDay.departureDetails || {
-      enabled: true,
+      enabled: false,
       point: 'Airport',
       flightOrTrainNumber: '',
       departureTime: '',
@@ -1220,15 +1220,18 @@ export default function ItineraryBuilder({
         const lastIdx = updatedDays.length - 1;
         if (depFlight && updatedDays[lastIdx]) {
           const lastDay = { ...updatedDays[lastIdx] };
+          const wasEnabled = Boolean(lastDay.departureDetails?.enabled);
           lastDay.departureDetails = {
-            enabled: true,
+            enabled: wasEnabled,
             point: 'Airport',
             flightOrTrainNumber: `${depFlight.airline || ''} ${depFlight.flightNumber || ''}`.trim(),
             departureTime: depFlight.departureTime || '',
             dropLocation: depFlight.departureCity || ''
           };
-          delete lastDay.hotel;
-          delete lastDay.hotelTiers;
+          if (wasEnabled) {
+            delete lastDay.hotel;
+            delete lastDay.hotelTiers;
+          }
           lastDay.description = ensureOvernightStayText(
             generateAutoDayDescription(lastDay, lastIdx, updatedDays.length, prev.includeHotels),
             lastDay
@@ -1266,20 +1269,22 @@ export default function ItineraryBuilder({
         const depDayIdx = updatedDays.findIndex(d => d.departureDetails?.enabled);
         const targetIdx = depDayIdx !== -1 ? depDayIdx : updatedDays.length - 1;
         const lastDay = { ...updatedDays[targetIdx] };
-        const currentDep = lastDay.departureDetails || { enabled: true, point: 'Airport' };
+        const currentDep = lastDay.departureDetails || { enabled: false, point: 'Airport' };
         
         const flightNumStr = `${targetFlight.airline || ''} ${targetFlight.flightNumber || ''}`.trim();
         lastDay.departureDetails = {
           ...currentDep,
-          enabled: currentDep.enabled ?? true,
+          enabled: currentDep.enabled ?? false,
           point: currentDep.point || 'Airport',
           flightOrTrainNumber: flightNumStr || currentDep.flightOrTrainNumber || '',
           departureTime: targetFlight.departureTime || currentDep.departureTime || '',
           dropLocation: targetFlight.departureCity || currentDep.dropLocation || ''
         };
-        // Disable/clear hotel on departure day
-        delete lastDay.hotel;
-        delete lastDay.hotelTiers;
+        if (lastDay.departureDetails.enabled) {
+          // Disable/clear hotel on departure day
+          delete lastDay.hotel;
+          delete lastDay.hotelTiers;
+        }
         lastDay.description = ensureOvernightStayText(
           generateAutoDayDescription(lastDay, targetIdx, updatedDays.length, prev.includeHotels),
           lastDay
@@ -1386,14 +1391,22 @@ export default function ItineraryBuilder({
     if (depFlight && updatedDays.length > 0) {
       const lastIdx = updatedDays.length - 1;
       const lastDay = { ...updatedDays[lastIdx] };
+      const wasEnabled = Boolean(lastDay.departureDetails?.enabled);
       lastDay.departureDetails = {
-        enabled: true,
+        enabled: wasEnabled,
         point: 'Airport',
         flightOrTrainNumber: `${depFlight.airline} ${depFlight.flightNumber}`.trim(),
         departureTime: depFlight.departureTime,
         dropLocation: depFlight.departureCity
       };
-      lastDay.description = generateAutoDayDescription(lastDay, lastIdx, itinerary.days.length, itinerary.includeHotels);
+      if (wasEnabled) {
+        delete lastDay.hotel;
+        delete lastDay.hotelTiers;
+      }
+      lastDay.description = ensureOvernightStayText(
+        generateAutoDayDescription(lastDay, lastIdx, itinerary.days.length, itinerary.includeHotels),
+        lastDay
+      );
       updatedDays[lastIdx] = lastDay;
     }
 
@@ -1448,7 +1461,7 @@ export default function ItineraryBuilder({
 
     if (enabled) {
       if (!targetDay.cities || targetDay.cities.length === 0) {
-        const isDepDay = Boolean(targetDay.departureDetails?.enabled) || dayIndex === itinerary.days.length - 1;
+        const isDepDay = Boolean(targetDay.departureDetails?.enabled);
         const city1Name = targetDay.destination || 'Delhi';
         
         let city2Name: string;
@@ -1529,7 +1542,7 @@ export default function ItineraryBuilder({
       };
     }
 
-    const isDepDay = Boolean(targetDay.departureDetails?.enabled) || dayIndex === itinerary.days.length - 1;
+    const isDepDay = Boolean(targetDay.departureDetails?.enabled);
     currentCities.push({
       id: 'c-' + Date.now(),
       destination: newCityName,
@@ -3051,7 +3064,7 @@ export default function ItineraryBuilder({
                               <label className="inline-flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-sky-200">
                                 <input
                                   type="checkbox"
-                                  checked={day.departureDetails ? day.departureDetails.enabled : true}
+                                  checked={Boolean(day.departureDetails?.enabled)}
                                   onChange={(e) => handleUpdateDepartureDetails(dayIndex, { enabled: e.target.checked })}
                                   className="w-4 h-4 rounded text-sky-600"
                                 />
@@ -3062,7 +3075,7 @@ export default function ItineraryBuilder({
                             </div>
                           </div>
 
-                          {(day.departureDetails ? day.departureDetails.enabled : true) && (
+                          {Boolean(day.departureDetails?.enabled) && (
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
                               <div>
                                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">

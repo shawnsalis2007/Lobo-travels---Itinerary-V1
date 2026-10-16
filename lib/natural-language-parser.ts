@@ -657,7 +657,7 @@ export function generateItineraryFromPrompt(
     // Final Day Departure Details
     if (dayNum === daysCount) {
       dayObj.departureDetails = {
-        enabled: true,
+        enabled: false,
         point: 'Airport',
         departureTime: '18:30 PM',
         dropLocation: currentDest

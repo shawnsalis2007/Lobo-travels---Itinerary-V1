@@ -762,9 +762,9 @@ export const INITIAL_ITINERARIES: Itinerary[] = [
         attractionNames: ['Jal Mahal (Water Palace Photo Stop)'],
         description: 'After breakfast and hotel check-out, spend some time exploring Jaipur’s vibrant handicraft and gemstone bazaars at Johari Bazaar. Later, board your comfortable vehicle for your return transfer to Delhi Airport or Railway Station for your onward journey with fond memories of Lobo Travels.',
         isOvernightSameLocation: true,
-        overnightLocation: 'Delhi / Departure',
+        overnightLocation: 'Jaipur',
         departureDetails: {
-          enabled: true,
+          enabled: false,
           point: 'Airport',
           flightOrTrainNumber: 'Air India AI-402',
           departureTime: '18:45 PM',
@@ -775,6 +775,14 @@ export const INITIAL_ITINERARIES: Itinerary[] = [
           lunch: false,
           dinner: false,
           note: 'Breakfast at hotel'
+        },
+        hotel: {
+          hotelId: 'ht-jaipur-1',
+          name: 'Trident Jaipur',
+          city: 'Jaipur',
+          roomCategory: 'Deluxe Lake View',
+          mealPlan: 'Breakfast Included (CP)',
+          starCategory: 5
         },
         images: []
       }
