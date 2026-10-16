@@ -67,10 +67,9 @@ import { PRESET_ROUTES } from '@/lib/mock-data';
 import { INTERCITY_ROUTES } from '@/lib/catalog-data';
 import { saveAttraction as persistAttraction, saveDestination as persistDestination } from '@/lib/storage';
 import { SafeImage } from './SafeImage';
-import NaturalLanguageChatBar from './NaturalLanguageChatBar';
-import { generateAutoDayDescription } from '@/lib/narrative-generator';
+import { generateAutoDayDescription, ensureOvernightStayText } from '@/lib/narrative-generator';
 
-export { generateAutoDayDescription };
+export { generateAutoDayDescription, ensureOvernightStayText };
 
 export const COVER_IMAGE_PRESETS = [
   { name: 'Taj Mahal (Agra)', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80' },
@@ -86,7 +85,7 @@ export const COVER_IMAGE_PRESETS = [
 ];
 
 interface ItineraryBuilderProps {
-  initialItinerary?: Itinerary | null;
+  initialItinerary: Itinerary | null;
   destinations: Destination[];
   attractions: Attraction[];
   hotels: Hotel[];
@@ -96,7 +95,6 @@ interface ItineraryBuilderProps {
   onGeneratePreview: (itinerary: Itinerary) => void;
   onCancel: () => void;
   onAddNewHotelQuick: (hotel: Partial<Hotel>) => Hotel;
-  initialPrompt?: string;
 }
 
 // Helper calculations
@@ -152,8 +150,7 @@ export default function ItineraryBuilder({
   onSaveDraft,
   onGeneratePreview,
   onCancel,
-  onAddNewHotelQuick,
-  initialPrompt
+  onAddNewHotelQuick
 }: ItineraryBuilderProps) {
   // Active Builder Step Tab
   const [activeStep, setActiveStep] = useState<number>(1);
@@ -1086,16 +1083,63 @@ export default function ItineraryBuilder({
       dropLocation: ''
     };
 
-    targetDay.departureDetails = { ...currentDeparture, ...partialDeparture };
-    let newDesc = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
-    if (targetDay.departureDetails.enabled) {
-      newDesc = newDesc.replace(/\s*•?\s*Overnight stay at your designated hotel in [^\n.]+\.?/gi, '');
-      newDesc = newDesc.replace(/\s*•?\s*Overnight in [^\n.]+\.?/gi, '');
+    const newDeparture = { ...currentDeparture, ...partialDeparture };
+
+    // Auto-sync return flight details entered in form when Departure option is toggled or updated
+    const depFlight = itinerary.flightBookings?.flights?.find(f => f.type === 'departure');
+    if (newDeparture.enabled) {
+      if (depFlight) {
+        const autoFlightNum = `${depFlight.airline || ''} ${depFlight.flightNumber || ''}`.trim();
+        if (!newDeparture.flightOrTrainNumber && autoFlightNum) {
+          newDeparture.flightOrTrainNumber = autoFlightNum;
+        }
+        if (!newDeparture.departureTime && depFlight.departureTime) {
+          newDeparture.departureTime = depFlight.departureTime;
+        }
+        if (!newDeparture.dropLocation && depFlight.departureCity) {
+          newDeparture.dropLocation = depFlight.departureCity;
+        }
+        if (!newDeparture.point) {
+          newDeparture.point = 'Airport';
+        }
+      }
+      // When Departure is active on this day: disable/clear hotel selection & overnight stay
+      delete targetDay.hotel;
+      delete targetDay.hotelTiers;
     }
-    targetDay.description = newDesc.trim();
+
+    targetDay.departureDetails = newDeparture;
+    let newDesc = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
+    targetDay.description = ensureOvernightStayText(newDesc, targetDay);
 
     updatedDays[dayIndex] = targetDay;
-    setItinerary(prev => ({ ...prev, days: updatedDays }));
+
+    // Two-way sync: If user typed in departure flight number or time, sync back to return flight in flightBookings
+    let updatedFlightBookings = itinerary.flightBookings;
+    if (depFlight && (partialDeparture.flightOrTrainNumber !== undefined || partialDeparture.departureTime !== undefined)) {
+      const updatedFlights = (itinerary.flightBookings?.flights || []).map(fl => {
+        if (fl.type === 'departure') {
+          const updated = { ...fl };
+          if (partialDeparture.departureTime !== undefined) {
+            updated.departureTime = partialDeparture.departureTime;
+          }
+          if (partialDeparture.flightOrTrainNumber !== undefined) {
+            const parts = partialDeparture.flightOrTrainNumber.trim().split(/\s+/);
+            if (parts.length > 1) {
+              updated.airline = parts.slice(0, -1).join(' ');
+              updated.flightNumber = parts[parts.length - 1];
+            } else if (parts.length === 1 && parts[0]) {
+              updated.flightNumber = parts[0];
+            }
+          }
+          return updated;
+        }
+        return fl;
+      });
+      updatedFlightBookings = { ...itinerary.flightBookings!, flights: updatedFlights };
+    }
+
+    setItinerary(prev => ({ ...prev, days: updatedDays, flightBookings: updatedFlightBookings }));
   };
 
   // Tour-level Flights Booking Handlers
@@ -1107,6 +1151,8 @@ export default function ItineraryBuilder({
       };
 
       let flights = [...(current.flights || [])];
+      let updatedDays = [...prev.days];
+
       if (enabled && flights.length === 0) {
         const firstCity = prev.days[0]?.destination || 'Delhi';
         const lastCity = prev.days[prev.days.length - 1]?.destination || 'Delhi';
@@ -1148,8 +1194,52 @@ export default function ItineraryBuilder({
         ];
       }
 
+      // Automatically sync flights to arrival day and departure day
+      if (enabled && flights.length > 0 && updatedDays.length > 0) {
+        const depFlight = flights.find(f => f.type === 'departure');
+        const arrFlight = flights.find(f => f.type === 'arrival');
+
+        if (arrFlight && updatedDays[0]) {
+          const day1 = { ...updatedDays[0] };
+          day1.arrivalDetails = {
+            enabled: true,
+            point: 'Airport',
+            flightOrTrainNumber: `${arrFlight.airline || ''} ${arrFlight.flightNumber || ''}`.trim(),
+            arrivalTime: arrFlight.arrivalTime || '',
+            pickupLocation: arrFlight.arrivalCity || '',
+            includeHotelCheckIn: day1.arrivalDetails?.includeHotelCheckIn ?? true,
+            checkInTiming: day1.arrivalDetails?.checkInTiming || 'before_sightseeing'
+          };
+          day1.description = ensureOvernightStayText(
+            generateAutoDayDescription(day1, 0, updatedDays.length, prev.includeHotels),
+            day1
+          );
+          updatedDays[0] = day1;
+        }
+
+        const lastIdx = updatedDays.length - 1;
+        if (depFlight && updatedDays[lastIdx]) {
+          const lastDay = { ...updatedDays[lastIdx] };
+          lastDay.departureDetails = {
+            enabled: true,
+            point: 'Airport',
+            flightOrTrainNumber: `${depFlight.airline || ''} ${depFlight.flightNumber || ''}`.trim(),
+            departureTime: depFlight.departureTime || '',
+            dropLocation: depFlight.departureCity || ''
+          };
+          delete lastDay.hotel;
+          delete lastDay.hotelTiers;
+          lastDay.description = ensureOvernightStayText(
+            generateAutoDayDescription(lastDay, lastIdx, updatedDays.length, prev.includeHotels),
+            lastDay
+          );
+          updatedDays[lastIdx] = lastDay;
+        }
+      }
+
       return {
         ...prev,
+        days: updatedDays,
         flightBookings: {
           ...current,
           flightsBookedByUs: enabled,
@@ -1168,8 +1258,57 @@ export default function ItineraryBuilder({
         }
         return fl;
       });
+
+      // State sync: Return flight details entered in form automatically populate/sync to Departure Day
+      let updatedDays = prev.days;
+      const targetFlight = updatedFlights.find(fl => fl.id === flightId);
+      if (targetFlight && targetFlight.type === 'departure' && updatedDays.length > 0) {
+        const depDayIdx = updatedDays.findIndex(d => d.departureDetails?.enabled);
+        const targetIdx = depDayIdx !== -1 ? depDayIdx : updatedDays.length - 1;
+        const lastDay = { ...updatedDays[targetIdx] };
+        const currentDep = lastDay.departureDetails || { enabled: true, point: 'Airport' };
+        
+        const flightNumStr = `${targetFlight.airline || ''} ${targetFlight.flightNumber || ''}`.trim();
+        lastDay.departureDetails = {
+          ...currentDep,
+          enabled: currentDep.enabled ?? true,
+          point: currentDep.point || 'Airport',
+          flightOrTrainNumber: flightNumStr || currentDep.flightOrTrainNumber || '',
+          departureTime: targetFlight.departureTime || currentDep.departureTime || '',
+          dropLocation: targetFlight.departureCity || currentDep.dropLocation || ''
+        };
+        // Disable/clear hotel on departure day
+        delete lastDay.hotel;
+        delete lastDay.hotelTiers;
+        lastDay.description = ensureOvernightStayText(
+          generateAutoDayDescription(lastDay, targetIdx, updatedDays.length, prev.includeHotels),
+          lastDay
+        );
+        updatedDays = [...prev.days];
+        updatedDays[targetIdx] = lastDay;
+      } else if (targetFlight && targetFlight.type === 'arrival' && updatedDays.length > 0) {
+        const day1 = { ...updatedDays[0] };
+        const currentArr = day1.arrivalDetails || { enabled: true, point: 'Airport' };
+        const flightNumStr = `${targetFlight.airline || ''} ${targetFlight.flightNumber || ''}`.trim();
+        day1.arrivalDetails = {
+          ...currentArr,
+          enabled: currentArr.enabled ?? true,
+          point: currentArr.point || 'Airport',
+          flightOrTrainNumber: flightNumStr || currentArr.flightOrTrainNumber || '',
+          arrivalTime: targetFlight.arrivalTime || currentArr.arrivalTime || '',
+          pickupLocation: targetFlight.arrivalCity || currentArr.pickupLocation || ''
+        };
+        day1.description = ensureOvernightStayText(
+          generateAutoDayDescription(day1, 0, updatedDays.length, prev.includeHotels),
+          day1
+        );
+        updatedDays = [...prev.days];
+        updatedDays[0] = day1;
+      }
+
       return {
         ...prev,
+        days: updatedDays,
         flightBookings: {
           ...prev.flightBookings,
           flights: updatedFlights
@@ -1818,18 +1957,18 @@ export default function ItineraryBuilder({
       copy.coverImage = smartImg || DEFAULT_TAJ_MAHAL;
     }
 
-    // Clean up any lingering overnight text on departure / final day
-    copy.days = copy.days.map((d, idx) => {
-      const isLast = idx === copy.days.length - 1;
-      if (d.departureDetails?.enabled || isLast) {
-        if (d.departureDetails?.enabled) {
-          let desc = d.description || '';
-          desc = desc.replace(/\s*•?\s*Overnight stay at your designated hotel in [^\n.]+\.?/gi, '');
-          desc = desc.replace(/\s*•?\s*Overnight in [^\n.]+\.?/gi, '');
-          return { ...d, description: desc.trim() };
-        }
+    // Ensure overnight stay text and hotel clearance according to business rules:
+    // If departure is active on a day: disable/clear hotel & remove any overnight stay line
+    // If departure is NOT active on a day: ensure "Overnight stay in [City Name]." is at the end
+    copy.days = copy.days.map((d) => {
+      const isDeparture = Boolean(d.departureDetails?.enabled);
+      const updatedDay = { ...d };
+      if (isDeparture) {
+        delete updatedDay.hotel;
+        delete updatedDay.hotelTiers;
       }
-      return d;
+      updatedDay.description = ensureOvernightStayText(updatedDay.description, updatedDay);
+      return updatedDay;
     });
 
     // Sync active tier pricing if multi-tier is enabled
@@ -1855,21 +1994,6 @@ export default function ItineraryBuilder({
 
   return (
     <div className="space-y-6 pb-20">
-      
-      {/* Free Natural Language Assistant / Chat Bar */}
-      <NaturalLanguageChatBar
-        destinations={localDestinations}
-        attractions={localAttractions}
-        hotels={hotels}
-        vehicles={vehicles}
-        settings={settings}
-        initialPrompt={initialPrompt}
-        onApplyItinerary={(newItinerary) => {
-          setItinerary(newItinerary);
-        }}
-        onNavigateStep={(step) => setActiveStep(step)}
-      />
-
       {/* Builder Header Bar */}
       <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -2872,20 +2996,43 @@ export default function ItineraryBuilder({
                               </div>
                             </div>
 
-                            <label className="inline-flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-sky-200">
-                              <input
-                                type="checkbox"
-                                checked={day.departureDetails?.enabled ?? true}
-                                onChange={(e) => handleUpdateDepartureDetails(dayIndex, { enabled: e.target.checked })}
-                                className="w-4 h-4 rounded text-sky-600"
-                              />
-                              <span className="text-xs font-semibold text-sky-900">
-                                Include Departure on Final Day
-                              </span>
-                            </label>
+                            <div className="flex items-center gap-2">
+                              {itinerary.flightBookings?.flightsBookedByUs && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const depFlight = itinerary.flightBookings?.flights?.find(f => f.type === 'departure');
+                                    if (depFlight) {
+                                      handleUpdateDepartureDetails(dayIndex, {
+                                        enabled: true,
+                                        point: 'Airport',
+                                        flightOrTrainNumber: `${depFlight.airline || ''} ${depFlight.flightNumber || ''}`.trim(),
+                                        departureTime: depFlight.departureTime || '',
+                                        dropLocation: depFlight.departureCity || ''
+                                      });
+                                    }
+                                  }}
+                                  className="text-[11px] font-semibold text-sky-700 hover:text-sky-900 bg-white hover:bg-sky-100 px-2.5 py-1 rounded-lg border border-sky-200 transition shadow-2xs flex items-center gap-1"
+                                >
+                                  <Plane className="w-3 h-3 text-sky-600" />
+                                  <span>Sync Return Flight</span>
+                                </button>
+                              )}
+                              <label className="inline-flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-sky-200">
+                                <input
+                                  type="checkbox"
+                                  checked={day.departureDetails ? day.departureDetails.enabled : true}
+                                  onChange={(e) => handleUpdateDepartureDetails(dayIndex, { enabled: e.target.checked })}
+                                  className="w-4 h-4 rounded text-sky-600"
+                                />
+                                <span className="text-xs font-semibold text-sky-900">
+                                  Include Departure on Final Day
+                                </span>
+                              </label>
+                            </div>
                           </div>
 
-                          {(day.departureDetails?.enabled ?? true) && (
+                          {(day.departureDetails ? day.departureDetails.enabled : true) && (
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
                               <div>
                                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
@@ -3501,38 +3648,48 @@ export default function ItineraryBuilder({
                           </div>
 
                           {/* Overnight Stay City selection for multi-city */}
-                          <div className="p-3 bg-white rounded-xl border border-purple-200 flex flex-wrap items-center justify-between gap-3 text-xs">
-                            <div>
-                              <span className="font-bold text-slate-800 block">
-                                Which city is the overnight stay?
-                              </span>
-                              <span className="text-[11px] text-slate-500">
-                                Current overnight: <strong className="text-purple-700">{day.overnightLocation}</strong>
-                              </span>
+                          {day.departureDetails?.enabled ? (
+                            <div className="p-3 bg-sky-50/80 rounded-xl border border-dashed border-sky-200 flex items-center gap-2.5 text-xs text-sky-900">
+                              <Plane className="w-4 h-4 text-sky-600 flex-shrink-0" />
+                              <div>
+                                <span className="font-bold block">Overnight Stay Not Applicable</span>
+                                <span className="text-[11px] text-sky-700">Departure scheduled on this day. Hotel and overnight stay are disabled.</span>
+                              </div>
                             </div>
-                            <select
-                              value={day.overnightLocation}
-                              onChange={(e) => handleUpdateDayField(dayIndex, 'overnightLocation', e.target.value)}
-                              className="font-bold text-xs bg-purple-50 border border-purple-300 rounded-lg px-3 py-1.5 text-purple-950 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                            >
-                              <optgroup label="Cities in Today's Circuit">
-                                {day.cities?.map(c => (
-                                  <option key={c.id || c.destination} value={c.destination}>
-                                    Overnight in {c.destination}
-                                  </option>
-                                ))}
-                              </optgroup>
-                              <optgroup label="All Destinations">
-                                {localDestinations
-                                  .filter(d => !day.cities?.some(c => c.destination.toLowerCase() === d.name.toLowerCase()))
-                                  .map(d => (
-                                    <option key={d.id} value={d.name}>
-                                      Overnight in {d.name} ({d.state})
+                          ) : (
+                            <div className="p-3 bg-white rounded-xl border border-purple-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                              <div>
+                                <span className="font-bold text-slate-800 block">
+                                  Which city is the overnight stay?
+                                </span>
+                                <span className="text-[11px] text-slate-500">
+                                  Current overnight: <strong className="text-purple-700">{day.overnightLocation}</strong>
+                                </span>
+                              </div>
+                              <select
+                                value={day.overnightLocation}
+                                onChange={(e) => handleUpdateDayField(dayIndex, 'overnightLocation', e.target.value)}
+                                className="font-bold text-xs bg-purple-50 border border-purple-300 rounded-lg px-3 py-1.5 text-purple-950 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                              >
+                                <optgroup label="Cities in Today's Circuit">
+                                  {day.cities?.map(c => (
+                                    <option key={c.id || c.destination} value={c.destination}>
+                                      Overnight in {c.destination}
                                     </option>
                                   ))}
-                              </optgroup>
-                            </select>
-                          </div>
+                                </optgroup>
+                                <optgroup label="All Destinations">
+                                  {localDestinations
+                                    .filter(d => !day.cities?.some(c => c.destination.toLowerCase() === d.name.toLowerCase()))
+                                    .map(d => (
+                                      <option key={d.id} value={d.name}>
+                                        Overnight in {d.name} ({d.state})
+                                      </option>
+                                    ))}
+                                </optgroup>
+                              </select>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         /* SINGLE DESTINATION DAY */
@@ -3608,62 +3765,74 @@ export default function ItineraryBuilder({
                             </div>
 
                             {/* Overnight Stay Checkbox & Location */}
-                            <div>
-                              <div className="flex items-center justify-between mb-1">
-                                <label className="text-xs font-semibold text-slate-800">
+                            {day.departureDetails?.enabled ? (
+                              <div>
+                                <label className="text-xs font-semibold text-slate-800 block mb-1">
                                   Overnight Stay Location
                                 </label>
-                                <div className="flex items-center gap-2">
-                                  {!day.isOvernightSameLocation && (
-                                    <button
-                                      type="button"
-                                      onClick={() => setCustomOvernightMode(prev => ({ ...prev, [dayIndex]: !prev[dayIndex] }))}
-                                      className="text-[11px] text-amber-700 hover:text-amber-900 font-medium flex items-center gap-1 hover:underline"
-                                    >
-                                      <Edit2 className="w-2.5 h-2.5" />
-                                      <span>{customOvernightMode[dayIndex] ? 'Select List' : 'Custom'}</span>
-                                    </button>
-                                  )}
-                                  <label className="inline-flex items-center gap-1.5 cursor-pointer">
-                                    <input
-                                      type="checkbox"
-                                      checked={day.isOvernightSameLocation}
-                                      onChange={(e) => handleUpdateDayField(dayIndex, 'isOvernightSameLocation', e.target.checked)}
-                                      className="w-3.5 h-3.5 rounded text-indigo-600"
-                                    />
-                                    <span className="text-[11px] font-medium text-indigo-900">
-                                      Same as sightseeing ({day.destination})
-                                    </span>
-                                  </label>
+                                <div className="p-2.5 rounded-lg bg-sky-50/80 border border-dashed border-sky-200 text-xs text-sky-900 flex items-center gap-2">
+                                  <Plane className="w-3.5 h-3.5 text-sky-600 flex-shrink-0" />
+                                  <span className="text-[11px]"><strong>Departure Day:</strong> No overnight stay scheduled for this day.</span>
                                 </div>
                               </div>
-
-                              {day.isOvernightSameLocation ? (
-                                <div className="px-3 py-2 text-xs bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 font-medium">
-                                  Overnight in {day.destination} (Local Stay)
+                            ) : (
+                              <div>
+                                <div className="flex items-center justify-between mb-1">
+                                  <label className="text-xs font-semibold text-slate-800">
+                                    Overnight Stay Location
+                                  </label>
+                                  <div className="flex items-center gap-2">
+                                    {!day.isOvernightSameLocation && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setCustomOvernightMode(prev => ({ ...prev, [dayIndex]: !prev[dayIndex] }))}
+                                        className="text-[11px] text-amber-700 hover:text-amber-900 font-medium flex items-center gap-1 hover:underline"
+                                      >
+                                        <Edit2 className="w-2.5 h-2.5" />
+                                        <span>{customOvernightMode[dayIndex] ? 'Select List' : 'Custom'}</span>
+                                      </button>
+                                    )}
+                                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={day.isOvernightSameLocation}
+                                        onChange={(e) => handleUpdateDayField(dayIndex, 'isOvernightSameLocation', e.target.checked)}
+                                        className="w-3.5 h-3.5 rounded text-indigo-600"
+                                      />
+                                      <span className="text-[11px] font-medium text-indigo-900">
+                                        Same as sightseeing ({day.destination})
+                                      </span>
+                                    </label>
+                                  </div>
                                 </div>
-                              ) : customOvernightMode[dayIndex] ? (
-                                <input
-                                  type="text"
-                                  value={day.overnightLocation}
-                                  onChange={(e) => handleUpdateDayField(dayIndex, 'overnightLocation', e.target.value)}
-                                  placeholder="Type overnight city..."
-                                  className="w-full px-3 py-2 text-xs bg-amber-50/50 border border-amber-300 rounded-lg focus:outline-none font-semibold text-slate-900"
-                                />
-                              ) : (
-                                <select
-                                  value={day.overnightLocation}
-                                  onChange={(e) => handleUpdateDayField(dayIndex, 'overnightLocation', e.target.value)}
-                                  className="w-full px-3 py-2 text-xs bg-white border border-amber-300 rounded-lg focus:outline-none font-medium text-amber-900"
-                                >
-                                  {localDestinations.map((d) => (
-                                    <option key={d.id} value={d.name}>
-                                      Overnight in {d.name}
-                                    </option>
-                                  ))}
-                                </select>
-                              )}
-                            </div>
+
+                                {day.isOvernightSameLocation ? (
+                                  <div className="px-3 py-2 text-xs bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 font-medium">
+                                    Overnight in {day.destination} (Local Stay)
+                                  </div>
+                                ) : customOvernightMode[dayIndex] ? (
+                                  <input
+                                    type="text"
+                                    value={day.overnightLocation}
+                                    onChange={(e) => handleUpdateDayField(dayIndex, 'overnightLocation', e.target.value)}
+                                    placeholder="Type overnight city..."
+                                    className="w-full px-3 py-2 text-xs bg-amber-50/50 border border-amber-300 rounded-lg focus:outline-none font-semibold text-slate-900"
+                                  />
+                                ) : (
+                                  <select
+                                    value={day.overnightLocation}
+                                    onChange={(e) => handleUpdateDayField(dayIndex, 'overnightLocation', e.target.value)}
+                                    className="w-full px-3 py-2 text-xs bg-white border border-amber-300 rounded-lg focus:outline-none font-medium text-amber-900"
+                                  >
+                                    {localDestinations.map((d) => (
+                                      <option key={d.id} value={d.name}>
+                                        Overnight in {d.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
+                              </div>
+                            )}
                           </div>
 
                           {/* Automatic Transfer Alert when overnight differs */}
@@ -3823,15 +3992,14 @@ export default function ItineraryBuilder({
                         
                         {/* Hotel Selection */}
                         {(() => {
-                          const isLastDay = dayIndex === itinerary.days.length - 1;
-                          const isDepartureActive = isLastDay && Boolean(day.departureDetails?.enabled);
+                          const isDepartureActive = Boolean(day.departureDetails?.enabled);
 
                           if (isDepartureActive) {
                             return (
                               <div className="p-3.5 rounded-xl bg-sky-50/60 border border-dashed border-sky-200 text-xs text-sky-800 flex items-center justify-between col-span-1 md:col-span-2">
                                 <div className="flex items-center gap-2">
                                   <Plane className="w-4 h-4 text-sky-600 flex-shrink-0" />
-                                  <span>Hotel accommodation <strong>not applicable</strong>: Departure scheduled on final day (No overnight stay).</span>
+                                  <span>Hotel accommodation <strong>not applicable</strong>: Departure scheduled on this day (No overnight stay).</span>
                                 </div>
                               </div>
                             );

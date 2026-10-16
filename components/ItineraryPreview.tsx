@@ -39,6 +39,7 @@ import { exportElementToPdf } from '@/lib/pdf-export';
 import { getVoucherReferenceNumber } from '@/lib/storage';
 import { COMPREHENSIVE_ATTRACTIONS, COMPREHENSIVE_DESTINATIONS } from '@/lib/catalog-data';
 import { formatDateDMY } from '@/lib/utils';
+import { ensureOvernightStayText } from '@/lib/narrative-generator';
 import { Itinerary, AppSettings, ItineraryDay, Destination, Attraction, HotelStarTier, DayHotelTiers, TierPricingData, PricingTiers, DayHotelSelection } from '@/types';
 import { SafeImage } from './SafeImage';
 
@@ -759,39 +760,29 @@ export default function ItineraryPreview({
                 </div>
               )}
 
-              {/* Passengers & Commercial Summary */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl bg-[#151521] text-white text-xs gap-2">
+              {/* Passengers Summary (Tour Cost omitted from First Page) */}
+              <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#151521] text-white text-xs gap-2">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-amber-400" />
                   <span><strong>Total Guests:</strong> {itinerary.paxSummary}</span>
                 </div>
-                {itinerary.showCostInItinerary && (
-                  <div className="flex items-center gap-3">
-                    {itinerary.hotelTiersEnabled && (
-                      <div className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg text-[10px]">
-                        <span className="text-slate-300">Quote Tier:</span>
-                        {(['3_star', '4_star', '5_star'] as HotelStarTier[]).map(t => (
-                          <button
-                            key={t}
-                            type="button"
-                            onClick={() => handleSwitchTier(t)}
-                            className={`px-1.5 py-0.5 rounded font-bold transition ${
-                              (itinerary.selectedHotelTier || '4_star') === t
-                                ? 'bg-amber-400 text-slate-950 shadow-sm'
-                                : 'text-slate-300 hover:text-white'
-                            }`}
-                          >
-                            {t === '3_star' ? '3★' : t === '4_star' ? '4★' : '5★'}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 text-right">
-                      <span className="text-slate-300 text-[11px]">Total Package Value:</span>
-                      <span className="font-black text-amber-300 text-sm">
-                        {itinerary.currencySymbol}{itinerary.totalCost.toLocaleString('en-IN')}
-                      </span>
-                    </div>
+                {itinerary.hotelTiersEnabled && (
+                  <div className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg text-[10px]">
+                    <span className="text-slate-300">Quote Tier:</span>
+                    {(['3_star', '4_star', '5_star'] as HotelStarTier[]).map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => handleSwitchTier(t)}
+                        className={`px-1.5 py-0.5 rounded font-bold transition ${
+                          (itinerary.selectedHotelTier || '4_star') === t
+                            ? 'bg-amber-400 text-slate-950 shadow-sm'
+                            : 'text-slate-300 hover:text-white'
+                        }`}
+                      >
+                        {t === '3_star' ? '3★' : t === '4_star' ? '4★' : '5★'}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
@@ -1027,7 +1018,7 @@ export default function ItineraryPreview({
                     {/* Sightseeing Narrative Description */}
                     {day.description && day.description.trim() ? (
                       <div className="text-xs text-slate-700 leading-relaxed font-sans">
-                        {renderFormattedDescription(day.description)}
+                        {renderFormattedDescription(ensureOvernightStayText(day.description, day))}
                       </div>
                     ) : null}
 
@@ -1097,8 +1088,8 @@ export default function ItineraryPreview({
                       );
                     })()}
 
-                    {/* Hotel & Night Stay */}
-                    {itinerary.includeHotels !== false && !(day.dayNumber === itinerary.days.length && day.departureDetails?.enabled) && (
+                    {/* Hotel & Night Stay (Completely omitted when Departure is active) */}
+                    {itinerary.includeHotels !== false && !day.departureDetails?.enabled && (
                       <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px] flex items-center justify-between text-slate-700">
                         <div className="flex items-center gap-1.5">
                           <Building2 className="w-3.5 h-3.5 text-indigo-600" />
@@ -1211,7 +1202,7 @@ export default function ItineraryPreview({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700 text-[11px]">
-                          {itinerary.days.filter((day, idx) => !(idx === itinerary.days.length - 1 && day.departureDetails?.enabled)).map((day) => {
+                          {itinerary.days.filter((day) => !day.departureDetails?.enabled).map((day) => {
                             const t3 = day.hotelTiers?.threeStar;
                             const t4 = day.hotelTiers?.fourStar;
                             const t5 = day.hotelTiers?.fiveStar;
@@ -1256,7 +1247,7 @@ export default function ItineraryPreview({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700 text-[11px]">
-                          {itinerary.days.filter((day, idx) => !(idx === itinerary.days.length - 1 && day.departureDetails?.enabled)).map((day) => {
+                          {itinerary.days.filter((day) => !day.departureDetails?.enabled).map((day) => {
                             const activeTierKey = itinerary.selectedHotelTier === '3_star' ? 'threeStar' : itinerary.selectedHotelTier === '5_star' ? 'fiveStar' : 'fourStar';
                             const displayedHotel = (itinerary.hotelTiersEnabled && day.hotelTiers?.[activeTierKey]) ? day.hotelTiers[activeTierKey] : day.hotel;
                             return (

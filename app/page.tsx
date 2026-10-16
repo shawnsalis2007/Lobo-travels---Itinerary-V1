@@ -83,7 +83,6 @@ export default function Home() {
 
   // Active Itinerary for Builder, Preview, or Voucher
   const [selectedItinerary, setSelectedItinerary] = useState<Itinerary | null>(null);
-  const [initialAiPrompt, setInitialAiPrompt] = useState<string>('');
 
   // Handlers
   const handleNewItinerary = () => {
@@ -174,15 +173,6 @@ export default function Home() {
     };
 
     setSelectedItinerary(blankItinerary);
-    setInitialAiPrompt('');
-    setActiveTab('builder');
-  };
-
-  const handleNewItineraryWithPrompt = (promptText: string, generatedItinerary?: Itinerary) => {
-    if (generatedItinerary) {
-      setSelectedItinerary(generatedItinerary);
-    }
-    setInitialAiPrompt(promptText);
     setActiveTab('builder');
   };
 
@@ -317,7 +307,6 @@ export default function Home() {
             vehicles={vehicles}
             settings={settings}
             onNewItinerary={handleNewItinerary}
-            onNewItineraryWithPrompt={handleNewItineraryWithPrompt}
             onViewItinerary={handleViewItinerary}
             onEditItinerary={handleEditItinerary}
             onDuplicateItinerary={handleDuplicate}
@@ -338,7 +327,6 @@ export default function Home() {
             vehicles={vehicles}
             settings={settings}
             onNewItinerary={handleNewItinerary}
-            onNewItineraryWithPrompt={handleNewItineraryWithPrompt}
             onViewItinerary={handleViewItinerary}
             onEditItinerary={handleEditItinerary}
             onDuplicateItinerary={handleDuplicate}
@@ -358,7 +346,6 @@ export default function Home() {
             hotels={hotels}
             vehicles={vehicles}
             settings={settings}
-            initialPrompt={initialAiPrompt}
             onSaveDraft={handleSaveDraft}
             onGeneratePreview={handleGeneratePreview}
             onCancel={() => setActiveTab('dashboard')}

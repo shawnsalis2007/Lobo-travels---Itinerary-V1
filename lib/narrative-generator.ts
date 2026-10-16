@@ -98,7 +98,6 @@ export function generateAutoDayDescription(
       bullets.push(`• Following the day's tour and travel, transfer to your hotel for smooth check-in and relaxation.`);
     }
 
-    // Departure logistics if configured on this day
     if (day.departureDetails?.enabled) {
       const dep = day.departureDetails;
       const pointStr = dep.point === 'Airport' ? 'Airport' : dep.point === 'Railway Station' ? 'Railway Station' : dep.point;
@@ -108,8 +107,9 @@ export function generateAutoDayDescription(
       bullets.push(`• Later, transfer to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished travel memories.`);
     }
 
-    if (day.overnightLocation && !day.departureDetails?.enabled && !isLastDay) {
-      bullets.push(`• Overnight stay at your designated hotel in ${day.overnightLocation}.`);
+    if (!day.departureDetails?.enabled) {
+      const stayCity = day.overnightLocation || day.destination;
+      bullets.push(`• Overnight stay in ${stayCity}.`);
     }
 
     return bullets.join('\n');
@@ -164,7 +164,7 @@ export function generateAutoDayDescription(
   }
 
   // Highway transfer to overnight location without mentioning Kms or hours
-  if (!day.departureDetails?.enabled && !isLastDay && !day.isOvernightSameLocation && day.overnightLocation && day.overnightLocation.toLowerCase() !== day.destination.toLowerCase()) {
+  if (!day.departureDetails?.enabled && !day.isOvernightSameLocation && day.overnightLocation && day.overnightLocation.toLowerCase() !== day.destination.toLowerCase()) {
     if (includeHotels) {
       bullets.push(`• Later in the afternoon, commence your comfortable highway drive to ${day.overnightLocation}. Upon arrival, check-in to your hotel.`);
     } else {
@@ -182,13 +182,36 @@ export function generateAutoDayDescription(
     bullets.push(`• Later, you will be transferred to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished memories.`);
   }
 
-  if (!day.departureDetails?.enabled && !isLastDay) {
-    if (includeHotels) {
-      bullets.push(`• Overnight stay at your designated hotel in ${day.overnightLocation || day.destination}.`);
-    } else {
-      bullets.push(`• Overnight in ${day.overnightLocation || day.destination}.`);
-    }
+  if (!day.departureDetails?.enabled) {
+    const stayCity = day.overnightLocation || day.destination;
+    bullets.push(`• Overnight stay in ${stayCity}.`);
   }
 
   return bullets.join('\n');
+}
+
+/**
+ * Standardizes day description text by ensuring "Overnight stay in [City Name]."
+ * is appended at the end of each day's description, except when Departure is active.
+ */
+export function ensureOvernightStayText(description: string, day: ItineraryDay): string {
+  let desc = (description || '').trim();
+  const stayCity = day.overnightLocation || day.destination || 'the destination';
+
+  if (day.departureDetails?.enabled) {
+    // Departure is active: completely remove any overnight stay line
+    desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+at\s+your\s+designated\s+hotel\s+in\s+[^\n.]*\.?/gi, '');
+    desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+in\s+[^\n.]*\.?/gi, '');
+    desc = desc.replace(/\n?\s*•?\s*Overnight\s+in\s+[^\n.]*\.?/gi, '');
+    return desc.trim();
+  }
+
+  // Departure is NOT active: ensure "Overnight stay in [City Name]." is at the end
+  desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+at\s+your\s+designated\s+hotel\s+in\s+[^\n.]*\.?/gi, '');
+  desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+in\s+[^\n.]*\.?/gi, '');
+  desc = desc.replace(/\n?\s*•?\s*Overnight\s+in\s+[^\n.]*\.?/gi, '');
+  desc = desc.trim();
+
+  const overnightLine = `• Overnight stay in ${stayCity}.`;
+  return desc ? `${desc}\n${overnightLine}` : overnightLine;
 }

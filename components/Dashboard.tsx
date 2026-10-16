@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import { Itinerary, BookingStatus, Destination, Attraction, Hotel, VehicleOption, AppSettings } from '@/types';
 import { formatDateDMY } from '@/lib/utils';
-import NaturalLanguageChatBar from './NaturalLanguageChatBar';
 
 interface DashboardProps {
   itineraries: Itinerary[];
@@ -36,7 +35,6 @@ interface DashboardProps {
   vehicles?: VehicleOption[];
   settings?: AppSettings;
   onNewItinerary: () => void;
-  onNewItineraryWithPrompt?: (prompt: string, generatedItinerary?: Itinerary) => void;
   onViewItinerary: (id: string) => void;
   onEditItinerary: (id: string) => void;
   onDuplicateItinerary: (id: string) => void;
@@ -54,7 +52,6 @@ export default function Dashboard({
   vehicles,
   settings,
   onNewItinerary,
-  onNewItineraryWithPrompt,
   onViewItinerary,
   onEditItinerary,
   onDuplicateItinerary,
@@ -173,19 +170,6 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* Free Natural Language Assistant Bar on Dashboard */}
-      {destinations && attractions && hotels && vehicles && onNewItineraryWithPrompt && (
-        <NaturalLanguageChatBar
-          destinations={destinations}
-          attractions={attractions}
-          hotels={hotels}
-          vehicles={vehicles}
-          settings={settings}
-          onApplyItinerary={(itn, params) => {
-            onNewItineraryWithPrompt(params.rawPrompt, itn);
-          }}
-        />
-      )}
 
       {/* Top Statistics Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">

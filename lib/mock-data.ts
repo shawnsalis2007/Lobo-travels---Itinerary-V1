@@ -680,7 +680,7 @@ export const INITIAL_ITINERARIES: Itinerary[] = [
         destination: 'Agra',
         attractionIds: ['agra-taj-mahal', 'agra-fort', 'fs-buland-darwaza'],
         attractionNames: ['Taj Mahal (Sunrise / Daytime Tour)', 'Agra Fort (Lal Qila of Agra)', 'Buland Darwaza & Jama Masjid'],
-        description: 'Morning check-out from hotel in Agra. In Agra, proceed for sightseeing including Taj Mahal (Sunrise / Daytime Tour), Agra Fort (Lal Qila of Agra). Later, embark on a comfortable highway drive to Jaipur via Fatehpur Sikri & Bharatpur. Upon arrival in Jaipur, transfer and check-in at your designated hotel. Breakfast and dinner are included for the day. Overnight stay at your designated hotel in Jaipur.',
+        description: 'Morning check-out from hotel in Agra. In Agra, proceed for sightseeing including Taj Mahal (Sunrise / Daytime Tour), Agra Fort (Lal Qila of Agra). Later, embark on a comfortable highway drive to Jaipur via Fatehpur Sikri & Bharatpur. Upon arrival in Jaipur, transfer and check-in at your designated hotel. Breakfast and dinner are included for the day. Overnight stay in Jaipur.',
         isOvernightSameLocation: false,
         overnightLocation: 'Jaipur',
         isMultiCity: true,

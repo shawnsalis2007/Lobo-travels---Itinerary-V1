@@ -285,9 +285,15 @@ export default function TravelVoucherView({
                         <span>
                           Day {day.dayNumber} — {day.isMultiCity ? (day.cities?.map(c => c.destination).join(' → ') || day.destination) : day.destination}
                         </span>
-                        <span className="text-[10px] text-slate-500 font-normal">
-                          Overnight: {day.overnightLocation}
-                        </span>
+                        {day.departureDetails?.enabled ? (
+                          <span className="text-[10px] text-sky-700 font-semibold bg-sky-100/70 px-1.5 py-0.5 rounded">
+                            Departure Day
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-500 font-normal">
+                            Overnight: {day.overnightLocation}
+                          </span>
+                        )}
                       </div>
 
                       {/* Day 1 Arrival Info */}
@@ -372,7 +378,7 @@ export default function TravelVoucherView({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-slate-700 text-[10px]">
-                        {itinerary.days.filter((day, idx) => !(idx === itinerary.days.length - 1 && day.departureDetails?.enabled)).map((day) => (
+                        {itinerary.days.filter((day) => !day.departureDetails?.enabled).map((day) => (
                           <tr key={day.id} className="hover:bg-slate-50/50">
                             <td className="py-1.5 px-3 font-semibold text-slate-900">
                               Day {day.dayNumber}
