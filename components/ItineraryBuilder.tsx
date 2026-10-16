@@ -67,9 +67,9 @@ import { PRESET_ROUTES } from '@/lib/mock-data';
 import { INTERCITY_ROUTES } from '@/lib/catalog-data';
 import { saveAttraction as persistAttraction, saveDestination as persistDestination } from '@/lib/storage';
 import { SafeImage } from './SafeImage';
-import { generateAutoDayDescription, ensureOvernightStayText } from '@/lib/narrative-generator';
+import { generateAutoDayDescription, ensureOvernightStayText, getRouteSubtitle } from '@/lib/narrative-generator';
 
-export { generateAutoDayDescription, ensureOvernightStayText };
+export { generateAutoDayDescription, ensureOvernightStayText, getRouteSubtitle };
 
 export const COVER_IMAGE_PRESETS = [
   { name: 'Taj Mahal (Agra)', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80' },
@@ -269,7 +269,7 @@ export default function ItineraryBuilder({
     const defaultDay: ItineraryDay = {
       id: 'day-' + Date.now(),
       dayNumber: 1,
-      title: 'Arrival & Welcome Orientation',
+      title: 'Arrival in Delhi',
       destination: 'Delhi',
       attractionIds: [],
       attractionNames: [],
@@ -1057,6 +1057,7 @@ export default function ItineraryBuilder({
     const targetDay = { ...updatedDays[dayIndex] };
     const currentArrival = targetDay.arrivalDetails || {
       enabled: true,
+      transitType: 'flight',
       point: 'Airport',
       flightOrTrainNumber: '',
       arrivalTime: '',
@@ -1077,6 +1078,7 @@ export default function ItineraryBuilder({
     const targetDay = { ...updatedDays[dayIndex] };
     const currentDeparture = targetDay.departureDetails || {
       enabled: false,
+      transitType: 'flight',
       point: 'Airport',
       flightOrTrainNumber: '',
       departureTime: '',
@@ -2858,8 +2860,13 @@ export default function ItineraryBuilder({
                               className="font-bold text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-amber-500 focus:outline-none"
                             />
                           </div>
-                          <span className="text-[11px] text-slate-400">
-                            Day {day.dayNumber} · Sightseeing: <strong>{day.isMultiCity ? (day.cities?.map(c => c.destination).join(' & ') || day.destination) : day.destination}</strong> · Overnight: <strong>{day.overnightLocation}</strong>
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            Day {day.dayNumber} · <strong className="text-slate-800">{getRouteSubtitle(day)}</strong>
+                            {day.departureDetails?.enabled ? (
+                              <> · <span className="text-sky-700 font-semibold">Drop-off: {day.departureDetails.point}</span></>
+                            ) : (
+                              day.overnightLocation ? <> · Overnight: <strong className="text-slate-700">{day.overnightLocation}</strong></> : null
+                            )}
                           </span>
                         </div>
                       </div>
@@ -2911,7 +2918,11 @@ export default function ItineraryBuilder({
                         <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200 space-y-3">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
-                              <Plane className="w-4 h-4 text-indigo-600" />
+                              {(day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train' ? (
+                                <Train className="w-4 h-4 text-indigo-600" />
+                              ) : (
+                                <Plane className="w-4 h-4 text-indigo-600" />
+                              )}
                               Day 1 Guest Arrival & Check-in Logistics
                             </span>
 
@@ -2929,7 +2940,50 @@ export default function ItineraryBuilder({
                           </div>
 
                           {(day.arrivalDetails?.enabled ?? true) && (
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-xs">
+                              {/* Flight vs Railway Logistics Mode Toggle */}
+                              <div>
+                                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                  Logistics Mode
+                                </label>
+                                <div className="flex items-center rounded-lg bg-white border border-indigo-200 p-0.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleUpdateArrivalDetails(dayIndex, {
+                                        transitType: 'flight',
+                                        point: day.arrivalDetails?.point === 'Railway Station' ? 'Airport' : (day.arrivalDetails?.point || 'Airport')
+                                      });
+                                    }}
+                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                      (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'flight'
+                                        ? 'bg-indigo-600 text-white shadow-2xs'
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    <Plane className="w-3.5 h-3.5" />
+                                    <span>Flight</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleUpdateArrivalDetails(dayIndex, {
+                                        transitType: 'train',
+                                        point: day.arrivalDetails?.point === 'Airport' ? 'Railway Station' : (day.arrivalDetails?.point || 'Railway Station')
+                                      });
+                                    }}
+                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                      (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                        ? 'bg-indigo-600 text-white shadow-2xs'
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    <Train className="w-3.5 h-3.5" />
+                                    <span>Railway</span>
+                                  </button>
+                                </div>
+                              </div>
+
                               <div>
                                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                                   Arrival Point
@@ -2949,14 +3003,20 @@ export default function ItineraryBuilder({
 
                               <div>
                                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  Flight / Train No. or Terminal
+                                  {(day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                    ? 'Train Number & Name / Station'
+                                    : 'Flight Number & Terminal'}
                                 </label>
                                 <input
                                   type="text"
-                                  placeholder="e.g. IndiGo 6E-204 / T3"
+                                  placeholder={
+                                    (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                      ? 'e.g. 12002 Shatabdi Express / NDLS'
+                                      : 'e.g. IndiGo 6E-204 / T3'
+                                  }
                                   value={day.arrivalDetails?.flightOrTrainNumber || ''}
                                   onChange={(e) => handleUpdateArrivalDetails(dayIndex, { flightOrTrainNumber: e.target.value })}
-                                  className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg focus:outline-none"
+                                  className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg focus:outline-none font-mono"
                                 />
                               </div>
 
@@ -2974,7 +3034,7 @@ export default function ItineraryBuilder({
                               </div>
 
                               {/* Hotel Check-in Inclusion & Timing */}
-                              <div className="sm:col-span-3 pt-3 border-t border-indigo-100 space-y-2">
+                              <div className="col-span-1 sm:col-span-2 md:col-span-4 pt-3 border-t border-indigo-100 space-y-2">
                                 <div className="flex items-center justify-between">
                                   <label className="inline-flex items-center gap-2 cursor-pointer font-bold text-xs text-indigo-950">
                                     <input
@@ -3028,10 +3088,14 @@ export default function ItineraryBuilder({
                         <div className="p-4 rounded-xl bg-sky-50/70 border border-sky-200 space-y-3">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
-                              <Plane className="w-4 h-4 text-sky-600" />
+                              {(day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train' ? (
+                                <Train className="w-4 h-4 text-sky-600" />
+                              ) : (
+                                <Plane className="w-4 h-4 text-sky-600" />
+                              )}
                               <div>
                                 <span className="text-xs font-bold text-sky-950 block">
-                                  Day {day.dayNumber} Guest Departure & Airport / Station Logistics
+                                  Day {day.dayNumber} Guest Departure Logistics
                                 </span>
                                 <span className="text-[10px] text-sky-700">
                                   {itinerary.flightBookings?.flightsBookedByUs ? 'Linked with Confirmed Return Flight' : 'Final day airport / railway station departure drop'}
@@ -3048,6 +3112,7 @@ export default function ItineraryBuilder({
                                     if (depFlight) {
                                       handleUpdateDepartureDetails(dayIndex, {
                                         enabled: true,
+                                        transitType: 'flight',
                                         point: 'Airport',
                                         flightOrTrainNumber: `${depFlight.airline || ''} ${depFlight.flightNumber || ''}`.trim(),
                                         departureTime: depFlight.departureTime || '',
@@ -3076,7 +3141,50 @@ export default function ItineraryBuilder({
                           </div>
 
                           {Boolean(day.departureDetails?.enabled) && (
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-xs">
+                              {/* Flight vs Railway Logistics Mode Toggle */}
+                              <div>
+                                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                  Logistics Mode
+                                </label>
+                                <div className="flex items-center rounded-lg bg-white border border-sky-200 p-0.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleUpdateDepartureDetails(dayIndex, {
+                                        transitType: 'flight',
+                                        point: day.departureDetails?.point === 'Railway Station' ? 'Airport' : (day.departureDetails?.point || 'Airport')
+                                      });
+                                    }}
+                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                      (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'flight'
+                                        ? 'bg-sky-600 text-white shadow-2xs'
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    <Plane className="w-3.5 h-3.5" />
+                                    <span>Flight</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleUpdateDepartureDetails(dayIndex, {
+                                        transitType: 'train',
+                                        point: day.departureDetails?.point === 'Airport' ? 'Railway Station' : (day.departureDetails?.point || 'Railway Station')
+                                      });
+                                    }}
+                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                      (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                        ? 'bg-sky-600 text-white shadow-2xs'
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    <Train className="w-3.5 h-3.5" />
+                                    <span>Railway</span>
+                                  </button>
+                                </div>
+                              </div>
+
                               <div>
                                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                                   Departure Point / Drop-Off
@@ -3096,11 +3204,17 @@ export default function ItineraryBuilder({
 
                               <div>
                                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  Flight / Train No. or Terminal
+                                  {(day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                    ? 'Train Number & Name / Station'
+                                    : 'Flight Number & Terminal'}
                                 </label>
                                 <input
                                   type="text"
-                                  placeholder="e.g. Air India AI-402 / T2"
+                                  placeholder={
+                                    (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                      ? 'e.g. 20171 Vande Bharat Express'
+                                      : 'e.g. Air India AI-402 / T2'
+                                  }
                                   value={day.departureDetails?.flightOrTrainNumber || ''}
                                   onChange={(e) => handleUpdateDepartureDetails(dayIndex, { flightOrTrainNumber: e.target.value })}
                                   className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg focus:outline-none font-mono"

@@ -34,6 +34,7 @@ export interface DayTransfer {
 
 export interface DayArrivalDetails {
   enabled: boolean;
+  transitType?: 'flight' | 'train';
   point: 'Airport' | 'Railway Station' | 'Bus Terminal' | 'Hotel Pickup' | 'Other';
   flightOrTrainNumber?: string;
   arrivalTime?: string;
@@ -45,6 +46,7 @@ export interface DayArrivalDetails {
 
 export interface DayDepartureDetails {
   enabled: boolean;
+  transitType?: 'flight' | 'train';
   point: 'Airport' | 'Railway Station' | 'Bus Terminal' | 'Hotel Drop' | 'Other';
   flightOrTrainNumber?: string;
   departureTime?: string;

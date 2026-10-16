@@ -613,7 +613,7 @@ export function generateItineraryFromPrompt(
     // Day Title
     let dayTitle = `Day ${dayNum} Sightseeing`;
     if (dayNum === 1) {
-      dayTitle = `Arrival in ${currentDest} & Welcome Orientation`;
+      dayTitle = `Arrival in ${currentDest}`;
     } else if (dayNum === daysCount) {
       dayTitle = `${currentDest} Sightseeing & Departure Transfer`;
     } else if (isChangingDest) {
@@ -646,6 +646,7 @@ export function generateItineraryFromPrompt(
     if (dayNum === 1) {
       dayObj.arrivalDetails = {
         enabled: true,
+        transitType: 'flight',
         point: 'Airport',
         flightOrTrainNumber: 'IndiGo 6E-204',
         arrivalTime: '09:30 AM',
@@ -658,6 +659,7 @@ export function generateItineraryFromPrompt(
     if (dayNum === daysCount) {
       dayObj.departureDetails = {
         enabled: false,
+        transitType: 'flight',
         point: 'Airport',
         departureTime: '18:30 PM',
         dropLocation: currentDest

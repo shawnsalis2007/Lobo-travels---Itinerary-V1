@@ -39,7 +39,7 @@ import { exportElementToPdf } from '@/lib/pdf-export';
 import { getVoucherReferenceNumber } from '@/lib/storage';
 import { COMPREHENSIVE_ATTRACTIONS, COMPREHENSIVE_DESTINATIONS } from '@/lib/catalog-data';
 import { formatDateDMY } from '@/lib/utils';
-import { ensureOvernightStayText } from '@/lib/narrative-generator';
+import { ensureOvernightStayText, getRouteSubtitle } from '@/lib/narrative-generator';
 import { Itinerary, AppSettings, ItineraryDay, Destination, Attraction, HotelStarTier, DayHotelTiers, TierPricingData, PricingTiers, DayHotelSelection } from '@/types';
 import { SafeImage } from './SafeImage';
 
@@ -849,29 +849,19 @@ export default function ItineraryPreview({
                             {day.title}
                           </h4>
                           {(() => {
-                            const isLastDay = day.dayNumber === itinerary.days.length;
                             const isDepartureActive = Boolean(day.departureDetails?.enabled);
-                            const hasSightseeing = Boolean(
-                              (day.attractionNames && day.attractionNames.length > 0) ||
-                              (day.attractionIds && day.attractionIds.length > 0)
-                            );
 
                             return (
                               <div className="text-[10px] text-slate-500 font-medium">
-                                {(!isLastDay || hasSightseeing) && (
+                                <strong>{getRouteSubtitle(day)}</strong>
+                                {!isDepartureActive && day.overnightLocation && itinerary.includeHotels !== false && (
                                   <>
-                                    Sightseeing: <strong>{day.isMultiCity ? (day.cities?.map(c => c.destination).join(' & ') || day.destination) : day.destination}</strong>
-                                    {(!isLastDay && !isDepartureActive && day.overnightLocation && itinerary.includeHotels !== false) || (isLastDay || isDepartureActive) ? ' · ' : ''}
+                                    {' · '}Overnight: <strong>{day.overnightLocation}</strong>
                                   </>
                                 )}
-                                {!isLastDay && !isDepartureActive && itinerary.includeHotels !== false && day.overnightLocation && (
+                                {isDepartureActive && (
                                   <>
-                                    Overnight: <strong>{day.overnightLocation}</strong>
-                                  </>
-                                )}
-                                {(isDepartureActive || isLastDay) && (
-                                  <>
-                                    Drop-off: <strong>{day.departureDetails?.point || 'Airport / Station'}</strong>
+                                    {' · '}Drop-off: <strong>{day.departureDetails?.point || 'Airport / Station'}</strong>
                                     {day.departureDetails?.flightOrTrainNumber ? ` (${day.departureDetails.flightOrTrainNumber})` : ''}
                                     {day.departureDetails?.departureTime ? ` at ${day.departureDetails.departureTime}` : ''}
                                   </>
@@ -892,52 +882,66 @@ export default function ItineraryPreview({
                     </div>
 
                     {/* Day 1 Arrival Banner if enabled */}
-                    {day.dayNumber === 1 && day.arrivalDetails?.enabled && (
-                      <div className="p-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-xs flex items-center justify-between text-indigo-950">
-                        <div className="flex items-center gap-2">
-                          <Plane className="w-3.5 h-3.5 text-indigo-600" />
-                          <span className="font-bold">Arrival: {day.arrivalDetails.point}</span>
-                          {day.arrivalDetails.flightOrTrainNumber && (
-                            <span className="text-[11px] font-mono text-indigo-800">
-                              ({day.arrivalDetails.flightOrTrainNumber})
-                            </span>
-                          )}
-                          {day.arrivalDetails.arrivalTime && (
-                            <span className="text-[11px] text-indigo-700">
-                              at {day.arrivalDetails.arrivalTime}
+                    {day.dayNumber === 1 && day.arrivalDetails?.enabled && (() => {
+                      const isTrain = day.arrivalDetails.transitType === 'train' || day.arrivalDetails.point === 'Railway Station';
+                      return (
+                        <div className="p-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-xs flex items-center justify-between text-indigo-950">
+                          <div className="flex items-center gap-2">
+                            {isTrain ? (
+                              <Train className="w-3.5 h-3.5 text-indigo-600" />
+                            ) : (
+                              <Plane className="w-3.5 h-3.5 text-indigo-600" />
+                            )}
+                            <span className="font-bold">Arrival: {day.arrivalDetails.point}</span>
+                            {day.arrivalDetails.flightOrTrainNumber && (
+                              <span className="text-[11px] font-mono text-indigo-800">
+                                ({day.arrivalDetails.flightOrTrainNumber})
+                              </span>
+                            )}
+                            {day.arrivalDetails.arrivalTime && (
+                              <span className="text-[11px] text-indigo-700">
+                                at {day.arrivalDetails.arrivalTime}
+                              </span>
+                            )}
+                          </div>
+                          {itinerary.includeHotels !== false && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-200/60 text-indigo-900">
+                              {day.arrivalDetails.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}
                             </span>
                           )}
                         </div>
-                        {itinerary.includeHotels !== false && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-200/60 text-indigo-900">
-                            {day.arrivalDetails.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}
-                          </span>
-                        )}
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Final Day Departure Banner if enabled */}
-                    {day.departureDetails?.enabled && (
-                      <div className="p-2.5 rounded-lg bg-sky-50 border border-sky-200 text-xs flex items-center justify-between text-sky-950">
-                        <div className="flex items-center gap-2">
-                          <Plane className="w-3.5 h-3.5 text-sky-600" />
-                          <span className="font-bold">Departure / Drop: {day.departureDetails.point}</span>
-                          {day.departureDetails.flightOrTrainNumber && (
-                            <span className="text-[11px] font-mono text-sky-800">
-                              ({day.departureDetails.flightOrTrainNumber})
-                            </span>
-                          )}
-                          {day.departureDetails.departureTime && (
-                            <span className="text-[11px] text-sky-700">
-                              at {day.departureDetails.departureTime}
-                            </span>
-                          )}
+                    {day.departureDetails?.enabled && (() => {
+                      const isTrain = day.departureDetails.transitType === 'train' || day.departureDetails.point === 'Railway Station';
+                      return (
+                        <div className="p-2.5 rounded-lg bg-sky-50 border border-sky-200 text-xs flex items-center justify-between text-sky-950">
+                          <div className="flex items-center gap-2">
+                            {isTrain ? (
+                              <Train className="w-3.5 h-3.5 text-sky-600" />
+                            ) : (
+                              <Plane className="w-3.5 h-3.5 text-sky-600" />
+                            )}
+                            <span className="font-bold">Departure / Drop: {day.departureDetails.point}</span>
+                            {day.departureDetails.flightOrTrainNumber && (
+                              <span className="text-[11px] font-mono text-sky-800">
+                                ({day.departureDetails.flightOrTrainNumber})
+                              </span>
+                            )}
+                            {day.departureDetails.departureTime && (
+                              <span className="text-[11px] text-sky-700">
+                                at {day.departureDetails.departureTime}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-sky-200/60 text-sky-900">
+                            Return Transfer
+                          </span>
                         </div>
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-sky-200/60 text-sky-900">
-                          Return Transfer
-                        </span>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Multi-City Circuit Legs Banner (Car, Flight, Train) */}
                     {day.isMultiCity && day.cities && day.cities.length > 0 && (

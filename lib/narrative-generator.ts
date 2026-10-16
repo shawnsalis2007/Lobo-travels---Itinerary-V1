@@ -216,3 +216,66 @@ export function ensureOvernightStayText(description: string, day: ItineraryDay):
   const overnightLine = `• Overnight stay in ${stayCity}.`;
   return desc ? `${desc}\n${overnightLine}` : overnightLine;
 }
+
+/**
+ * Dynamic Route Subtitle Generator
+ * - Single City: [City Name]
+ * - Multi-City (Drive only, no sightseeing in city 2): Drive from [City 1] to [City 2]
+ * - Multi-City (Sightseeing in both): Sightseeing [City 1], drive to [City 2] and sightseeing
+ * - 3+ Destinations: Structured sequence across destinations
+ */
+export function getRouteSubtitle(day: ItineraryDay): string {
+  if (!day.isMultiCity || !day.cities || day.cities.length === 0) {
+    return day.destination || '';
+  }
+
+  if (day.cities.length === 1) {
+    return day.cities[0].destination || day.destination || '';
+  }
+
+  const cities = day.cities;
+  const hasSight = (c: { skipSightseeing?: boolean; attractionNames?: string[]; attractionIds?: string[] }) =>
+    !c.skipSightseeing &&
+    Boolean((c.attractionNames && c.attractionNames.length > 0) || (c.attractionIds && c.attractionIds.length > 0));
+
+  const transitVerb = (c: { transitType?: string }) => {
+    if (c.transitType === 'flight') return 'flight to';
+    if (c.transitType === 'train') return 'train to';
+    return 'drive to';
+  };
+
+  const transitFromVerb = (c: { transitType?: string }) => {
+    if (c.transitType === 'flight') return 'Flight from';
+    if (c.transitType === 'train') return 'Train from';
+    return 'Drive from';
+  };
+
+  const c0 = cities[0];
+  const c0HasSight = hasSight(c0);
+
+  let subtitle = '';
+  if (c0HasSight) {
+    subtitle = `Sightseeing ${c0.destination}`;
+  } else {
+    subtitle = `${transitFromVerb(c0)} ${c0.destination}`;
+  }
+
+  for (let i = 1; i < cities.length; i++) {
+    const prev = cities[i - 1];
+    const curr = cities[i];
+    const currHasSight = hasSight(curr);
+
+    if (i === 1 && !c0HasSight) {
+      subtitle += ` to ${curr.destination}`;
+    } else {
+      subtitle += `, ${transitVerb(prev)} ${curr.destination}`;
+    }
+
+    if (currHasSight) {
+      subtitle += ' and sightseeing';
+    }
+  }
+
+  return subtitle;
+}
+

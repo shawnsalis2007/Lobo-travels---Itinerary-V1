@@ -139,7 +139,7 @@ export default function Home() {
         {
           id: 'day-1',
           dayNumber: 1,
-          title: 'Arrival in Delhi & Welcome Orientation',
+          title: 'Arrival in Delhi',
           destination: 'Delhi',
           attractionIds: [],
           attractionNames: [],

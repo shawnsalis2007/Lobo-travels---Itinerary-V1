@@ -616,6 +616,7 @@ export const INITIAL_ITINERARIES: Itinerary[] = [
         overnightLocation: 'Delhi',
         arrivalDetails: {
           enabled: true,
+          transitType: 'flight',
           point: 'Airport',
           flightOrTrainNumber: 'IndiGo 6E-204',
           arrivalTime: '09:30 AM',
@@ -765,6 +766,7 @@ export const INITIAL_ITINERARIES: Itinerary[] = [
         overnightLocation: 'Jaipur',
         departureDetails: {
           enabled: false,
+          transitType: 'flight',
           point: 'Airport',
           flightOrTrainNumber: 'Air India AI-402',
           departureTime: '18:45 PM',

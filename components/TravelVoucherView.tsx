@@ -24,6 +24,7 @@ import {
 import { exportElementToPdf } from '@/lib/pdf-export';
 import { getVoucherReferenceNumber, getOperationalBookingByVoucherNo, saveOperationalBooking } from '@/lib/storage';
 import { formatDateDMY } from '@/lib/utils';
+import { getRouteSubtitle } from '@/lib/narrative-generator';
 import { Itinerary, AppSettings, OperationalBooking } from '@/types';
 import BookingCreationModal from '@/components/BookingCreationModal';
 
@@ -283,7 +284,7 @@ export default function TravelVoucherView({
                     <div key={day.id} className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px]">
                       <div className="flex items-center justify-between font-bold text-slate-900 mb-0.5">
                         <span>
-                          Day {day.dayNumber} — {day.isMultiCity ? (day.cities?.map(c => c.destination).join(' → ') || day.destination) : day.destination}
+                          Day {day.dayNumber} — {getRouteSubtitle(day)}
                         </span>
                         {day.departureDetails?.enabled ? (
                           <span className="text-[10px] text-sky-700 font-semibold bg-sky-100/70 px-1.5 py-0.5 rounded">
