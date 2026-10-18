@@ -989,6 +989,14 @@ export default function ItineraryPreview({
                                         <span className="text-emerald-950 font-normal">({city.trainToNext.departureTime} → {city.trainToNext.arrivalTime || ''})</span>
                                       )}
                                     </span>
+                                  ) : city.transitType === 'bus' ? (
+                                    <span className="text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-300 flex items-center gap-1 font-bold text-[10px]">
+                                      <Bus className="w-3 h-3 text-amber-600" />
+                                      <span>Bus {city.busToNext?.operator || ''} {city.busToNext?.busNumber || ''}</span>
+                                      {city.busToNext?.departureTime && (
+                                        <span className="text-amber-950 font-normal">({city.busToNext.departureTime} → {city.busToNext.arrivalTime || ''})</span>
+                                      )}
+                                    </span>
                                   ) : (
                                     <span className="text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-200 flex items-center gap-1 font-semibold text-[10px]">
                                       <Car className="w-3 h-3 text-amber-600" />

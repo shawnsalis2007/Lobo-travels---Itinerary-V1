@@ -54,7 +54,7 @@ export interface DayDepartureDetails {
   notes?: string;
 }
 
-export type InterCityTransitType = 'car' | 'flight' | 'train';
+export type InterCityTransitType = 'car' | 'flight' | 'train' | 'bus';
 
 export interface InterCityFlightDetails {
   flightNumber: string;
@@ -79,6 +79,17 @@ export interface InterCityTrainDetails {
   coachClass?: string;
 }
 
+export interface InterCityBusDetails {
+  busNumber?: string;
+  operator?: string;
+  departureStation?: string;
+  departureTime?: string;
+  arrivalStation?: string;
+  arrivalTime?: string;
+  pnr?: string;
+  seatType?: string;
+}
+
 export interface CitySightseeing {
   id: string;
   destination: string;
@@ -87,7 +98,7 @@ export interface CitySightseeing {
   checkIn?: boolean;
   checkOut?: boolean;
   skipSightseeing?: boolean; // Proceed to next destination without sightseeing in this city
-  transitType?: InterCityTransitType; // 'car' | 'flight' | 'train' (defaults to 'car')
+  transitType?: InterCityTransitType; // 'car' | 'flight' | 'train' | 'bus' (defaults to 'car')
   driveToNext?: {
     toCity: string;
     distanceKm?: number;
@@ -96,6 +107,7 @@ export interface CitySightseeing {
   };
   flightToNext?: InterCityFlightDetails;
   trainToNext?: InterCityTrainDetails;
+  busToNext?: InterCityBusDetails;
 }
 
 export type HotelStarTier = '3_star' | '4_star' | '5_star';
@@ -242,6 +254,7 @@ export interface Destination {
   id: string;
   name: string;
   state: string;
+  country?: string; // e.g. "India", "Vietnam", "Sri Lanka", "United Arab Emirates", etc.
   shortDescription: string;
   detailedDescription: string;
   recommendedDuration: string;
@@ -261,6 +274,8 @@ export interface Attraction {
   unesco: boolean;
   image: string;
   notes?: string;
+  state?: string;
+  country?: string;
 }
 
 export interface Hotel {

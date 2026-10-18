@@ -59,28 +59,48 @@ export function generateAutoDayDescription(
         }
       }
 
-      // Inter-City Transit to next city: Car, Flight, or Train
+      // Inter-City Transit to next city: Car, Flight, Train, or Bus
       if (!isLast) {
         const transit = city.transitType || 'car';
-        const targetNext = day.cities![idx + 1]?.destination || city.driveToNext?.toCity || (transit === 'flight' ? city.flightToNext?.arrivalCity : transit === 'train' ? city.trainToNext?.arrivalStation : 'the next destination');
+        const targetNext = day.cities![idx + 1]?.destination || city.driveToNext?.toCity || (transit === 'flight' ? city.flightToNext?.arrivalCity : transit === 'train' ? city.trainToNext?.arrivalStation : transit === 'bus' ? city.busToNext?.arrivalStation : 'the next destination');
 
-        if (transit === 'flight' && city.flightToNext) {
+        if (transit === 'flight') {
           const fl = city.flightToNext;
-          const airlineStr = fl.airline ? `${fl.airline} ` : '';
-          const flightNumStr = fl.flightNumber ? `flight ${airlineStr}${fl.flightNumber}` : 'your domestic flight';
-          const depTimeStr = fl.departureTime ? ` departing at ${fl.departureTime}` : '';
-          const depPortStr = fl.departureAirport ? ` from ${fl.departureAirport}` : ` from ${city.destination}`;
-          const arrPortStr = fl.arrivalAirport ? ` to ${fl.arrivalAirport} (${targetNext})` : ` to ${targetNext}`;
-          const arrTimeStr = fl.arrivalTime ? `, arriving at ${fl.arrivalTime}` : '';
-          bullets.push(`• Later, transfer to the airport to board ${flightNumStr}${depPortStr}${depTimeStr}${arrPortStr}${arrTimeStr}. Upon arrival, our representative will receive you.`);
-        } else if (transit === 'train' && city.trainToNext) {
+          if (fl) {
+            const airlineStr = fl.airline ? `${fl.airline} ` : '';
+            const flightNumStr = fl.flightNumber ? `flight ${airlineStr}${fl.flightNumber}` : 'your domestic flight';
+            const depTimeStr = fl.departureTime ? ` departing at ${fl.departureTime}` : '';
+            const depPortStr = fl.departureAirport ? ` from ${fl.departureAirport}` : ` from ${city.destination}`;
+            const arrPortStr = fl.arrivalAirport ? ` to ${fl.arrivalAirport} (${targetNext})` : ` to ${targetNext}`;
+            const arrTimeStr = fl.arrivalTime ? `, arriving at ${fl.arrivalTime}` : '';
+            bullets.push(`• Later, transfer to the airport to board ${flightNumStr}${depPortStr}${depTimeStr}${arrPortStr}${arrTimeStr}. Upon arrival, our representative will receive you.`);
+          } else {
+            bullets.push(`• Later, transfer to the airport to board your domestic flight to ${targetNext}. Upon arrival, our representative will receive you.`);
+          }
+        } else if (transit === 'train') {
           const tr = city.trainToNext;
-          const trainStr = tr.trainName || tr.trainNumber ? `the ${tr.trainName || ''} (${tr.trainNumber || ''})` : 'your express train';
-          const depTimeStr = tr.departureTime ? ` departing at ${tr.departureTime}` : '';
-          const depStationStr = tr.departureStation ? ` from ${tr.departureStation}` : ` from ${city.destination}`;
-          const arrStationStr = tr.arrivalStation ? ` for ${tr.arrivalStation} (${targetNext})` : ` for ${targetNext}`;
-          const arrTimeStr = tr.arrivalTime ? `, arriving at ${tr.arrivalTime}` : '';
-          bullets.push(`• Later, transfer to the railway station to board ${trainStr}${depStationStr}${depTimeStr}${arrStationStr}${arrTimeStr}. Upon arrival, meet our chauffeur and proceed to your hotel.`);
+          if (tr) {
+            const trainStr = tr.trainName || tr.trainNumber ? `the ${tr.trainName || ''} (${tr.trainNumber || ''})` : 'your express train';
+            const depTimeStr = tr.departureTime ? ` departing at ${tr.departureTime}` : '';
+            const depStationStr = tr.departureStation ? ` from ${tr.departureStation}` : ` from ${city.destination}`;
+            const arrStationStr = tr.arrivalStation ? ` for ${tr.arrivalStation} (${targetNext})` : ` for ${targetNext}`;
+            const arrTimeStr = tr.arrivalTime ? `, arriving at ${tr.arrivalTime}` : '';
+            bullets.push(`• Later, transfer to the railway station to board ${trainStr}${depStationStr}${depTimeStr}${arrStationStr}${arrTimeStr}. Upon arrival, meet our chauffeur and proceed to your hotel.`);
+          } else {
+            bullets.push(`• Later, transfer to the railway station to board your express train to ${targetNext}. Upon arrival, meet our chauffeur and proceed to your hotel.`);
+          }
+        } else if (transit === 'bus') {
+          const bs = city.busToNext;
+          if (bs) {
+            const busStr = bs.operator || bs.busNumber ? `${bs.operator ? bs.operator + ' ' : ''}${bs.busNumber ? `(${bs.busNumber})` : 'coach service'}` : 'your tourist bus';
+            const depTimeStr = bs.departureTime ? ` departing at ${bs.departureTime}` : '';
+            const depStationStr = bs.departureStation ? ` from ${bs.departureStation}` : ` from ${city.destination}`;
+            const arrStationStr = bs.arrivalStation ? ` for ${bs.arrivalStation} (${targetNext})` : ` for ${targetNext}`;
+            const arrTimeStr = bs.arrivalTime ? `, arriving at ${bs.arrivalTime}` : '';
+            bullets.push(`• Later, transfer to the bus terminal to board ${busStr}${depStationStr}${depTimeStr}${arrStationStr}${arrTimeStr}. Upon arrival, proceed to your designated hotel.`);
+          } else {
+            bullets.push(`• Later, board your inter-city coach / tourist bus transfer to ${targetNext}.`);
+          }
         } else if (city.driveToNext) {
           const viaStr = city.driveToNext.routeVia ? ` via ${city.driveToNext.routeVia}` : '';
           if (!city.checkOut || !city.skipSightseeing) {

@@ -36,6 +36,7 @@ export default function DestinationsManager({
   const [selectedDestinationId, setSelectedDestinationId] = useState<string>(
     destinations[0]?.id || 'delhi'
   );
+  const [countryFilter, setCountryFilter] = useState('all');
   const [stateFilter, setStateFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -43,7 +44,8 @@ export default function DestinationsManager({
   const [isAddDestModalOpen, setIsAddDestModalOpen] = useState(false);
   const [newDestData, setNewDestData] = useState<Partial<Destination>>({
     name: '',
-    state: 'Rajasthan',
+    state: 'Uttarakhand',
+    country: 'India',
     shortDescription: '',
     detailedDescription: '',
     recommendedDuration: '2 Days',
@@ -60,12 +62,26 @@ export default function DestinationsManager({
          (a.destinationName && a.destinationName.toLowerCase() === (activeDestination?.name || '').toLowerCase())
   );
 
-  const uniqueStates = Array.from(new Set(destinations.map(d => d.state))).sort();
+  const uniqueCountries = Array.from(new Set(destinations.map(d => d.country || 'India'))).sort((a, b) => {
+    if (a === 'India') return -1;
+    if (b === 'India') return 1;
+    return a.localeCompare(b);
+  });
+
+  const availableStates = countryFilter === 'all'
+    ? destinations.map(d => d.state)
+    : destinations.filter(d => (d.country || 'India').toLowerCase() === countryFilter.toLowerCase()).map(d => d.state);
+  const uniqueStates = Array.from(new Set(availableStates)).sort();
 
   const filteredDestinations = destinations.filter(d => {
+    const destCountry = d.country || 'India';
+    const matchesCountry = countryFilter === 'all' || destCountry.toLowerCase() === countryFilter.toLowerCase();
     const matchesState = stateFilter === 'all' || d.state.toLowerCase() === stateFilter.toLowerCase();
-    const matchesSearch = !searchQuery || d.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesState && matchesSearch;
+    const matchesSearch = !searchQuery || 
+      d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      destCountry.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.state.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCountry && matchesState && matchesSearch;
   });
 
   const handleSaveNewDestination = () => {
@@ -74,6 +90,7 @@ export default function DestinationsManager({
       id: newDestData.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
       name: newDestData.name.trim(),
       state: newDestData.state || 'North India',
+      country: newDestData.country || 'India',
       shortDescription: newDestData.shortDescription || 'Premier Indian travel destination.',
       detailedDescription: newDestData.detailedDescription || newDestData.shortDescription || '',
       recommendedDuration: newDestData.recommendedDuration || '2 Days',
@@ -146,7 +163,7 @@ export default function DestinationsManager({
             Destinations & Attractions Database
           </h1>
           <p className="text-xs text-slate-500">
-            North India tourism database: managed sightseeing points, visit durations, and UNESCO monuments.
+            Comprehensive domestic (North India, Uttarakhand, Goa, Kerala) & international tourism database.
           </p>
         </div>
 
@@ -171,22 +188,37 @@ export default function DestinationsManager({
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search destination..."
+                placeholder="Search destination, country or state..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-8 pr-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-900 focus:outline-none"
               />
             </div>
-            <select
-              value={stateFilter}
-              onChange={(e) => setStateFilter(e.target.value)}
-              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700"
-            >
-              <option value="all">All States / Circuits ({destinations.length})</option>
-              {uniqueStates.map(st => (
-                <option key={st} value={st}>{st}</option>
-              ))}
-            </select>
+            <div className="grid grid-cols-2 gap-1.5">
+              <select
+                value={countryFilter}
+                onChange={(e) => {
+                  setCountryFilter(e.target.value);
+                  setStateFilter('all');
+                }}
+                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold"
+              >
+                <option value="all">All Countries ({uniqueCountries.length})</option>
+                {uniqueCountries.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <select
+                value={stateFilter}
+                onChange={(e) => setStateFilter(e.target.value)}
+                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700"
+              >
+                <option value="all">All States ({uniqueStates.length})</option>
+                {uniqueStates.map(st => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Destinations Scroll List */}
@@ -211,7 +243,7 @@ export default function DestinationsManager({
                     <div className="min-w-0">
                       <div className="font-bold truncate">{dest.name}</div>
                       <div className={`text-[10px] truncate ${isSelected ? 'text-amber-300' : 'text-slate-400'}`}>
-                        {dest.state} · {dest.recommendedDuration}
+                        {dest.country ? `${dest.country} · ` : ''}{dest.state} · {dest.recommendedDuration}
                       </div>
                     </div>
                   </div>
@@ -237,7 +269,7 @@ export default function DestinationsManager({
                 <SafeImage src={activeDestination.heroImage} alt={activeDestination.name} className="absolute inset-0 w-full h-full object-cover opacity-60" />
                 <div className="relative z-10">
                   <div className="inline-block px-2.5 py-0.5 rounded bg-amber-400 text-slate-950 font-bold text-[10px] uppercase mb-1">
-                    {activeDestination.state}
+                    {activeDestination.country || 'India'} · {activeDestination.state}
                   </div>
                   <h2 className="text-2xl font-black">{activeDestination.name}</h2>
                   <p className="text-xs text-slate-200 max-w-xl line-clamp-2">
@@ -345,22 +377,34 @@ export default function DestinationsManager({
                 <label className="block font-semibold text-slate-700 mb-1">Destination Name *</label>
                 <input
                   type="text"
-                  placeholder="e.g. Khajuraho, Jodhpur, Katra"
+                  placeholder="e.g. Khajuraho, Jodhpur, Katra, Hanoi, Ella"
                   value={newDestData.name || ''}
                   onChange={(e) => setNewDestData({ ...newDestData, name: e.target.value })}
                   className="w-full px-3 py-1.5 border border-slate-200 rounded-lg"
                 />
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">State / Region</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Madhya Pradesh, Rajasthan"
-                  value={newDestData.state || ''}
-                  onChange={(e) => setNewDestData({ ...newDestData, state: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg"
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Country *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. India, Vietnam, Sri Lanka"
+                    value={newDestData.country || ''}
+                    onChange={(e) => setNewDestData({ ...newDestData, country: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">State / Province</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Uttarakhand, Central Vietnam"
+                    value={newDestData.state || ''}
+                    onChange={(e) => setNewDestData({ ...newDestData, state: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg"
+                  />
+                </div>
               </div>
 
               <div>

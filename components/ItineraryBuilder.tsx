@@ -181,6 +181,21 @@ export default function ItineraryBuilder({
     }
   }, [initialAttractions]);
 
+  // Group destinations by country for clean hierarchical selection
+  const destinationsByCountry = React.useMemo(() => {
+    const map = new Map<string, Destination[]>();
+    localDestinations.forEach(d => {
+      const country = d.country || 'India';
+      if (!map.has(country)) map.set(country, []);
+      map.get(country)!.push(d);
+    });
+    return Array.from(map.entries()).sort(([a], [b]) => {
+      if (a === 'India') return -1;
+      if (b === 'India') return 1;
+      return a.localeCompare(b);
+    });
+  }, [localDestinations]);
+
   // Destination custom text mode tracking per dayIndex: boolean
   const [customDestMode, setCustomDestMode] = useState<Record<number, boolean>>({});
   // Overnight custom text mode tracking per dayIndex: boolean
@@ -1684,57 +1699,60 @@ export default function ItineraryBuilder({
     setItinerary(prev => ({ ...prev, days: updatedDays }));
   };
 
-  const handleUpdateCityInDay = (dayIndex: number, cityIndex: number, field: keyof CitySightseeing, value: any) => {
-    const updatedDays = [...itinerary.days];
-    const targetDay = { ...updatedDays[dayIndex] };
-    const currentCities = [...(targetDay.cities || [])];
-    const targetCity = { ...currentCities[cityIndex], [field]: value };
+  const handleUpdateCityInDay = (dayIndex: number, cityIndex: number, fieldOrPatch: keyof CitySightseeing | Partial<CitySightseeing>, value?: any) => {
+    setItinerary(prev => {
+      const updatedDays = [...prev.days];
+      const targetDay = { ...updatedDays[dayIndex] };
+      const currentCities = [...(targetDay.cities || [])];
+      const patch = typeof fieldOrPatch === 'string' ? { [fieldOrPatch]: value } : fieldOrPatch;
+      const targetCity = { ...currentCities[cityIndex], ...patch };
 
-    if (field === 'destination') {
-      // Recalculate route if destination changed
-      if (cityIndex > 0 && currentCities[cityIndex - 1]?.driveToNext) {
-        const prevCity = currentCities[cityIndex - 1];
-        const routeKey = `${prevCity.destination.toLowerCase()}-${value.toLowerCase()}`.replace(/\s+/g, '-');
-        const routeData = INTERCITY_ROUTES[routeKey] || { distanceKm: 120, driveTime: '2.5 Hours' };
-        prevCity.driveToNext = {
-          toCity: value,
-          distanceKm: routeData.distanceKm,
-          driveTime: routeData.driveTime,
-          routeVia: routeData.routeVia
-        };
+      if ('destination' in patch && patch.destination) {
+        const newDest = patch.destination;
+        // Recalculate route if destination changed
+        if (cityIndex > 0 && currentCities[cityIndex - 1]?.driveToNext) {
+          const prevCity = currentCities[cityIndex - 1];
+          const routeKey = `${prevCity.destination.toLowerCase()}-${newDest.toLowerCase()}`.replace(/\s+/g, '-');
+          const routeData = INTERCITY_ROUTES[routeKey] || { distanceKm: 120, driveTime: '2.5 Hours' };
+          prevCity.driveToNext = {
+            toCity: newDest,
+            distanceKm: routeData.distanceKm,
+            driveTime: routeData.driveTime,
+            routeVia: routeData.routeVia
+          };
+        }
+        if (targetCity.driveToNext && currentCities[cityIndex + 1]) {
+          const nextCity = currentCities[cityIndex + 1];
+          const routeKey = `${newDest.toLowerCase()}-${nextCity.destination.toLowerCase()}`.replace(/\s+/g, '-');
+          const routeData = INTERCITY_ROUTES[routeKey] || { distanceKm: 150, driveTime: '3 Hours' };
+          targetCity.driveToNext = {
+            toCity: nextCity.destination,
+            distanceKm: routeData.distanceKm,
+            driveTime: routeData.driveTime,
+            routeVia: routeData.routeVia
+          };
+        }
       }
-      if (targetCity.driveToNext && currentCities[cityIndex + 1]) {
-        const nextCity = currentCities[cityIndex + 1];
-        const routeKey = `${value.toLowerCase()}-${nextCity.destination.toLowerCase()}`.replace(/\s+/g, '-');
-        const routeData = INTERCITY_ROUTES[routeKey] || { distanceKm: 150, driveTime: '3 Hours' };
-        targetCity.driveToNext = {
-          toCity: nextCity.destination,
-          distanceKm: routeData.distanceKm,
-          driveTime: routeData.driveTime,
-          routeVia: routeData.routeVia
-        };
+
+      currentCities[cityIndex] = targetCity;
+      targetDay.cities = currentCities;
+
+      // Keep overnightLocation synced with the final city in the multi-city array
+      if (currentCities.length > 0) {
+        targetDay.overnightLocation = currentCities[currentCities.length - 1].destination;
       }
-    }
 
-    currentCities[cityIndex] = targetCity;
-    targetDay.cities = currentCities;
+      // Collect all attraction names & images across cities
+      const allAttractionNames: string[] = [];
+      currentCities.forEach(c => {
+        if (c.attractionNames) allAttractionNames.push(...c.attractionNames);
+      });
+      targetDay.attractionNames = allAttractionNames;
 
-    // Keep overnightLocation synced with the final city in the multi-city array
-    if (currentCities.length > 0) {
-      targetDay.overnightLocation = currentCities[currentCities.length - 1].destination;
-    }
-
-    // Collect all attraction names & images across cities
-    const allAttractionNames: string[] = [];
-    const allImages: string[] = [];
-    currentCities.forEach(c => {
-      if (c.attractionNames) allAttractionNames.push(...c.attractionNames);
+      targetDay.description = generateAutoDayDescription(targetDay, dayIndex, updatedDays.length, prev.includeHotels);
+      updatedDays[dayIndex] = targetDay;
+      return { ...prev, days: updatedDays };
     });
-    targetDay.attractionNames = allAttractionNames;
-
-    targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
-    updatedDays[dayIndex] = targetDay;
-    setItinerary(prev => ({ ...prev, days: updatedDays }));
   };
 
   const handleToggleCityAttraction = (dayIndex: number, cityIndex: number, attraction: Attraction) => {
@@ -3577,8 +3595,12 @@ export default function ItineraryBuilder({
                                           onChange={(e) => handleUpdateCityInDay(dayIndex, cityIdx, 'destination', e.target.value)}
                                           className="font-bold text-xs bg-purple-50 border border-purple-200 rounded-lg px-2.5 py-1 text-purple-950 focus:outline-none flex-1 min-w-[130px]"
                                         >
-                                          {localDestinations.map(d => (
-                                            <option key={d.id} value={d.name}>{d.name} ({d.state})</option>
+                                          {destinationsByCountry.map(([country, dests]) => (
+                                            <optgroup key={country} label={country}>
+                                              {dests.map(d => (
+                                                <option key={d.id} value={d.name}>{d.name} ({d.state})</option>
+                                              ))}
+                                            </optgroup>
                                           ))}
                                         </select>
                                       )}
@@ -3740,7 +3762,7 @@ export default function ItineraryBuilder({
                                           <button
                                             type="button"
                                             onClick={() => {
-                                              handleUpdateCityInDay(dayIndex, cityIdx, 'transitType', 'car');
+                                              handleUpdateCityInDay(dayIndex, cityIdx, { transitType: 'car' });
                                             }}
                                             className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-bold transition ${
                                               (!city.transitType || city.transitType === 'car')
@@ -3766,8 +3788,10 @@ export default function ItineraryBuilder({
                                                 arrivalTime: '12:15 PM',
                                                 pnr: ''
                                               };
-                                              handleUpdateCityInDay(dayIndex, cityIdx, 'transitType', 'flight');
-                                              handleUpdateCityInDay(dayIndex, cityIdx, 'flightToNext', currentFl);
+                                              handleUpdateCityInDay(dayIndex, cityIdx, {
+                                                transitType: 'flight',
+                                                flightToNext: currentFl
+                                              });
                                             }}
                                             className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-bold transition ${
                                               city.transitType === 'flight'
@@ -3792,8 +3816,10 @@ export default function ItineraryBuilder({
                                                 coachClass: 'Executive Chair Car (EC)',
                                                 pnr: ''
                                               };
-                                              handleUpdateCityInDay(dayIndex, cityIdx, 'transitType', 'train');
-                                              handleUpdateCityInDay(dayIndex, cityIdx, 'trainToNext', currentTr);
+                                              handleUpdateCityInDay(dayIndex, cityIdx, {
+                                                transitType: 'train',
+                                                trainToNext: currentTr
+                                              });
                                             }}
                                             className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-bold transition ${
                                               city.transitType === 'train'
@@ -3803,6 +3829,34 @@ export default function ItineraryBuilder({
                                           >
                                             <Train className="w-3.5 h-3.5" />
                                             <span>Train</span>
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const currentBs = city.busToNext || {
+                                                busNumber: 'DL-01-A-8822',
+                                                operator: 'Zingbus Premium',
+                                                departureStation: `${city.destination} ISBT`,
+                                                departureTime: '09:00 PM',
+                                                arrivalStation: `${nextCityName} Central Bus Stand`,
+                                                arrivalTime: '06:00 AM',
+                                                seatType: 'AC Multi-Axle Sleeper',
+                                                pnr: ''
+                                              };
+                                              handleUpdateCityInDay(dayIndex, cityIdx, {
+                                                transitType: 'bus',
+                                                busToNext: currentBs
+                                              });
+                                            }}
+                                            className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-bold transition ${
+                                              city.transitType === 'bus'
+                                                ? 'bg-amber-600 text-white shadow-2xs'
+                                                : 'text-slate-600 hover:text-slate-900'
+                                            }`}
+                                          >
+                                            <Bus className="w-3.5 h-3.5" />
+                                            <span>Bus</span>
                                           </button>
                                         </div>
                                       </div>
@@ -4058,6 +4112,98 @@ export default function ItineraryBuilder({
                                           </div>
                                         </div>
                                       )}
+
+                                      {/* BUS MODE DETAILS */}
+                                      {city.transitType === 'bus' && (
+                                        <div className="space-y-2 bg-amber-50/60 p-2.5 rounded-lg border border-amber-200">
+                                          <div className="flex items-center gap-1.5 font-bold text-amber-950 text-[11px]">
+                                            <Bus className="w-3.5 h-3.5 text-amber-700" />
+                                            <span>Bus / Coach Sector: {city.destination} ➔ {nextCityName}</span>
+                                          </div>
+
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[11px]">
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Operator / Service</label>
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. Zingbus / Volvo Multi-Axle"
+                                                value={city.busToNext?.operator || ''}
+                                                onChange={(e) => {
+                                                  const updatedBs = { ...city.busToNext, operator: e.target.value };
+                                                  handleUpdateCityInDay(dayIndex, cityIdx, 'busToNext', updatedBs);
+                                                }}
+                                                className="w-full px-2 py-1 bg-white border border-amber-200 rounded"
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Bus / Vehicle No.</label>
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. DL-01-A-1234"
+                                                value={city.busToNext?.busNumber || ''}
+                                                onChange={(e) => {
+                                                  const updatedBs = { ...city.busToNext, busNumber: e.target.value };
+                                                  handleUpdateCityInDay(dayIndex, cityIdx, 'busToNext', updatedBs);
+                                                }}
+                                                className="w-full px-2 py-1 bg-white border border-amber-200 rounded font-mono font-semibold"
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Boarding Point & Time</label>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                <input
+                                                  type="text"
+                                                  placeholder="Terminal"
+                                                  value={city.busToNext?.departureStation || ''}
+                                                  onChange={(e) => {
+                                                    const updatedBs = { ...city.busToNext, departureStation: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'busToNext', updatedBs);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-amber-200 rounded text-[10px]"
+                                                />
+                                                <input
+                                                  type="text"
+                                                  placeholder="Time"
+                                                  value={city.busToNext?.departureTime || ''}
+                                                  onChange={(e) => {
+                                                    const updatedBs = { ...city.busToNext, departureTime: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'busToNext', updatedBs);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-amber-200 rounded text-[10px]"
+                                                />
+                                              </div>
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Drop Point & Time</label>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                <input
+                                                  type="text"
+                                                  placeholder="Terminal"
+                                                  value={city.busToNext?.arrivalStation || ''}
+                                                  onChange={(e) => {
+                                                    const updatedBs = { ...city.busToNext, arrivalStation: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'busToNext', updatedBs);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-amber-200 rounded text-[10px]"
+                                                />
+                                                <input
+                                                  type="text"
+                                                  placeholder="Time"
+                                                  value={city.busToNext?.arrivalTime || ''}
+                                                  onChange={(e) => {
+                                                    const updatedBs = { ...city.busToNext, arrivalTime: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'busToNext', updatedBs);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-amber-200 rounded text-[10px]"
+                                                />
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
 
@@ -4097,15 +4243,19 @@ export default function ItineraryBuilder({
                                     </option>
                                   ))}
                                 </optgroup>
-                                <optgroup label="All Destinations">
-                                  {localDestinations
-                                    .filter(d => !day.cities?.some(c => c.destination.toLowerCase() === d.name.toLowerCase()))
-                                    .map(d => (
-                                      <option key={d.id} value={d.name}>
-                                        Overnight in {d.name} ({d.state})
-                                      </option>
-                                    ))}
-                                </optgroup>
+                                {destinationsByCountry.map(([country, dests]) => {
+                                  const nonCircuitDests = dests.filter(d => !day.cities?.some(c => c.destination.toLowerCase() === d.name.toLowerCase()));
+                                  if (nonCircuitDests.length === 0) return null;
+                                  return (
+                                    <optgroup key={country} label={`${country} Destinations`}>
+                                      {nonCircuitDests.map(d => (
+                                        <option key={d.id} value={d.name}>
+                                          Overnight in {d.name} ({d.state})
+                                        </option>
+                                      ))}
+                                    </optgroup>
+                                  );
+                                })}
                               </select>
                             </div>
                           )}
@@ -4165,10 +4315,14 @@ export default function ItineraryBuilder({
                                     onChange={(e) => handleUpdateDayField(dayIndex, 'destination', e.target.value)}
                                     className="flex-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium"
                                   >
-                                    {localDestinations.map((d) => (
-                                      <option key={d.id} value={d.name}>
-                                        {d.name} ({d.state})
-                                      </option>
+                                    {destinationsByCountry.map(([country, dests]) => (
+                                      <optgroup key={country} label={country}>
+                                        {dests.map((d) => (
+                                          <option key={d.id} value={d.name}>
+                                            {d.name} ({d.state})
+                                          </option>
+                                        ))}
+                                      </optgroup>
                                     ))}
                                   </select>
                                   <button
@@ -4243,10 +4397,14 @@ export default function ItineraryBuilder({
                                     onChange={(e) => handleUpdateDayField(dayIndex, 'overnightLocation', e.target.value)}
                                     className="w-full px-3 py-2 text-xs bg-white border border-amber-300 rounded-lg focus:outline-none font-medium text-amber-900"
                                   >
-                                    {localDestinations.map((d) => (
-                                      <option key={d.id} value={d.name}>
-                                        Overnight in {d.name}
-                                      </option>
+                                    {destinationsByCountry.map(([country, dests]) => (
+                                      <optgroup key={country} label={country}>
+                                        {dests.map((d) => (
+                                          <option key={d.id} value={d.name}>
+                                            Overnight in {d.name}
+                                          </option>
+                                        ))}
+                                      </optgroup>
                                     ))}
                                   </select>
                                 )}

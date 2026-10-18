@@ -347,6 +347,13 @@ export default function TravelVoucherView({
                                   <span>Train: {c.destination} → {nextC} ({c.trainToNext?.trainName || ''} {c.trainToNext?.trainNumber || ''} · {c.trainToNext?.departureTime || ''} - {c.trainToNext?.arrivalTime || ''})</span>
                                 </span>
                               );
+                            } else if (c.transitType === 'bus') {
+                              return (
+                                <span key={c.id || cIdx} className="text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 flex items-center gap-1 font-semibold">
+                                  <Bus className="w-3 h-3 text-amber-600" />
+                                  <span>Bus: {c.destination} → {nextC} ({c.busToNext?.operator || ''} {c.busToNext?.busNumber || ''} · {c.busToNext?.departureTime || ''} - {c.busToNext?.arrivalTime || ''})</span>
+                                </span>
+                              );
                             } else {
                               return (
                                 <span key={c.id || cIdx} className="text-amber-800 flex items-center gap-1">
