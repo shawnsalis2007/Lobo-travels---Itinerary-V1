@@ -831,6 +831,8 @@ export function generateItineraryFromPrompt(
     coverImage,
     flightBookings: {
       flightsBookedByUs: false,
+      railwayBookedByUs: false,
+      busBookedByUs: false,
       flights: []
     },
     status: 'Draft',

@@ -130,6 +130,8 @@ export default function Home() {
       coverImage: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80',
       flightBookings: {
         flightsBookedByUs: false,
+        railwayBookedByUs: false,
+        busBookedByUs: false,
         flights: []
       },
       status: 'Draft',

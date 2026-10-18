@@ -561,10 +561,13 @@ export const INITIAL_ITINERARIES: Itinerary[] = [
     coverImage: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80',
     flightBookings: {
       flightsBookedByUs: true,
+      railwayBookedByUs: false,
+      busBookedByUs: false,
       flights: [
         {
           id: 'fl-1',
           type: 'arrival',
+          transitType: 'flight',
           sectorTitle: 'Inbound / Arrival Flight (Mumbai → Delhi)',
           airline: 'IndiGo',
           flightNumber: '6E-204',
@@ -582,6 +585,7 @@ export const INITIAL_ITINERARIES: Itinerary[] = [
         {
           id: 'fl-2',
           type: 'departure',
+          transitType: 'flight',
           sectorTitle: 'Outbound / Return Flight (Jaipur → Mumbai)',
           airline: 'Air India',
           flightNumber: 'AI-402',

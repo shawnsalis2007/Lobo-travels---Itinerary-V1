@@ -11,6 +11,7 @@ import {
   Calendar, 
   Users, 
   Car, 
+  Bus,
   MapPin, 
   Building2, 
   Utensils, 
@@ -67,9 +68,9 @@ import { PRESET_ROUTES } from '@/lib/mock-data';
 import { INTERCITY_ROUTES } from '@/lib/catalog-data';
 import { saveAttraction as persistAttraction, saveDestination as persistDestination } from '@/lib/storage';
 import { SafeImage } from './SafeImage';
-import { generateAutoDayDescription, ensureOvernightStayText, getRouteSubtitle } from '@/lib/narrative-generator';
+import { generateAutoDayDescription, ensureOvernightStayText, getRouteSubtitle, getDayMainHeading } from '@/lib/narrative-generator';
 
-export { generateAutoDayDescription, ensureOvernightStayText, getRouteSubtitle };
+export { generateAutoDayDescription, ensureOvernightStayText, getRouteSubtitle, getDayMainHeading };
 
 export const COVER_IMAGE_PRESETS = [
   { name: 'Taj Mahal (Agra)', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80' },
@@ -1144,12 +1145,21 @@ export default function ItineraryBuilder({
     setItinerary(prev => ({ ...prev, days: updatedDays, flightBookings: updatedFlightBookings }));
   };
 
-  // Tour-level Flights Booking Handlers
-  const handleToggleFlightsBookedByUs = (enabled: boolean) => {
+  // Tour-level Transit Booking Handlers (Flights, Railway, Bus booked by us)
+  const handleToggleBookedByUs = (mode: 'flights' | 'railway' | 'bus', enabled: boolean) => {
     setItinerary(prev => {
       const current = prev.flightBookings || {
         flightsBookedByUs: false,
+        railwayBookedByUs: false,
+        busBookedByUs: false,
         flights: []
+      };
+
+      const updatedBooked = {
+        ...current,
+        flightsBookedByUs: mode === 'flights' ? enabled : Boolean(current.flightsBookedByUs),
+        railwayBookedByUs: mode === 'railway' ? enabled : Boolean(current.railwayBookedByUs),
+        busBookedByUs: mode === 'bus' ? enabled : Boolean(current.busBookedByUs),
       };
 
       let flights = [...(current.flights || [])];
@@ -1158,57 +1168,145 @@ export default function ItineraryBuilder({
       if (enabled && flights.length === 0) {
         const firstCity = prev.days[0]?.destination || 'Delhi';
         const lastCity = prev.days[prev.days.length - 1]?.destination || 'Delhi';
-        flights = [
-          {
-            id: 'fl-' + Date.now() + '-1',
-            type: 'arrival',
-            sectorTitle: `Inbound / Arrival Flight (to ${firstCity})`,
-            airline: 'IndiGo',
-            flightNumber: '6E-204',
-            departureCity: 'Mumbai (BOM)',
-            departureDate: prev.startDate || '',
-            departureTime: '07:15 AM',
-            arrivalCity: `${firstCity} (Airport)`,
-            arrivalDate: prev.startDate || '',
-            arrivalTime: '09:30 AM',
-            pnr: '6E-DIR204',
-            cabinClass: 'Economy',
-            baggage: '15 Kg Check-in + 7 Kg Cabin',
-            notes: 'Confirmed e-ticket'
-          },
-          {
-            id: 'fl-' + Date.now() + '-2',
-            type: 'departure',
-            sectorTitle: `Outbound / Return Flight (from ${lastCity})`,
-            airline: 'Air India',
-            flightNumber: 'AI-402',
-            departureCity: `${lastCity} (Airport)`,
-            departureDate: prev.endDate || '',
-            departureTime: '18:45 PM',
-            arrivalCity: 'Mumbai (BOM)',
-            arrivalDate: prev.endDate || '',
-            arrivalTime: '20:55 PM',
-            pnr: 'AI-DIR402',
-            cabinClass: 'Economy',
-            baggage: '15 Kg Check-in + 7 Kg Cabin',
-            notes: 'Confirmed e-ticket'
-          }
-        ];
+
+        if (mode === 'railway') {
+          flights = [
+            {
+              id: 'fl-' + Date.now() + '-1',
+              type: 'arrival',
+              transitType: 'train',
+              sectorTitle: `Inbound Express Train (to ${firstCity})`,
+              airline: 'Vande Bharat Express',
+              flightNumber: '20171',
+              departureCity: 'Mumbai Central (MMCT)',
+              departureDate: prev.startDate || '',
+              departureTime: '06:00 AM',
+              arrivalCity: `${firstCity} Junction (NDLS)`,
+              arrivalDate: prev.startDate || '',
+              arrivalTime: '14:15 PM',
+              pnr: '284-8291034',
+              cabinClass: 'Executive AC Chair Car',
+              baggage: 'Personal Luggage Included',
+              notes: 'Confirmed e-ticket'
+            },
+            {
+              id: 'fl-' + Date.now() + '-2',
+              type: 'departure',
+              transitType: 'train',
+              sectorTitle: `Outbound Express Train (from ${lastCity})`,
+              airline: 'Shatabdi Express',
+              flightNumber: '12002',
+              departureCity: `${lastCity} Station`,
+              departureDate: prev.endDate || '',
+              departureTime: '17:30 PM',
+              arrivalCity: 'Mumbai Central (MMCT)',
+              arrivalDate: prev.endDate || '',
+              arrivalTime: '23:45 PM',
+              pnr: '284-9102834',
+              cabinClass: 'Executive AC Chair Car',
+              baggage: 'Personal Luggage Included',
+              notes: 'Confirmed e-ticket'
+            }
+          ];
+        } else if (mode === 'bus') {
+          flights = [
+            {
+              id: 'fl-' + Date.now() + '-1',
+              type: 'arrival',
+              transitType: 'bus',
+              sectorTitle: `Inbound Inter-City Coach (to ${firstCity})`,
+              airline: 'Zingbus Premium',
+              flightNumber: 'DL-01-A-1234',
+              departureCity: 'Jaipur Sindhi Camp',
+              departureDate: prev.startDate || '',
+              departureTime: '06:30 AM',
+              arrivalCity: `${firstCity} ISBT Terminal`,
+              arrivalDate: prev.startDate || '',
+              arrivalTime: '11:45 AM',
+              pnr: 'ZB-48201',
+              cabinClass: 'AC Multi-Axle Sleeper',
+              baggage: '2 Check-in Bags Included',
+              notes: 'Confirmed e-ticket'
+            },
+            {
+              id: 'fl-' + Date.now() + '-2',
+              type: 'departure',
+              transitType: 'bus',
+              sectorTitle: `Outbound Inter-City Coach (from ${lastCity})`,
+              airline: 'Intrcity SmartBus',
+              flightNumber: 'DL-01-B-5678',
+              departureCity: `${lastCity} ISBT Terminal`,
+              departureDate: prev.endDate || '',
+              departureTime: '18:00 PM',
+              arrivalCity: 'Jaipur Sindhi Camp',
+              arrivalDate: prev.endDate || '',
+              arrivalTime: '23:15 PM',
+              pnr: 'IC-91823',
+              cabinClass: 'AC Multi-Axle Sleeper',
+              baggage: '2 Check-in Bags Included',
+              notes: 'Confirmed e-ticket'
+            }
+          ];
+        } else {
+          flights = [
+            {
+              id: 'fl-' + Date.now() + '-1',
+              type: 'arrival',
+              transitType: 'flight',
+              sectorTitle: `Inbound / Arrival Flight (to ${firstCity})`,
+              airline: 'IndiGo',
+              flightNumber: '6E-204',
+              departureCity: 'Mumbai (BOM)',
+              departureDate: prev.startDate || '',
+              departureTime: '07:15 AM',
+              arrivalCity: `${firstCity} (Airport)`,
+              arrivalDate: prev.startDate || '',
+              arrivalTime: '09:30 AM',
+              pnr: '6E-DIR204',
+              cabinClass: 'Economy',
+              baggage: '15 Kg Check-in + 7 Kg Cabin',
+              notes: 'Confirmed e-ticket'
+            },
+            {
+              id: 'fl-' + Date.now() + '-2',
+              type: 'departure',
+              transitType: 'flight',
+              sectorTitle: `Outbound / Return Flight (from ${lastCity})`,
+              airline: 'Air India',
+              flightNumber: 'AI-402',
+              departureCity: `${lastCity} (Airport)`,
+              departureDate: prev.endDate || '',
+              departureTime: '18:45 PM',
+              arrivalCity: 'Mumbai (BOM)',
+              arrivalDate: prev.endDate || '',
+              arrivalTime: '20:55 PM',
+              pnr: 'AI-DIR402',
+              cabinClass: 'Economy',
+              baggage: '15 Kg Check-in + 7 Kg Cabin',
+              notes: 'Confirmed e-ticket'
+            }
+          ];
+        }
       }
 
-      // Automatically sync flights to arrival day and departure day
+      // Automatically sync to arrival day and departure day
       if (enabled && flights.length > 0 && updatedDays.length > 0) {
-        const depFlight = flights.find(f => f.type === 'departure');
-        const arrFlight = flights.find(f => f.type === 'arrival');
+        const depSector = flights.find(f => f.type === 'departure');
+        const arrSector = flights.find(f => f.type === 'arrival');
 
-        if (arrFlight && updatedDays[0]) {
+        const pointForTransit = (transit?: string) =>
+          transit === 'bus' ? 'Bus Terminal' : transit === 'train' ? 'Railway Station' : 'Airport';
+
+        if (arrSector && updatedDays[0]) {
           const day1 = { ...updatedDays[0] };
+          const transitT = arrSector.transitType || (mode === 'railway' ? 'train' : mode === 'bus' ? 'bus' : 'flight');
           day1.arrivalDetails = {
             enabled: true,
-            point: 'Airport',
-            flightOrTrainNumber: `${arrFlight.airline || ''} ${arrFlight.flightNumber || ''}`.trim(),
-            arrivalTime: arrFlight.arrivalTime || '',
-            pickupLocation: arrFlight.arrivalCity || '',
+            transitType: transitT,
+            point: pointForTransit(transitT),
+            flightOrTrainNumber: `${arrSector.airline || ''} ${arrSector.flightNumber || ''}`.trim(),
+            arrivalTime: arrSector.arrivalTime || '',
+            pickupLocation: arrSector.arrivalCity || '',
             includeHotelCheckIn: day1.arrivalDetails?.includeHotelCheckIn ?? true,
             checkInTiming: day1.arrivalDetails?.checkInTiming || 'before_sightseeing'
           };
@@ -1220,15 +1318,17 @@ export default function ItineraryBuilder({
         }
 
         const lastIdx = updatedDays.length - 1;
-        if (depFlight && updatedDays[lastIdx]) {
+        if (depSector && updatedDays[lastIdx]) {
           const lastDay = { ...updatedDays[lastIdx] };
           const wasEnabled = Boolean(lastDay.departureDetails?.enabled);
+          const transitT = depSector.transitType || (mode === 'railway' ? 'train' : mode === 'bus' ? 'bus' : 'flight');
           lastDay.departureDetails = {
             enabled: wasEnabled,
-            point: 'Airport',
-            flightOrTrainNumber: `${depFlight.airline || ''} ${depFlight.flightNumber || ''}`.trim(),
-            departureTime: depFlight.departureTime || '',
-            dropLocation: depFlight.departureCity || ''
+            transitType: transitT,
+            point: pointForTransit(transitT),
+            flightOrTrainNumber: `${depSector.airline || ''} ${depSector.flightNumber || ''}`.trim(),
+            departureTime: depSector.departureTime || '',
+            dropLocation: depSector.departureCity || ''
           };
           if (wasEnabled) {
             delete lastDay.hotel;
@@ -1246,12 +1346,15 @@ export default function ItineraryBuilder({
         ...prev,
         days: updatedDays,
         flightBookings: {
-          ...current,
-          flightsBookedByUs: enabled,
+          ...updatedBooked,
           flights
         }
       };
     });
+  };
+
+  const handleToggleFlightsBookedByUs = (enabled: boolean) => {
+    handleToggleBookedByUs('flights', enabled);
   };
 
   const handleUpdateFlightSector = (flightId: string, field: keyof BookedFlightInfo, value: any) => {
@@ -1264,20 +1367,25 @@ export default function ItineraryBuilder({
         return fl;
       });
 
-      // State sync: Return flight details entered in form automatically populate/sync to Departure Day
+      // State sync: Return flight / transit details entered in form automatically populate/sync to Departure Day
       let updatedDays = prev.days;
       const targetFlight = updatedFlights.find(fl => fl.id === flightId);
+      const pointForTransit = (transit?: string) =>
+        transit === 'bus' ? 'Bus Terminal' : transit === 'train' ? 'Railway Station' : 'Airport';
+
       if (targetFlight && targetFlight.type === 'departure' && updatedDays.length > 0) {
         const depDayIdx = updatedDays.findIndex(d => d.departureDetails?.enabled);
         const targetIdx = depDayIdx !== -1 ? depDayIdx : updatedDays.length - 1;
         const lastDay = { ...updatedDays[targetIdx] };
-        const currentDep = lastDay.departureDetails || { enabled: false, point: 'Airport' };
+        const transitT = targetFlight.transitType || 'flight';
+        const currentDep = lastDay.departureDetails || { enabled: false, point: pointForTransit(transitT), transitType: transitT };
         
         const flightNumStr = `${targetFlight.airline || ''} ${targetFlight.flightNumber || ''}`.trim();
         lastDay.departureDetails = {
           ...currentDep,
           enabled: currentDep.enabled ?? false,
-          point: currentDep.point || 'Airport',
+          transitType: transitT,
+          point: currentDep.point || pointForTransit(transitT),
           flightOrTrainNumber: flightNumStr || currentDep.flightOrTrainNumber || '',
           departureTime: targetFlight.departureTime || currentDep.departureTime || '',
           dropLocation: targetFlight.departureCity || currentDep.dropLocation || ''
@@ -1295,12 +1403,14 @@ export default function ItineraryBuilder({
         updatedDays[targetIdx] = lastDay;
       } else if (targetFlight && targetFlight.type === 'arrival' && updatedDays.length > 0) {
         const day1 = { ...updatedDays[0] };
-        const currentArr = day1.arrivalDetails || { enabled: true, point: 'Airport' };
+        const transitT = targetFlight.transitType || 'flight';
+        const currentArr = day1.arrivalDetails || { enabled: true, point: pointForTransit(transitT), transitType: transitT };
         const flightNumStr = `${targetFlight.airline || ''} ${targetFlight.flightNumber || ''}`.trim();
         day1.arrivalDetails = {
           ...currentArr,
           enabled: currentArr.enabled ?? true,
-          point: currentArr.point || 'Airport',
+          transitType: transitT,
+          point: currentArr.point || pointForTransit(transitT),
           flightOrTrainNumber: flightNumStr || currentArr.flightOrTrainNumber || '',
           arrivalTime: targetFlight.arrivalTime || currentArr.arrivalTime || '',
           pickupLocation: targetFlight.arrivalCity || currentArr.pickupLocation || ''
@@ -1324,31 +1434,36 @@ export default function ItineraryBuilder({
     });
   };
 
-  const handleAddFlightSector = () => {
+  const handleAddFlightSector = (mode: 'flight' | 'train' | 'bus' = 'flight') => {
     setItinerary(prev => {
       const current = prev.flightBookings || {
-        flightsBookedByUs: true,
+        flightsBookedByUs: mode === 'flight',
+        railwayBookedByUs: mode === 'train',
+        busBookedByUs: mode === 'bus',
         flights: []
       };
+      const defaultCarrier = mode === 'bus' ? 'Zingbus Premium' : mode === 'train' ? 'Vande Bharat Express' : 'IndiGo';
+      const defaultSectorTitle = mode === 'bus' ? 'Inter-City Coach Sector' : mode === 'train' ? 'Railway Express Sector' : 'Domestic / Internal Flight Sector';
+      const defaultClass = mode === 'bus' ? 'AC Multi-Axle Sleeper' : mode === 'train' ? 'Executive Chair Car (EC)' : 'Economy';
       const newSector: BookedFlightInfo = {
         id: 'fl-' + Date.now(),
         type: 'intercity',
-        sectorTitle: 'Domestic / Internal Flight Sector',
-        airline: 'IndiGo',
+        transitType: mode,
+        sectorTitle: defaultSectorTitle,
+        airline: defaultCarrier,
         flightNumber: '',
         departureCity: '',
         departureTime: '',
         arrivalCity: '',
         arrivalTime: '',
         pnr: '',
-        cabinClass: 'Economy',
-        baggage: '15 Kg Check-in + 7 Kg Cabin'
+        cabinClass: defaultClass,
+        baggage: mode === 'flight' ? '15 Kg Check-in + 7 Kg Cabin' : 'Luggage Included'
       };
       return {
         ...prev,
         flightBookings: {
           ...current,
-          flightsBookedByUs: true,
           flights: [...current.flights, newSector]
         }
       };
@@ -1368,21 +1483,26 @@ export default function ItineraryBuilder({
     });
   };
 
-  // One-click sync flight arrival & departure to Day 1 and Final Day
+  // One-click sync flight / transit arrival & departure to Day 1 and Final Day
   const handleSyncFlightsToDays = () => {
     if (!itinerary.flightBookings?.flights || itinerary.flightBookings.flights.length === 0) return;
     const arrFlight = itinerary.flightBookings.flights.find(f => f.type === 'arrival');
     const depFlight = itinerary.flightBookings.flights.find(f => f.type === 'departure');
 
+    const pointForTransit = (transit?: string) =>
+      transit === 'bus' ? 'Bus Terminal' : transit === 'train' ? 'Railway Station' : 'Airport';
+
     const updatedDays = [...itinerary.days];
     if (arrFlight && updatedDays.length > 0) {
       const day1 = { ...updatedDays[0] };
+      const transitT = arrFlight.transitType || 'flight';
       day1.arrivalDetails = {
         enabled: true,
-        point: 'Airport',
-        flightOrTrainNumber: `${arrFlight.airline} ${arrFlight.flightNumber}`.trim(),
-        arrivalTime: arrFlight.arrivalTime,
-        pickupLocation: arrFlight.arrivalCity,
+        transitType: transitT,
+        point: pointForTransit(transitT),
+        flightOrTrainNumber: `${arrFlight.airline || ''} ${arrFlight.flightNumber || ''}`.trim(),
+        arrivalTime: arrFlight.arrivalTime || '',
+        pickupLocation: arrFlight.arrivalCity || '',
         includeHotelCheckIn: day1.arrivalDetails?.includeHotelCheckIn ?? true,
         checkInTiming: day1.arrivalDetails?.checkInTiming || 'before_sightseeing'
       };
@@ -1394,12 +1514,14 @@ export default function ItineraryBuilder({
       const lastIdx = updatedDays.length - 1;
       const lastDay = { ...updatedDays[lastIdx] };
       const wasEnabled = Boolean(lastDay.departureDetails?.enabled);
+      const transitT = depFlight.transitType || 'flight';
       lastDay.departureDetails = {
         enabled: wasEnabled,
-        point: 'Airport',
-        flightOrTrainNumber: `${depFlight.airline} ${depFlight.flightNumber}`.trim(),
-        departureTime: depFlight.departureTime,
-        dropLocation: depFlight.departureCity
+        transitType: transitT,
+        point: pointForTransit(transitT),
+        flightOrTrainNumber: `${depFlight.airline || ''} ${depFlight.flightNumber || ''}`.trim(),
+        departureTime: depFlight.departureTime || '',
+        dropLocation: depFlight.departureCity || ''
       };
       if (wasEnabled) {
         delete lastDay.hotel;
@@ -2541,216 +2663,309 @@ export default function ItineraryBuilder({
             )}
           </div>
 
-          {/* Flight Booking & Tickets Section (Arrival and Departure Details) */}
+          {/* Transit Booking & Tickets Section (Arrival and Departure Details - Booked by Us) */}
           <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold flex-shrink-0">
                   <Plane className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                    Flight Booking Details (Arrival & Departure Logistics)
+                    Arrival & Departure Logistics (Booked by Us)
                   </h3>
                   <p className="text-[11px] text-slate-500">
-                    Specify official flight tickets, arrival & departure times, PNRs, and baggage if flights are booked by your agency.
+                    Specify verified transit tickets, arrival & departure times, PNRs, and baggage if booked by your agency.
                   </p>
                 </div>
               </div>
 
-              <label className="inline-flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
-                <input
-                  type="checkbox"
-                  checked={!!itinerary.flightBookings?.flightsBookedByUs}
-                  onChange={(e) => handleToggleFlightsBookedByUs(e.target.checked)}
-                  className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"
-                />
-                <span className="text-xs font-bold text-sky-950">
-                  {itinerary.flightBookings?.flightsBookedByUs ? 'Flights Booked By Us (Active)' : 'Booked Flights Included?'}
-                </span>
-              </label>
+              {/* 3 Selectable Options for Booked by Us */}
+              <div className="flex flex-wrap items-center gap-2">
+                <label className={`inline-flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-bold transition shadow-2xs ${
+                  itinerary.flightBookings?.flightsBookedByUs 
+                    ? 'bg-sky-50 border-sky-300 text-sky-950' 
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={!!itinerary.flightBookings?.flightsBookedByUs}
+                    onChange={(e) => handleToggleBookedByUs('flights', e.target.checked)}
+                    className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"
+                  />
+                  <Plane className="w-3.5 h-3.5 text-sky-600" />
+                  <span>Flights booked by us</span>
+                </label>
+
+                <label className={`inline-flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-bold transition shadow-2xs ${
+                  itinerary.flightBookings?.railwayBookedByUs 
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-950' 
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={!!itinerary.flightBookings?.railwayBookedByUs}
+                    onChange={(e) => handleToggleBookedByUs('railway', e.target.checked)}
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <Train className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Railway booked by us</span>
+                </label>
+
+                <label className={`inline-flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-bold transition shadow-2xs ${
+                  itinerary.flightBookings?.busBookedByUs 
+                    ? 'bg-amber-50 border-amber-300 text-amber-950' 
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={!!itinerary.flightBookings?.busBookedByUs}
+                    onChange={(e) => handleToggleBookedByUs('bus', e.target.checked)}
+                    className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                  />
+                  <Bus className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Bus booked by us</span>
+                </label>
+              </div>
             </div>
 
-            {itinerary.flightBookings?.flightsBookedByUs ? (
+            {(itinerary.flightBookings?.flightsBookedByUs || itinerary.flightBookings?.railwayBookedByUs || itinerary.flightBookings?.busBookedByUs) ? (
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-slate-700">
-                    Confirmed Flight Sectors ({itinerary.flightBookings.flights?.length || 0}):
+                    Confirmed Travel Sectors ({itinerary.flightBookings.flights?.length || 0}):
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       onClick={handleSyncFlightsToDays}
                       className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-sky-800 bg-sky-100 hover:bg-sky-200 rounded-lg border border-sky-300 transition"
-                      title="Sync arrival flight with Day 1 and return flight with Final Day"
+                      title="Sync arrival transit with Day 1 and return transit with Final Day"
                     >
                       <RefreshCw className="w-3 h-3" />
                       <span>Sync to Day 1 & Final Day Schedule</span>
                     </button>
                     <button
                       type="button"
-                      onClick={handleAddFlightSector}
-                      className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg transition shadow-2xs"
+                      onClick={() => handleAddFlightSector('flight')}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-sky-950 bg-sky-200 hover:bg-sky-300 rounded-lg transition shadow-2xs"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Flight Sector</span>
+                      <Plane className="w-3 h-3 text-sky-700" />
+                      <span>+ Flight Sector</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddFlightSector('train')}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-emerald-950 bg-emerald-200 hover:bg-emerald-300 rounded-lg transition shadow-2xs"
+                    >
+                      <Train className="w-3 h-3 text-emerald-700" />
+                      <span>+ Train Sector</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddFlightSector('bus')}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-amber-950 bg-amber-200 hover:bg-amber-300 rounded-lg transition shadow-2xs"
+                    >
+                      <Bus className="w-3 h-3 text-amber-700" />
+                      <span>+ Bus Sector</span>
                     </button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
-                  {itinerary.flightBookings.flights?.map((flight, fIdx) => (
-                    <div
-                      key={flight.id || fIdx}
-                      className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                            flight.type === 'arrival' 
-                              ? 'bg-indigo-100 text-indigo-800' 
-                              : flight.type === 'departure' 
-                              ? 'bg-sky-100 text-sky-800' 
-                              : 'bg-purple-100 text-purple-800'
-                          }`}>
-                            {flight.type === 'arrival' ? 'Inbound / Arrival Flight' : flight.type === 'departure' ? 'Outbound / Return Flight' : 'Domestic / Connecting Flight'}
-                          </span>
-                          <input
-                            type="text"
-                            value={flight.sectorTitle}
-                            onChange={(e) => handleUpdateFlightSector(flight.id, 'sectorTitle', e.target.value)}
-                            placeholder="Sector Title (e.g. Mumbai → Delhi)"
-                            className="text-xs font-bold text-slate-900 border-b border-transparent hover:border-slate-300 focus:border-sky-500 focus:outline-none bg-transparent flex-1"
-                          />
-                        </div>
-
-                        {itinerary.flightBookings!.flights.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFlightSector(flight.id)}
-                            className="text-slate-400 hover:text-rose-600 p-1"
-                            title="Remove flight sector"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                            Airline Partner
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. IndiGo, Air India, Vistara"
-                            value={flight.airline || ''}
-                            onChange={(e) => handleUpdateFlightSector(flight.id, 'airline', e.target.value)}
-                            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                            Flight Number
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. 6E-204 / AI-402"
-                            value={flight.flightNumber || ''}
-                            onChange={(e) => handleUpdateFlightSector(flight.id, 'flightNumber', e.target.value)}
-                            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none font-mono font-semibold"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                            PNR / Booking Reference
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. 6E-J982KL"
-                            value={flight.pnr || ''}
-                            onChange={(e) => handleUpdateFlightSector(flight.id, 'pnr', e.target.value)}
-                            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none font-mono text-slate-800"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                            Cabin & Baggage
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. 15 Kg Check-in + 7 Kg Cabin"
-                            value={flight.baggage || ''}
-                            onChange={(e) => handleUpdateFlightSector(flight.id, 'baggage', e.target.value)}
-                            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none text-slate-700"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Origin & Destination Schedule Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2.5 rounded-lg bg-slate-50/70 border border-slate-200 text-xs">
-                        <div className="space-y-1.5">
-                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                            🛫 Departure Schedule
-                          </span>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <input
-                                type="text"
-                                placeholder="Departure City / Airport"
-                                value={flight.departureCity || ''}
-                                onChange={(e) => handleUpdateFlightSector(flight.id, 'departureCity', e.target.value)}
-                                className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
-                              />
+                  {itinerary.flightBookings.flights?.map((flight, fIdx) => {
+                    const sectorMode = flight.transitType || 'flight';
+                    return (
+                      <div
+                        key={flight.id || fIdx}
+                        className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                          <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+                            {/* Transit Mode Pill Toggle */}
+                            <div className="flex items-center rounded-lg bg-slate-100 p-0.5 border border-slate-200">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateFlightSector(flight.id, 'transitType', 'flight')}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 transition ${
+                                  sectorMode === 'flight' ? 'bg-white text-sky-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                              >
+                                <Plane className="w-3 h-3" />
+                                <span>Flight</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateFlightSector(flight.id, 'transitType', 'train')}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 transition ${
+                                  sectorMode === 'train' ? 'bg-white text-emerald-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                              >
+                                <Train className="w-3 h-3" />
+                                <span>Railway</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateFlightSector(flight.id, 'transitType', 'bus')}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 transition ${
+                                  sectorMode === 'bus' ? 'bg-white text-amber-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                              >
+                                <Bus className="w-3 h-3" />
+                                <span>Bus</span>
+                              </button>
                             </div>
-                            <div>
-                              <input
-                                type="text"
-                                placeholder="Departure Time (e.g. 07:15 AM)"
-                                value={flight.departureTime || ''}
-                                onChange={(e) => handleUpdateFlightSector(flight.id, 'departureTime', e.target.value)}
-                                className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-800"
-                              />
-                            </div>
+
+                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                              flight.type === 'arrival' 
+                                ? 'bg-indigo-100 text-indigo-800' 
+                                : flight.type === 'departure' 
+                                ? 'bg-sky-100 text-sky-800' 
+                                : 'bg-purple-100 text-purple-800'
+                            }`}>
+                              {flight.type === 'arrival' 
+                                ? (sectorMode === 'bus' ? 'Inbound Bus' : sectorMode === 'train' ? 'Inbound Train' : 'Inbound Flight')
+                                : flight.type === 'departure' 
+                                ? (sectorMode === 'bus' ? 'Outbound Bus' : sectorMode === 'train' ? 'Outbound Train' : 'Outbound Flight')
+                                : (sectorMode === 'bus' ? 'Inter-City Bus' : sectorMode === 'train' ? 'Train Sector' : 'Internal Flight')}
+                            </span>
+                            <input
+                              type="text"
+                              value={flight.sectorTitle}
+                              onChange={(e) => handleUpdateFlightSector(flight.id, 'sectorTitle', e.target.value)}
+                              placeholder="Sector Title (e.g. Mumbai → Delhi)"
+                              className="text-xs font-bold text-slate-900 border-b border-transparent hover:border-slate-300 focus:border-sky-500 focus:outline-none bg-transparent flex-1"
+                            />
+                          </div>
+
+                          {itinerary.flightBookings!.flights.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveFlightSector(flight.id)}
+                              className="text-slate-400 hover:text-rose-600 p-1"
+                              title="Remove sector"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                              {sectorMode === 'bus' ? 'Bus Operator / Service' : sectorMode === 'train' ? 'Train Name / Service' : 'Airline Partner'}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={sectorMode === 'bus' ? 'e.g. Zingbus Premium, Intrcity' : sectorMode === 'train' ? 'e.g. Vande Bharat, Shatabdi Express' : 'e.g. IndiGo, Air India, Vistara'}
+                              value={flight.airline || ''}
+                              onChange={(e) => handleUpdateFlightSector(flight.id, 'airline', e.target.value)}
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                              {sectorMode === 'bus' ? 'Bus / Route Number' : sectorMode === 'train' ? 'Train Number' : 'Flight Number'}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={sectorMode === 'bus' ? 'e.g. DL-01-A-1234' : sectorMode === 'train' ? 'e.g. 20171 / 12002' : 'e.g. 6E-204 / AI-402'}
+                              value={flight.flightNumber || ''}
+                              onChange={(e) => handleUpdateFlightSector(flight.id, 'flightNumber', e.target.value)}
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none font-mono font-semibold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                              {sectorMode === 'bus' ? 'Booking / Ticket ID' : sectorMode === 'train' ? 'PNR Number' : 'PNR / Booking Reference'}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={sectorMode === 'bus' ? 'e.g. ZB-48201' : sectorMode === 'train' ? 'e.g. 284-8291034' : 'e.g. 6E-J982KL'}
+                              value={flight.pnr || ''}
+                              onChange={(e) => handleUpdateFlightSector(flight.id, 'pnr', e.target.value)}
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none font-mono text-slate-800"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                              {sectorMode === 'bus' ? 'Bus Type & Luggage' : sectorMode === 'train' ? 'Coach Class & Berth' : 'Cabin & Baggage'}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={sectorMode === 'bus' ? 'e.g. AC Multi-Axle Sleeper' : sectorMode === 'train' ? 'e.g. Executive CC (EC) / 2AC' : 'e.g. 15 Kg Check-in + 7 Kg Cabin'}
+                              value={flight.baggage || ''}
+                              onChange={(e) => handleUpdateFlightSector(flight.id, 'baggage', e.target.value)}
+                              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none text-slate-700"
+                            />
                           </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                            🛬 Arrival Schedule
-                          </span>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <input
-                                type="text"
-                                placeholder="Arrival City / Airport"
-                                value={flight.arrivalCity || ''}
-                                onChange={(e) => handleUpdateFlightSector(flight.id, 'arrivalCity', e.target.value)}
-                                className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
-                              />
+                        {/* Origin & Destination Schedule Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2.5 rounded-lg bg-slate-50/70 border border-slate-200 text-xs">
+                          <div className="space-y-1.5">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                              {sectorMode === 'bus' ? '🚌 Departure Station / Boarding' : sectorMode === 'train' ? '🚆 Departure Railway Station' : '🛫 Departure Schedule'}
+                            </span>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <input
+                                  type="text"
+                                  placeholder={sectorMode === 'bus' ? 'Departure City / Bus Stand' : sectorMode === 'train' ? 'Departure Station' : 'Departure City / Airport'}
+                                  value={flight.departureCity || ''}
+                                  onChange={(e) => handleUpdateFlightSector(flight.id, 'departureCity', e.target.value)}
+                                  className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                />
+                              </div>
+                              <div>
+                                <input
+                                  type="text"
+                                  placeholder="Departure Time (e.g. 07:15 AM)"
+                                  value={flight.departureTime || ''}
+                                  onChange={(e) => handleUpdateFlightSector(flight.id, 'departureTime', e.target.value)}
+                                  className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-800"
+                                />
+                              </div>
                             </div>
-                            <div>
-                              <input
-                                type="text"
-                                placeholder="Arrival Time (e.g. 09:30 AM)"
-                                value={flight.arrivalTime || ''}
-                                onChange={(e) => handleUpdateFlightSector(flight.id, 'arrivalTime', e.target.value)}
-                                className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-800"
-                              />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                              {sectorMode === 'bus' ? '🚏 Arrival Station / Drop' : sectorMode === 'train' ? '🚆 Arrival Railway Station' : '🛬 Arrival Schedule'}
+                            </span>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <input
+                                  type="text"
+                                  placeholder={sectorMode === 'bus' ? 'Arrival City / Bus Stand' : sectorMode === 'train' ? 'Arrival Station' : 'Arrival City / Airport'}
+                                  value={flight.arrivalCity || ''}
+                                  onChange={(e) => handleUpdateFlightSector(flight.id, 'arrivalCity', e.target.value)}
+                                  className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                />
+                              </div>
+                              <div>
+                                <input
+                                  type="text"
+                                  placeholder="Arrival Time (e.g. 09:30 AM)"
+                                  value={flight.arrivalTime || ''}
+                                  onChange={(e) => handleUpdateFlightSector(flight.id, 'arrivalTime', e.target.value)}
+                                  className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-800"
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ) : (
               <div className="p-3 bg-white rounded-lg border border-dashed border-slate-300 text-center text-xs text-slate-500">
-                <span>Flight booking details are currently disabled. If you are booking the client&apos;s flights, toggle the switch above to include verified flight arrival & departure tickets in the proposal and voucher.</span>
+                <span>Transit booking details are currently disabled. Select &apos;Flights booked by us&apos;, &apos;Railway booked by us&apos;, or &apos;Bus booked by us&apos; above to include verified travel tickets in the proposal and voucher.</span>
               </div>
             )}
           </div>
@@ -2854,20 +3069,25 @@ export default function ItineraryBuilder({
                           <div className="flex items-center gap-2">
                             <input
                               type="text"
-                              value={day.title}
+                              value={day.title || getDayMainHeading(day)}
                               onChange={(e) => handleUpdateDayField(dayIndex, 'title', e.target.value)}
-                              placeholder="Day Title"
+                              placeholder={getDayMainHeading(day)}
                               className="font-bold text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-amber-500 focus:outline-none"
                             />
                           </div>
-                          <span className="text-[11px] text-slate-500 font-medium">
-                            Day {day.dayNumber} · <strong className="text-slate-800">{getRouteSubtitle(day)}</strong>
+                          <div className="text-[11px] text-slate-500 font-medium mt-0.5">
                             {day.departureDetails?.enabled ? (
-                              <> · <span className="text-sky-700 font-semibold">Drop-off: {day.departureDetails.point}</span></>
+                              <span className="text-sky-700 font-semibold">
+                                Drop-off: {day.departureDetails.point || 'Airport / Station'}
+                                {day.departureDetails.flightOrTrainNumber ? ` (${day.departureDetails.flightOrTrainNumber})` : ''}
+                                {day.departureDetails.departureTime ? ` at ${day.departureDetails.departureTime}` : ''}
+                              </span>
                             ) : (
-                              day.overnightLocation ? <> · Overnight: <strong className="text-slate-700">{day.overnightLocation}</strong></> : null
+                              day.overnightLocation ? (
+                                <>Overnight: <strong className="text-slate-700">{day.overnightLocation}</strong></>
+                              ) : null
                             )}
-                          </span>
+                          </div>
                         </div>
                       </div>
 
@@ -2952,11 +3172,11 @@ export default function ItineraryBuilder({
                                     onClick={() => {
                                       handleUpdateArrivalDetails(dayIndex, {
                                         transitType: 'flight',
-                                        point: day.arrivalDetails?.point === 'Railway Station' ? 'Airport' : (day.arrivalDetails?.point || 'Airport')
+                                        point: (day.arrivalDetails?.point === 'Railway Station' || day.arrivalDetails?.point === 'Bus Terminal') ? 'Airport' : (day.arrivalDetails?.point || 'Airport')
                                       });
                                     }}
                                     className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
-                                      (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'flight'
+                                      (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : day.arrivalDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'flight'
                                         ? 'bg-indigo-600 text-white shadow-2xs'
                                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                                     }`}
@@ -2969,17 +3189,34 @@ export default function ItineraryBuilder({
                                     onClick={() => {
                                       handleUpdateArrivalDetails(dayIndex, {
                                         transitType: 'train',
-                                        point: day.arrivalDetails?.point === 'Airport' ? 'Railway Station' : (day.arrivalDetails?.point || 'Railway Station')
+                                        point: (day.arrivalDetails?.point === 'Airport' || day.arrivalDetails?.point === 'Bus Terminal') ? 'Railway Station' : (day.arrivalDetails?.point || 'Railway Station')
                                       });
                                     }}
                                     className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
-                                      (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                      (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : day.arrivalDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'train'
                                         ? 'bg-indigo-600 text-white shadow-2xs'
                                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                                     }`}
                                   >
                                     <Train className="w-3.5 h-3.5" />
                                     <span>Railway</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleUpdateArrivalDetails(dayIndex, {
+                                        transitType: 'bus',
+                                        point: (day.arrivalDetails?.point === 'Airport' || day.arrivalDetails?.point === 'Railway Station') ? 'Bus Terminal' : (day.arrivalDetails?.point || 'Bus Terminal')
+                                      });
+                                    }}
+                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                      (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : day.arrivalDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'bus'
+                                        ? 'bg-indigo-600 text-white shadow-2xs'
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    <Bus className="w-3.5 h-3.5" />
+                                    <span>Bus</span>
                                   </button>
                                 </div>
                               </div>
@@ -3003,14 +3240,18 @@ export default function ItineraryBuilder({
 
                               <div>
                                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  {(day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                  {(day.arrivalDetails?.transitType === 'bus' || day.arrivalDetails?.point === 'Bus Terminal')
+                                    ? 'Bus Service & Registration / Route'
+                                    : (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
                                     ? 'Train Number & Name / Station'
                                     : 'Flight Number & Terminal'}
                                 </label>
                                 <input
                                   type="text"
                                   placeholder={
-                                    (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                    (day.arrivalDetails?.transitType === 'bus' || day.arrivalDetails?.point === 'Bus Terminal')
+                                      ? 'e.g. Zingbus / ISBT Kashmere Gate'
+                                      : (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
                                       ? 'e.g. 12002 Shatabdi Express / NDLS'
                                       : 'e.g. IndiGo 6E-204 / T3'
                                   }
@@ -3153,11 +3394,11 @@ export default function ItineraryBuilder({
                                     onClick={() => {
                                       handleUpdateDepartureDetails(dayIndex, {
                                         transitType: 'flight',
-                                        point: day.departureDetails?.point === 'Railway Station' ? 'Airport' : (day.departureDetails?.point || 'Airport')
+                                        point: (day.departureDetails?.point === 'Railway Station' || day.departureDetails?.point === 'Bus Terminal') ? 'Airport' : (day.departureDetails?.point || 'Airport')
                                       });
                                     }}
                                     className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
-                                      (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'flight'
+                                      (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : day.departureDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'flight'
                                         ? 'bg-sky-600 text-white shadow-2xs'
                                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                                     }`}
@@ -3170,17 +3411,34 @@ export default function ItineraryBuilder({
                                     onClick={() => {
                                       handleUpdateDepartureDetails(dayIndex, {
                                         transitType: 'train',
-                                        point: day.departureDetails?.point === 'Airport' ? 'Railway Station' : (day.departureDetails?.point || 'Railway Station')
+                                        point: (day.departureDetails?.point === 'Airport' || day.departureDetails?.point === 'Bus Terminal') ? 'Railway Station' : (day.departureDetails?.point || 'Railway Station')
                                       });
                                     }}
                                     className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
-                                      (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                      (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : day.departureDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'train'
                                         ? 'bg-sky-600 text-white shadow-2xs'
                                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                                     }`}
                                   >
                                     <Train className="w-3.5 h-3.5" />
                                     <span>Railway</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleUpdateDepartureDetails(dayIndex, {
+                                        transitType: 'bus',
+                                        point: (day.departureDetails?.point === 'Airport' || day.departureDetails?.point === 'Railway Station') ? 'Bus Terminal' : (day.departureDetails?.point || 'Bus Terminal')
+                                      });
+                                    }}
+                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                      (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : day.departureDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'bus'
+                                        ? 'bg-sky-600 text-white shadow-2xs'
+                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    <Bus className="w-3.5 h-3.5" />
+                                    <span>Bus</span>
                                   </button>
                                 </div>
                               </div>
@@ -3204,14 +3462,18 @@ export default function ItineraryBuilder({
 
                               <div>
                                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  {(day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                  {(day.departureDetails?.transitType === 'bus' || day.departureDetails?.point === 'Bus Terminal')
+                                    ? 'Bus Service & Registration / Route'
+                                    : (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
                                     ? 'Train Number & Name / Station'
                                     : 'Flight Number & Terminal'}
                                 </label>
                                 <input
                                   type="text"
                                   placeholder={
-                                    (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                    (day.departureDetails?.transitType === 'bus' || day.departureDetails?.point === 'Bus Terminal')
+                                      ? 'e.g. Zingbus / ISBT Drop'
+                                      : (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
                                       ? 'e.g. 20171 Vande Bharat Express'
                                       : 'e.g. Air India AI-402 / T2'
                                   }

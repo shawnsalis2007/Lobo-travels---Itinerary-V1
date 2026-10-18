@@ -241,12 +241,14 @@ export function getRouteSubtitle(day: ItineraryDay): string {
   const transitVerb = (c: { transitType?: string }) => {
     if (c.transitType === 'flight') return 'flight to';
     if (c.transitType === 'train') return 'train to';
+    if (c.transitType === 'bus') return 'bus to';
     return 'drive to';
   };
 
   const transitFromVerb = (c: { transitType?: string }) => {
     if (c.transitType === 'flight') return 'Flight from';
     if (c.transitType === 'train') return 'Train from';
+    if (c.transitType === 'bus') return 'Bus from';
     return 'Drive from';
   };
 
@@ -277,5 +279,74 @@ export function getRouteSubtitle(day: ItineraryDay): string {
   }
 
   return subtitle;
+}
+
+/**
+ * Dynamic Day Card Main Heading Generator
+ * - Swaps routing/activity text into the main heading
+ * - Replaces generic labels like 'Sightseeing', 'Day 2 Sightseeing', 'Delhi Sightseeing'
+ * - Preserves specific custom titles (e.g. 'Amber Fort & Pink City Royal Palaces')
+ * - Day 1: 'Arrival in [City Name]' (removes 'Welcome Orientation')
+ * - Multi-City days: Dynamic routing text (e.g. 'Sightseeing Delhi, drive to Agra and sightseeing' or 'Drive from Delhi to Agra')
+ */
+export function getDayMainHeading(day: ItineraryDay): string {
+  // If multi-city, always use the dynamic routing text
+  if (day.isMultiCity && day.cities && day.cities.length > 1) {
+    return getRouteSubtitle(day);
+  }
+
+  const routeSub = getRouteSubtitle(day) || day.destination || '';
+
+  // Day 1 Arrival
+  if (day.dayNumber === 1) {
+    const dest = day.destination || 'Destination';
+    if (!day.title) return `Arrival in ${dest}`;
+    const cleanTitle = day.title.trim();
+    if (
+      /welcome\s+orientation/i.test(cleanTitle) ||
+      /^arrival/i.test(cleanTitle) ||
+      cleanTitle.toLowerCase() === 'sightseeing' ||
+      cleanTitle.toLowerCase() === `${dest.toLowerCase()} sightseeing`
+    ) {
+      return `Arrival in ${dest}`;
+    }
+    const strippedDay1 = cleanTitle
+      .replace(/[\s:–-]*welcome\s+orientation/gi, '')
+      .replace(/[\s:–-]*sightseeing/gi, '')
+      .trim();
+    return strippedDay1 || `Arrival in ${dest}`;
+  }
+
+  // Other days:
+  if (!day.title) {
+    return routeSub;
+  }
+
+  const rawTitle = day.title.trim();
+
+  // If title is purely generic: "Sightseeing", "Day 2 Sightseeing", "Delhi Sightseeing", "Day 2 - Sightseeing"
+  const isGeneric =
+    /^(day\s*\d+[\s:–-]*)?sightseeing$/i.test(rawTitle) ||
+    rawTitle.toLowerCase() === 'sightseeing' ||
+    rawTitle.toLowerCase() === `${(day.destination || '').toLowerCase()} sightseeing` ||
+    rawTitle.toLowerCase() === `${(day.overnightLocation || '').toLowerCase()} sightseeing` ||
+    /^(day\s*\d+)$/i.test(rawTitle);
+
+  if (isGeneric) {
+    return routeSub;
+  }
+
+  // If title ends with " - Sightseeing" or " Sightseeing", strip "Sightseeing"
+  const stripped = rawTitle
+    .replace(/[\s:–-]+sightseeing$/i, '')
+    .replace(/^sightseeing[\s:–-]+/i, '')
+    .replace(/\s+sightseeing$/i, '')
+    .trim();
+
+  if (!stripped || stripped.toLowerCase() === (day.destination || '').toLowerCase()) {
+    return routeSub;
+  }
+
+  return stripped;
 }
 

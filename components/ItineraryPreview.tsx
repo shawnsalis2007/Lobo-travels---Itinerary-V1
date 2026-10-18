@@ -27,6 +27,7 @@ import {
   ChevronLeft,
   Plane,
   Train,
+  Bus,
   Compass,
   ArrowRight,
   IndianRupee,
@@ -39,7 +40,7 @@ import { exportElementToPdf } from '@/lib/pdf-export';
 import { getVoucherReferenceNumber } from '@/lib/storage';
 import { COMPREHENSIVE_ATTRACTIONS, COMPREHENSIVE_DESTINATIONS } from '@/lib/catalog-data';
 import { formatDateDMY } from '@/lib/utils';
-import { ensureOvernightStayText, getRouteSubtitle } from '@/lib/narrative-generator';
+import { ensureOvernightStayText, getRouteSubtitle, getDayMainHeading } from '@/lib/narrative-generator';
 import { Itinerary, AppSettings, ItineraryDay, Destination, Attraction, HotelStarTier, DayHotelTiers, TierPricingData, PricingTiers, DayHotelSelection } from '@/types';
 import { SafeImage } from './SafeImage';
 
@@ -585,7 +586,7 @@ export default function ItineraryPreview({
 
               {/* Cover Hero Image - Dynamically selected from tour sights or starting destination */}
               <div className={`rounded-xl overflow-hidden shadow-md border border-slate-200 mb-4 relative group ${
-                itinerary.flightBookings?.flightsBookedByUs && itinerary.flightBookings.flights?.length ? 'h-60' : 'h-80'
+                (itinerary.flightBookings?.flightsBookedByUs || itinerary.flightBookings?.railwayBookedByUs || itinerary.flightBookings?.busBookedByUs) && itinerary.flightBookings?.flights?.length ? 'h-60' : 'h-80'
               }`}>
                 <SafeImage src={smartCoverImage} alt={itinerary.tourName || "Tour Destination"} className="w-full h-full object-cover" />
                 {isInlineEditMode && (
@@ -702,60 +703,72 @@ export default function ItineraryPreview({
                 </div>
               </div>
 
-              {/* Confirmed Flight Travel Details & Tickets (Arrival & Departure Details) */}
-              {itinerary.flightBookings?.flightsBookedByUs && itinerary.flightBookings.flights?.length > 0 && (
+              {/* Confirmed Travel Details & Tickets (Transit Logistics Booked by Us) */}
+              {(itinerary.flightBookings?.flightsBookedByUs || itinerary.flightBookings?.railwayBookedByUs || itinerary.flightBookings?.busBookedByUs) && itinerary.flightBookings.flights?.length > 0 && (
                 <div className="p-3.5 rounded-xl bg-gradient-to-br from-sky-50 to-indigo-50/60 border border-sky-200 text-xs space-y-2 mb-3.5">
                   <div className="flex items-center justify-between border-b border-sky-200/80 pb-1.5">
                     <span className="font-bold text-sky-950 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-                      <Plane className="w-3.5 h-3.5 text-sky-600" />
-                      Flight Travel Details & Tickets (Confirmed Flights)
+                      {itinerary.flightBookings.flightsBookedByUs && <Plane className="w-3.5 h-3.5 text-sky-600" />}
+                      {itinerary.flightBookings.railwayBookedByUs && <Train className="w-3.5 h-3.5 text-emerald-600" />}
+                      {itinerary.flightBookings.busBookedByUs && <Bus className="w-3.5 h-3.5 text-amber-600" />}
+                      Travel Details & Tickets (Confirmed Transit)
                     </span>
                     <span className="text-[10px] font-bold text-sky-800 bg-sky-200/60 px-2 py-0.5 rounded">
-                      Flights Booked by {settings?.companyName || 'Lobo Travels'}
+                      Tickets Booked by {settings?.companyName || 'Lobo Travels'}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                    {itinerary.flightBookings.flights.map((fl) => (
-                      <div key={fl.id} className="bg-white/95 p-2 rounded-lg border border-sky-100 shadow-2xs space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded ${
-                            fl.type === 'arrival' 
-                              ? 'bg-indigo-100 text-indigo-800' 
-                              : fl.type === 'departure' 
-                              ? 'bg-sky-100 text-sky-800' 
-                              : 'bg-purple-100 text-purple-800'
-                          }`}>
-                            {fl.type === 'arrival' ? 'Inbound / Arrival' : fl.type === 'departure' ? 'Outbound / Return' : 'Domestic Sector'}
-                          </span>
-                          {fl.pnr && (
-                            <span className="font-mono text-[10px] font-bold text-slate-700">
-                              PNR: {fl.pnr}
+                    {itinerary.flightBookings.flights.map((fl) => {
+                      const mode = fl.transitType || 'flight';
+                      return (
+                        <div key={fl.id} className="bg-white/95 p-2 rounded-lg border border-sky-100 shadow-2xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded flex items-center gap-1 ${
+                              fl.type === 'arrival' 
+                                ? 'bg-indigo-100 text-indigo-800' 
+                                : fl.type === 'departure' 
+                                ? 'bg-sky-100 text-sky-800' 
+                                : 'bg-purple-100 text-purple-800'
+                            }`}>
+                              {mode === 'bus' ? <Bus className="w-2.5 h-2.5" /> : mode === 'train' ? <Train className="w-2.5 h-2.5" /> : <Plane className="w-2.5 h-2.5" />}
+                              <span>
+                                {fl.type === 'arrival' 
+                                  ? (mode === 'bus' ? 'Inbound Bus' : mode === 'train' ? 'Inbound Train' : 'Inbound Flight')
+                                  : fl.type === 'departure' 
+                                  ? (mode === 'bus' ? 'Outbound Bus' : mode === 'train' ? 'Outbound Train' : 'Outbound Flight')
+                                  : (mode === 'bus' ? 'Inter-City Bus' : mode === 'train' ? 'Train Sector' : 'Domestic Sector')}
+                              </span>
                             </span>
+                            {fl.pnr && (
+                              <span className="font-mono text-[10px] font-bold text-slate-700">
+                                {mode === 'bus' ? 'Ticket: ' : 'PNR: '}{fl.pnr}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between font-bold text-slate-900 pt-0.5">
+                            <span className="truncate">{fl.departureCity}</span>
+                            <span className="text-sky-600 px-1 text-xs">➔</span>
+                            <span className="truncate">{fl.arrivalCity}</span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] text-slate-600">
+                            <span>
+                              <strong>{fl.airline}</strong> {fl.flightNumber}
+                            </span>
+                            <span className="font-semibold text-slate-800">
+                              {fl.departureTime} – {fl.arrivalTime}
+                            </span>
+                          </div>
+                          {fl.baggage && (
+                            <div className="text-[9px] text-slate-400">
+                              {mode === 'bus' ? 'Coach / Bags: ' : mode === 'train' ? 'Class: ' : 'Baggage: '}{fl.baggage}
+                            </div>
                           )}
                         </div>
-
-                        <div className="flex items-center justify-between font-bold text-slate-900 pt-0.5">
-                          <span className="truncate">{fl.departureCity}</span>
-                          <span className="text-sky-600 px-1 text-xs">➔</span>
-                          <span className="truncate">{fl.arrivalCity}</span>
-                        </div>
-
-                        <div className="flex items-center justify-between text-[10px] text-slate-600">
-                          <span>
-                            <strong>{fl.airline}</strong> {fl.flightNumber}
-                          </span>
-                          <span className="font-semibold text-slate-800">
-                            {fl.departureTime} – {fl.arrivalTime}
-                          </span>
-                        </div>
-                        {fl.baggage && (
-                          <div className="text-[9px] text-slate-400">
-                            Baggage: {fl.baggage}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -846,22 +859,21 @@ export default function ItineraryPreview({
                         </span>
                         <div>
                           <h4 className="font-black text-sm text-slate-900 leading-tight">
-                            {day.title}
+                            {getDayMainHeading(day)}
                           </h4>
                           {(() => {
                             const isDepartureActive = Boolean(day.departureDetails?.enabled);
 
                             return (
                               <div className="text-[10px] text-slate-500 font-medium">
-                                <strong>{getRouteSubtitle(day)}</strong>
                                 {!isDepartureActive && day.overnightLocation && itinerary.includeHotels !== false && (
                                   <>
-                                    {' · '}Overnight: <strong>{day.overnightLocation}</strong>
+                                    Overnight: <strong>{day.overnightLocation}</strong>
                                   </>
                                 )}
                                 {isDepartureActive && (
                                   <>
-                                    {' · '}Drop-off: <strong>{day.departureDetails?.point || 'Airport / Station'}</strong>
+                                    Drop-off: <strong>{day.departureDetails?.point || 'Airport / Station'}</strong>
                                     {day.departureDetails?.flightOrTrainNumber ? ` (${day.departureDetails.flightOrTrainNumber})` : ''}
                                     {day.departureDetails?.departureTime ? ` at ${day.departureDetails.departureTime}` : ''}
                                   </>

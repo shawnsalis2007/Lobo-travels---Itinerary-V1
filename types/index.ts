@@ -34,7 +34,7 @@ export interface DayTransfer {
 
 export interface DayArrivalDetails {
   enabled: boolean;
-  transitType?: 'flight' | 'train';
+  transitType?: 'flight' | 'train' | 'bus';
   point: 'Airport' | 'Railway Station' | 'Bus Terminal' | 'Hotel Pickup' | 'Other';
   flightOrTrainNumber?: string;
   arrivalTime?: string;
@@ -46,7 +46,7 @@ export interface DayArrivalDetails {
 
 export interface DayDepartureDetails {
   enabled: boolean;
-  transitType?: 'flight' | 'train';
+  transitType?: 'flight' | 'train' | 'bus';
   point: 'Airport' | 'Railway Station' | 'Bus Terminal' | 'Hotel Drop' | 'Other';
   flightOrTrainNumber?: string;
   departureTime?: string;
@@ -148,8 +148,9 @@ export interface BookedFlightInfo {
   id: string;
   type: 'arrival' | 'departure' | 'intercity';
   sectorTitle: string; // e.g. "Inbound / Arrival Flight (Mumbai → Delhi)"
-  airline: string; // e.g. "IndiGo"
-  flightNumber: string; // e.g. "6E-204"
+  transitType?: 'flight' | 'train' | 'bus';
+  airline: string; // e.g. "IndiGo", "Vande Bharat Express", "Zingbus"
+  flightNumber: string; // e.g. "6E-204", "20171", "DL-01-A-1234"
   departureCity: string; // e.g. "Mumbai (BOM)"
   departureDate?: string;
   departureTime: string; // e.g. "07:15 AM"
@@ -157,13 +158,15 @@ export interface BookedFlightInfo {
   arrivalDate?: string;
   arrivalTime: string; // e.g. "09:30 AM"
   pnr?: string; // e.g. "6E-ABC123"
-  cabinClass?: string; // e.g. "Economy"
+  cabinClass?: string; // e.g. "Economy", "2AC", "AC Sleeper"
   baggage?: string; // e.g. "15 Kg Check-in + 7 Kg Cabin"
   notes?: string;
 }
 
 export interface TourFlightsBooking {
   flightsBookedByUs: boolean; // "Flight arrival and departure details if we book the flights"
+  railwayBookedByUs?: boolean; // "Railway booked by us"
+  busBookedByUs?: boolean; // "Bus booked by us"
   flights: BookedFlightInfo[];
 }
 

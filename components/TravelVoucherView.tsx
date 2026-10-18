@@ -19,12 +19,13 @@ import {
   Mail,
   Plane,
   Train,
+  Bus,
   Clock
 } from 'lucide-react';
 import { exportElementToPdf } from '@/lib/pdf-export';
 import { getVoucherReferenceNumber, getOperationalBookingByVoucherNo, saveOperationalBooking } from '@/lib/storage';
 import { formatDateDMY } from '@/lib/utils';
-import { getRouteSubtitle } from '@/lib/narrative-generator';
+import { getRouteSubtitle, getDayMainHeading } from '@/lib/narrative-generator';
 import { Itinerary, AppSettings, OperationalBooking } from '@/types';
 import BookingCreationModal from '@/components/BookingCreationModal';
 
@@ -225,48 +226,56 @@ export default function TravelVoucherView({
 
               </div>
 
-              {/* Confirmed Flight Tickets & Sector Logistics (if flights booked) */}
-              {itinerary.flightBookings?.flightsBookedByUs && itinerary.flightBookings.flights?.length > 0 && (
+              {/* Confirmed Travel Tickets & Sector Logistics (if transit booked by us) */}
+              {(itinerary.flightBookings?.flightsBookedByUs || itinerary.flightBookings?.railwayBookedByUs || itinerary.flightBookings?.busBookedByUs) && itinerary.flightBookings.flights?.length > 0 && (
                 <div className="space-y-1.5">
                   <h3 className="text-[11px] font-bold text-sky-950 uppercase tracking-wider flex items-center gap-1.5">
-                    <Plane className="w-3.5 h-3.5 text-sky-600" />
-                    Confirmed Flight Tickets & Transit Logistics
+                    {itinerary.flightBookings.flightsBookedByUs && <Plane className="w-3.5 h-3.5 text-sky-600" />}
+                    {itinerary.flightBookings.railwayBookedByUs && <Train className="w-3.5 h-3.5 text-emerald-600" />}
+                    {itinerary.flightBookings.busBookedByUs && <Bus className="w-3.5 h-3.5 text-amber-600" />}
+                    Confirmed Travel Tickets & Transit Logistics
                   </h3>
                   <div className="rounded-lg border border-sky-200 overflow-hidden shadow-2xs">
                     <table className="w-full text-left text-xs">
                       <thead className="bg-[#151521] text-sky-300 font-semibold text-[10px]">
                         <tr>
                           <th className="py-1.5 px-3">Sector</th>
-                          <th className="py-1.5 px-3">Flight / Airline</th>
+                          <th className="py-1.5 px-3">Carrier / Service</th>
                           <th className="py-1.5 px-3">Route (From ➔ To)</th>
                           <th className="py-1.5 px-3">Timings</th>
                           <th className="py-1.5 px-3">PNR / E-Ticket</th>
-                          <th className="py-1.5 px-3">Baggage</th>
+                          <th className="py-1.5 px-3">Class / Baggage</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-sky-100 text-slate-700 text-[10px] bg-sky-50/20">
-                        {itinerary.flightBookings.flights.map((fl) => (
-                          <tr key={fl.id} className="hover:bg-sky-50/50">
-                            <td className="py-1.5 px-3 font-semibold text-slate-900">
-                              {fl.sectorTitle}
-                            </td>
-                            <td className="py-1.5 px-3 font-bold text-slate-900">
-                              {fl.airline} {fl.flightNumber}
-                            </td>
-                            <td className="py-1.5 px-3 font-medium text-slate-800">
-                              {fl.departureCity} ➔ {fl.arrivalCity}
-                            </td>
-                            <td className="py-1.5 px-3 text-slate-800 font-medium">
-                              {fl.departureTime} – {fl.arrivalTime}
-                            </td>
-                            <td className="py-1.5 px-3 font-mono font-bold text-sky-900">
-                              {fl.pnr || 'Confirmed'}
-                            </td>
-                            <td className="py-1.5 px-3 text-slate-500">
-                              {fl.baggage || '15 Kg + 7 Kg'}
-                            </td>
-                          </tr>
-                        ))}
+                        {itinerary.flightBookings.flights.map((fl) => {
+                          const mode = fl.transitType || 'flight';
+                          return (
+                            <tr key={fl.id} className="hover:bg-sky-50/50">
+                              <td className="py-1.5 px-3 font-semibold text-slate-900">
+                                <span className="inline-flex items-center gap-1">
+                                  {mode === 'bus' ? <Bus className="w-3 h-3 text-amber-600" /> : mode === 'train' ? <Train className="w-3 h-3 text-emerald-600" /> : <Plane className="w-3 h-3 text-sky-600" />}
+                                  <span>{fl.sectorTitle}</span>
+                                </span>
+                              </td>
+                              <td className="py-1.5 px-3 font-bold text-slate-900">
+                                {fl.airline} {fl.flightNumber}
+                              </td>
+                              <td className="py-1.5 px-3 font-medium text-slate-800">
+                                {fl.departureCity} ➔ {fl.arrivalCity}
+                              </td>
+                              <td className="py-1.5 px-3 text-slate-800 font-medium">
+                                {fl.departureTime} – {fl.arrivalTime}
+                              </td>
+                              <td className="py-1.5 px-3 font-mono font-bold text-sky-900">
+                                {fl.pnr || 'Confirmed'}
+                              </td>
+                              <td className="py-1.5 px-3 text-slate-500">
+                                {fl.cabinClass ? `${fl.cabinClass} · ` : ''}{fl.baggage || 'Luggage Included'}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -284,7 +293,7 @@ export default function TravelVoucherView({
                     <div key={day.id} className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px]">
                       <div className="flex items-center justify-between font-bold text-slate-900 mb-0.5">
                         <span>
-                          Day {day.dayNumber} — {getRouteSubtitle(day)}
+                          Day {day.dayNumber} — {getDayMainHeading(day)}
                         </span>
                         {day.departureDetails?.enabled ? (
                           <span className="text-[10px] text-sky-700 font-semibold bg-sky-100/70 px-1.5 py-0.5 rounded">
