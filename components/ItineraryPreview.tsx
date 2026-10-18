@@ -33,7 +33,11 @@ import {
   IndianRupee,
   Camera,
   Star,
-  Layers
+  Layers,
+  Ship,
+  Sailboat,
+  TrainTrack,
+  PlaneTakeoff
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { exportElementToPdf } from '@/lib/pdf-export';
@@ -873,7 +877,7 @@ export default function ItineraryPreview({
 
                             return (
                               <div className="text-[10px] text-slate-500 font-medium">
-                                {!isDepartureActive && day.overnightLocation && itinerary.includeHotels !== false && (
+                                {!isDepartureActive && day.overnightLocation && itinerary.includeHotels !== false && !day.excludeHotel && (
                                   <>
                                     Overnight: <strong>{day.overnightLocation}</strong>
                                   </>
@@ -902,30 +906,34 @@ export default function ItineraryPreview({
 
                     {/* Day 1 Arrival Banner if enabled */}
                     {day.dayNumber === 1 && day.arrivalDetails?.enabled && (() => {
-                      const isTrain = day.arrivalDetails.transitType === 'train' || day.arrivalDetails.point === 'Railway Station';
+                      const arr = day.arrivalDetails;
+                      const isTrain = arr.transitType === 'train' || arr.point === 'Railway Station';
+                      const isTransfer = arr.point === 'Hotel Pickup' || arr.point === 'City Center' || arr.point === 'Other';
                       return (
                         <div className="p-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-xs flex items-center justify-between text-indigo-950">
                           <div className="flex items-center gap-2">
-                            {isTrain ? (
+                            {isTransfer ? (
+                              <MapPin className="w-3.5 h-3.5 text-indigo-600" />
+                            ) : isTrain ? (
                               <Train className="w-3.5 h-3.5 text-indigo-600" />
                             ) : (
                               <Plane className="w-3.5 h-3.5 text-indigo-600" />
                             )}
-                            <span className="font-bold">Arrival: {day.arrivalDetails.point}</span>
-                            {day.arrivalDetails.flightOrTrainNumber && (
+                            <span className="font-bold">{isTransfer ? 'Pick-up' : 'Arrival'}: {arr.pickupLocation || arr.point}</span>
+                            {!isTransfer && arr.flightOrTrainNumber && (
                               <span className="text-[11px] font-mono text-indigo-800">
-                                ({day.arrivalDetails.flightOrTrainNumber})
+                                ({arr.flightOrTrainNumber})
                               </span>
                             )}
-                            {day.arrivalDetails.arrivalTime && (
+                            {arr.arrivalTime && (
                               <span className="text-[11px] text-indigo-700">
-                                at {day.arrivalDetails.arrivalTime}
+                                at {arr.arrivalTime}
                               </span>
                             )}
                           </div>
-                          {itinerary.includeHotels !== false && (
+                          {itinerary.includeHotels !== false && !day.excludeHotel && (
                             <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-200/60 text-indigo-900">
-                              {day.arrivalDetails.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}
+                              {arr.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}
                             </span>
                           )}
                         </div>
@@ -934,29 +942,33 @@ export default function ItineraryPreview({
 
                     {/* Final Day Departure Banner if enabled */}
                     {day.departureDetails?.enabled && (() => {
-                      const isTrain = day.departureDetails.transitType === 'train' || day.departureDetails.point === 'Railway Station';
+                      const dep = day.departureDetails;
+                      const isTrain = dep.transitType === 'train' || dep.point === 'Railway Station';
+                      const isTransfer = dep.point === 'Hotel Drop' || dep.point === 'City Center' || dep.point === 'Other';
                       return (
                         <div className="p-2.5 rounded-lg bg-sky-50 border border-sky-200 text-xs flex items-center justify-between text-sky-950">
                           <div className="flex items-center gap-2">
-                            {isTrain ? (
+                            {isTransfer ? (
+                              <MapPin className="w-3.5 h-3.5 text-sky-600" />
+                            ) : isTrain ? (
                               <Train className="w-3.5 h-3.5 text-sky-600" />
                             ) : (
                               <Plane className="w-3.5 h-3.5 text-sky-600" />
                             )}
-                            <span className="font-bold">Departure / Drop: {day.departureDetails.point}</span>
-                            {day.departureDetails.flightOrTrainNumber && (
+                            <span className="font-bold">{isTransfer ? 'Drop-off' : 'Departure / Drop'}: {dep.dropLocation || dep.point}</span>
+                            {!isTransfer && dep.flightOrTrainNumber && (
                               <span className="text-[11px] font-mono text-sky-800">
-                                ({day.departureDetails.flightOrTrainNumber})
+                                ({dep.flightOrTrainNumber})
                               </span>
                             )}
-                            {day.departureDetails.departureTime && (
+                            {dep.departureTime && (
                               <span className="text-[11px] text-sky-700">
-                                at {day.departureDetails.departureTime}
+                                at {dep.departureTime}
                               </span>
                             )}
                           </div>
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-sky-200/60 text-sky-900">
-                            Return Transfer
+                            {isTransfer ? 'Scheduled Drop-off' : 'Return Transfer'}
                           </span>
                         </div>
                       );
@@ -1002,6 +1014,38 @@ export default function ItineraryPreview({
                                       <span>Bus {city.busToNext?.operator || ''} {city.busToNext?.busNumber || ''}</span>
                                       {city.busToNext?.departureTime && (
                                         <span className="text-amber-950 font-normal">({city.busToNext.departureTime} → {city.busToNext.arrivalTime || ''})</span>
+                                      )}
+                                    </span>
+                                  ) : city.transitType === 'cruise' ? (
+                                    <span className="text-teal-800 bg-white px-2 py-0.5 rounded border border-teal-300 flex items-center gap-1 font-bold text-[10px]">
+                                      <Ship className="w-3 h-3 text-teal-600" />
+                                      <span>Cruise {city.cruiseToNext?.cruiseLine ? `${city.cruiseToNext.cruiseLine} ` : ''}{city.cruiseToNext?.vesselName || ''}</span>
+                                      {city.cruiseToNext?.departureTime && (
+                                        <span className="text-teal-950 font-normal">({city.cruiseToNext.departureTime} → {city.cruiseToNext.arrivalTime || ''})</span>
+                                      )}
+                                    </span>
+                                  ) : city.transitType === 'ferry' ? (
+                                    <span className="text-cyan-800 bg-white px-2 py-0.5 rounded border border-cyan-300 flex items-center gap-1 font-bold text-[10px]">
+                                      <Sailboat className="w-3 h-3 text-cyan-600" />
+                                      <span>Ferry {city.ferryToNext?.operator ? `${city.ferryToNext.operator} ` : ''}{city.ferryToNext?.vesselName || ''}</span>
+                                      {city.ferryToNext?.departureTime && (
+                                        <span className="text-cyan-950 font-normal">({city.ferryToNext.departureTime} → {city.ferryToNext.arrivalTime || ''})</span>
+                                      )}
+                                    </span>
+                                  ) : city.transitType === 'toy_train' ? (
+                                    <span className="text-orange-800 bg-white px-2 py-0.5 rounded border border-orange-300 flex items-center gap-1 font-bold text-[10px]">
+                                      <TrainTrack className="w-3 h-3 text-orange-600" />
+                                      <span>Toy Train {city.toyTrainToNext?.trainName || ''} {city.toyTrainToNext?.trainNumber || ''}</span>
+                                      {city.toyTrainToNext?.departureTime && (
+                                        <span className="text-orange-950 font-normal">({city.toyTrainToNext.departureTime} → {city.toyTrainToNext.arrivalTime || ''})</span>
+                                      )}
+                                    </span>
+                                  ) : city.transitType === 'seaplane' ? (
+                                    <span className="text-sky-800 bg-white px-2 py-0.5 rounded border border-sky-300 flex items-center gap-1 font-bold text-[10px]">
+                                      <PlaneTakeoff className="w-3 h-3 text-sky-600" />
+                                      <span>Seaplane {city.seaplaneToNext?.operator ? `${city.seaplaneToNext.operator} ` : ''}{city.seaplaneToNext?.flightNumber || ''}</span>
+                                      {city.seaplaneToNext?.departureTime && (
+                                        <span className="text-sky-950 font-normal">({city.seaplaneToNext.departureTime} → {city.seaplaneToNext.arrivalTime || ''})</span>
                                       )}
                                     </span>
                                   ) : (
@@ -1114,8 +1158,8 @@ export default function ItineraryPreview({
                       );
                     })()}
 
-                    {/* Hotel & Night Stay (Completely omitted when Departure is active) */}
-                    {itinerary.includeHotels !== false && !day.departureDetails?.enabled && (
+                    {/* Hotel & Night Stay (Completely omitted when Departure is active or Hotel is Excluded) */}
+                    {itinerary.includeHotels !== false && !day.departureDetails?.enabled && !day.excludeHotel && (
                       <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px] flex items-center justify-between text-slate-700">
                         <div className="flex items-center gap-1.5">
                           <Building2 className="w-3.5 h-3.5 text-indigo-600" />
@@ -1228,7 +1272,7 @@ export default function ItineraryPreview({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700 text-[11px]">
-                          {itinerary.days.filter((day) => !day.departureDetails?.enabled).map((day) => {
+                          {itinerary.days.filter((day) => !day.departureDetails?.enabled && !day.excludeHotel).map((day) => {
                             const t3 = day.hotelTiers?.threeStar;
                             const t4 = day.hotelTiers?.fourStar;
                             const t5 = day.hotelTiers?.fiveStar;
@@ -1273,7 +1317,7 @@ export default function ItineraryPreview({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700 text-[11px]">
-                          {itinerary.days.filter((day) => !day.departureDetails?.enabled).map((day) => {
+                          {itinerary.days.filter((day) => !day.departureDetails?.enabled && !day.excludeHotel).map((day) => {
                             const activeTierKey = itinerary.selectedHotelTier === '3_star' ? 'threeStar' : itinerary.selectedHotelTier === '5_star' ? 'fiveStar' : 'fourStar';
                             const displayedHotel = (itinerary.hotelTiersEnabled && day.hotelTiers?.[activeTierKey]) ? day.hotelTiers[activeTierKey] : day.hotel;
                             return (

@@ -35,7 +35,7 @@ export interface DayTransfer {
 export interface DayArrivalDetails {
   enabled: boolean;
   transitType?: 'flight' | 'train' | 'bus';
-  point: 'Airport' | 'Railway Station' | 'Bus Terminal' | 'Hotel Pickup' | 'Other';
+  point: 'Airport' | 'Railway Station' | 'Bus Terminal' | 'Hotel Pickup' | 'City Center' | 'Other';
   flightOrTrainNumber?: string;
   arrivalTime?: string;
   pickupLocation?: string;
@@ -47,14 +47,14 @@ export interface DayArrivalDetails {
 export interface DayDepartureDetails {
   enabled: boolean;
   transitType?: 'flight' | 'train' | 'bus';
-  point: 'Airport' | 'Railway Station' | 'Bus Terminal' | 'Hotel Drop' | 'Other';
+  point: 'Airport' | 'Railway Station' | 'Bus Terminal' | 'Hotel Drop' | 'City Center' | 'Other';
   flightOrTrainNumber?: string;
   departureTime?: string;
   dropLocation?: string;
   notes?: string;
 }
 
-export type InterCityTransitType = 'car' | 'flight' | 'train' | 'bus';
+export type InterCityTransitType = 'car' | 'flight' | 'train' | 'bus' | 'cruise' | 'ferry' | 'toy_train' | 'seaplane';
 
 export interface InterCityFlightDetails {
   flightNumber: string;
@@ -90,6 +90,49 @@ export interface InterCityBusDetails {
   seatType?: string;
 }
 
+export interface InterCityCruiseDetails {
+  cruiseLine?: string;
+  vesselName?: string;
+  departurePort?: string;
+  departureTime?: string;
+  arrivalPort?: string;
+  arrivalTime?: string;
+  cabinCategory?: string;
+  bookingRef?: string;
+}
+
+export interface InterCityFerryDetails {
+  operator?: string;
+  vesselName?: string;
+  departurePort?: string;
+  departureTime?: string;
+  arrivalPort?: string;
+  arrivalTime?: string;
+  ticketClass?: string;
+  bookingRef?: string;
+}
+
+export interface InterCityToyTrainDetails {
+  trainNumber?: string;
+  trainName?: string;
+  departureStation?: string;
+  departureTime?: string;
+  arrivalStation?: string;
+  arrivalTime?: string;
+  coachClass?: string;
+  pnr?: string;
+}
+
+export interface InterCitySeaplaneDetails {
+  operator?: string;
+  flightNumber?: string;
+  departurePoint?: string;
+  departureTime?: string;
+  arrivalPoint?: string;
+  arrivalTime?: string;
+  bookingRef?: string;
+}
+
 export interface CitySightseeing {
   id: string;
   destination: string;
@@ -98,7 +141,7 @@ export interface CitySightseeing {
   checkIn?: boolean;
   checkOut?: boolean;
   skipSightseeing?: boolean; // Proceed to next destination without sightseeing in this city
-  transitType?: InterCityTransitType; // 'car' | 'flight' | 'train' | 'bus' (defaults to 'car')
+  transitType?: InterCityTransitType; // 'car' | 'flight' | 'train' | 'bus' | 'cruise' | 'ferry' | 'toy_train' | 'seaplane' (defaults to 'car')
   driveToNext?: {
     toCity: string;
     distanceKm?: number;
@@ -108,6 +151,10 @@ export interface CitySightseeing {
   flightToNext?: InterCityFlightDetails;
   trainToNext?: InterCityTrainDetails;
   busToNext?: InterCityBusDetails;
+  cruiseToNext?: InterCityCruiseDetails;
+  ferryToNext?: InterCityFerryDetails;
+  toyTrainToNext?: InterCityToyTrainDetails;
+  seaplaneToNext?: InterCitySeaplaneDetails;
 }
 
 export type HotelStarTier = '3_star' | '4_star' | '5_star';
@@ -145,6 +192,7 @@ export interface ItineraryDay {
   meals: DayMealPlan;
   hotel?: DayHotelSelection;
   hotelTiers?: DayHotelTiers;
+  excludeHotel?: boolean; // When true, completely exclude/hide hotel for this day
   images: string[];
   notes?: string;
   // Day 1 / Arrival Details

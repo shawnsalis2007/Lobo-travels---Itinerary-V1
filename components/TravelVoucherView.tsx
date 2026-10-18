@@ -20,6 +20,10 @@ import {
   Plane,
   Train,
   Bus,
+  Ship,
+  Sailboat,
+  TrainTrack,
+  PlaneTakeoff,
   Clock
 } from 'lucide-react';
 import { exportElementToPdf } from '@/lib/pdf-export';
@@ -307,18 +311,26 @@ export default function TravelVoucherView({
                       </div>
 
                       {/* Day 1 Arrival Info */}
-                      {day.dayNumber === 1 && day.arrivalDetails?.enabled && (
-                        <div className="text-indigo-900 text-[10px] font-medium bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 inline-block mb-1 mr-2">
-                          Arrival: {day.arrivalDetails.point} {day.arrivalDetails.flightOrTrainNumber && `(${day.arrivalDetails.flightOrTrainNumber})`} {day.arrivalDetails.arrivalTime && `at ${day.arrivalDetails.arrivalTime}`} · {day.arrivalDetails.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}
-                        </div>
-                      )}
+                      {day.dayNumber === 1 && day.arrivalDetails?.enabled && (() => {
+                        const arr = day.arrivalDetails;
+                        const isTransfer = arr.point === 'Hotel Pickup' || arr.point === 'City Center' || arr.point === 'Other';
+                        return (
+                          <div className="text-indigo-900 text-[10px] font-medium bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 inline-block mb-1 mr-2">
+                            {isTransfer ? 'Pick-up' : 'Arrival'}: {arr.pickupLocation || arr.point} {!isTransfer && arr.flightOrTrainNumber && `(${arr.flightOrTrainNumber})`} {arr.arrivalTime && `at ${arr.arrivalTime}`} {!day.excludeHotel && itinerary.includeHotels !== false ? `· ${arr.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}` : ''}
+                          </div>
+                        );
+                      })()}
 
                       {/* Final Day Departure Info */}
-                      {day.departureDetails?.enabled && (
-                        <div className="text-sky-900 text-[10px] font-medium bg-sky-50 px-2 py-0.5 rounded border border-sky-100 inline-block mb-1">
-                          Departure: {day.departureDetails.point} {day.departureDetails.flightOrTrainNumber && `(${day.departureDetails.flightOrTrainNumber})`} {day.departureDetails.departureTime && `at ${day.departureDetails.departureTime}`}
-                        </div>
-                      )}
+                      {day.departureDetails?.enabled && (() => {
+                        const dep = day.departureDetails;
+                        const isTransfer = dep.point === 'Hotel Drop' || dep.point === 'City Center' || dep.point === 'Other';
+                        return (
+                          <div className="text-sky-900 text-[10px] font-medium bg-sky-50 px-2 py-0.5 rounded border border-sky-100 inline-block mb-1">
+                            {isTransfer ? 'Drop-off' : 'Departure'}: {dep.dropLocation || dep.point} {!isTransfer && dep.flightOrTrainNumber && `(${dep.flightOrTrainNumber})`} {dep.departureTime && `at ${dep.departureTime}`}
+                          </div>
+                        );
+                      })()}
 
                       {/* Sights */}
                       {day.attractionNames && day.attractionNames.length > 0 && (
@@ -327,7 +339,7 @@ export default function TravelVoucherView({
                         </div>
                       )}
 
-                      {/* Multi-city or inter-city transits (Car, Flight, Train) */}
+                      {/* Multi-city or inter-city transits (Car, Flight, Train, Bus, Cruise, Ferry, Toy Train, Seaplane) */}
                       {day.isMultiCity && day.cities && day.cities.length > 1 && (
                         <div className="text-[10px] font-medium flex flex-wrap gap-2 text-slate-700">
                           {day.cities.map((c, cIdx) => {
@@ -352,6 +364,34 @@ export default function TravelVoucherView({
                                 <span key={c.id || cIdx} className="text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 flex items-center gap-1 font-semibold">
                                   <Bus className="w-3 h-3 text-amber-600" />
                                   <span>Bus: {c.destination} → {nextC} ({c.busToNext?.operator || ''} {c.busToNext?.busNumber || ''} · {c.busToNext?.departureTime || ''} - {c.busToNext?.arrivalTime || ''})</span>
+                                </span>
+                              );
+                            } else if (c.transitType === 'cruise') {
+                              return (
+                                <span key={c.id || cIdx} className="text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200 flex items-center gap-1 font-semibold">
+                                  <Ship className="w-3 h-3 text-teal-600" />
+                                  <span>Cruise: {c.destination} → {nextC} ({c.cruiseToNext?.cruiseLine || ''} {c.cruiseToNext?.vesselName || ''} · {c.cruiseToNext?.departureTime || ''} - {c.cruiseToNext?.arrivalTime || ''})</span>
+                                </span>
+                              );
+                            } else if (c.transitType === 'ferry') {
+                              return (
+                                <span key={c.id || cIdx} className="text-cyan-800 bg-cyan-50 px-1.5 py-0.5 rounded border border-cyan-200 flex items-center gap-1 font-semibold">
+                                  <Sailboat className="w-3 h-3 text-cyan-600" />
+                                  <span>Ferry: {c.destination} → {nextC} ({c.ferryToNext?.operator || ''} {c.ferryToNext?.vesselName || ''} · {c.ferryToNext?.departureTime || ''} - {c.ferryToNext?.arrivalTime || ''})</span>
+                                </span>
+                              );
+                            } else if (c.transitType === 'toy_train') {
+                              return (
+                                <span key={c.id || cIdx} className="text-orange-800 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200 flex items-center gap-1 font-semibold">
+                                  <TrainTrack className="w-3 h-3 text-orange-600" />
+                                  <span>Toy Train: {c.destination} → {nextC} ({c.toyTrainToNext?.trainName || ''} {c.toyTrainToNext?.trainNumber || ''} · {c.toyTrainToNext?.departureTime || ''} - {c.toyTrainToNext?.arrivalTime || ''})</span>
+                                </span>
+                              );
+                            } else if (c.transitType === 'seaplane') {
+                              return (
+                                <span key={c.id || cIdx} className="text-sky-800 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200 flex items-center gap-1 font-semibold">
+                                  <PlaneTakeoff className="w-3 h-3 text-sky-600" />
+                                  <span>Seaplane: {c.destination} → {nextC} ({c.seaplaneToNext?.operator || ''} {c.seaplaneToNext?.flightNumber || ''} · {c.seaplaneToNext?.departureTime || ''} - {c.seaplaneToNext?.arrivalTime || ''})</span>
                                 </span>
                               );
                             } else {
@@ -395,7 +435,7 @@ export default function TravelVoucherView({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-slate-700 text-[10px]">
-                        {itinerary.days.filter((day) => !day.departureDetails?.enabled).map((day) => (
+                        {itinerary.days.filter((day) => !day.departureDetails?.enabled && !day.excludeHotel).map((day) => (
                           <tr key={day.id} className="hover:bg-slate-50/50">
                             <td className="py-1.5 px-3 font-semibold text-slate-900">
                               Day {day.dayNumber}

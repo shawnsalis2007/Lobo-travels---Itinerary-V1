@@ -40,7 +40,11 @@ import {
   Filter,
   SlidersHorizontal,
   Star,
-  Layers
+  Layers,
+  Ship,
+  Sailboat,
+  TrainTrack,
+  PlaneTakeoff
 } from 'lucide-react';
 import { 
   Itinerary, 
@@ -57,6 +61,11 @@ import {
   InterCityTransitType,
   InterCityFlightDetails,
   InterCityTrainDetails,
+  InterCityBusDetails,
+  InterCityCruiseDetails,
+  InterCityFerryDetails,
+  InterCityToyTrainDetails,
+  InterCitySeaplaneDetails,
   BookedFlightInfo,
   TourFlightsBooking,
   HotelStarTier,
@@ -1159,6 +1168,18 @@ export default function ItineraryBuilder({
     }
 
     setItinerary(prev => ({ ...prev, days: updatedDays, flightBookings: updatedFlightBookings }));
+  };
+
+  // Toggle exclude hotel for a specific day
+  const handleToggleDayExcludeHotel = (dayIndex: number, excluded: boolean) => {
+    setItinerary(prev => {
+      const updatedDays = [...prev.days];
+      const targetDay = { ...updatedDays[dayIndex], excludeHotel: excluded };
+      const autoDesc = generateAutoDayDescription(targetDay, dayIndex, updatedDays.length, prev.includeHotels);
+      targetDay.description = ensureOvernightStayText(autoDesc, targetDay);
+      updatedDays[dayIndex] = targetDay;
+      return { ...prev, days: updatedDays };
+    });
   };
 
   // Tour-level Transit Booking Handlers (Flights, Railway, Bus booked by us)
@@ -3297,11 +3318,19 @@ export default function ItineraryBuilder({
                         <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200 space-y-3">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
-                              {(day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train' ? (
-                                <Train className="w-4 h-4 text-indigo-600" />
-                              ) : (
-                                <Plane className="w-4 h-4 text-indigo-600" />
-                              )}
+                              {(() => {
+                                const pt = day.arrivalDetails?.point;
+                                if (pt === 'Hotel Pickup' || pt === 'City Center' || pt === 'Other') {
+                                  return <MapPin className="w-4 h-4 text-indigo-600" />;
+                                }
+                                if ((day.arrivalDetails?.transitType || (pt === 'Railway Station' ? 'train' : 'flight')) === 'train') {
+                                  return <Train className="w-4 h-4 text-indigo-600" />;
+                                }
+                                if ((day.arrivalDetails?.transitType || (pt === 'Bus Terminal' ? 'bus' : 'flight')) === 'bus') {
+                                  return <Bus className="w-4 h-4 text-indigo-600" />;
+                                }
+                                return <Plane className="w-4 h-4 text-indigo-600" />;
+                              })()}
                               Day 1 Guest Arrival & Check-in Logistics
                             </span>
 
@@ -3318,123 +3347,152 @@ export default function ItineraryBuilder({
                             </label>
                           </div>
 
-                          {(day.arrivalDetails?.enabled ?? true) && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-xs">
-                              {/* Flight vs Railway Logistics Mode Toggle */}
-                              <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  Logistics Mode
-                                </label>
-                                <div className="flex items-center rounded-lg bg-white border border-indigo-200 p-0.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      handleUpdateArrivalDetails(dayIndex, {
-                                        transitType: 'flight',
-                                        point: (day.arrivalDetails?.point === 'Railway Station' || day.arrivalDetails?.point === 'Bus Terminal') ? 'Airport' : (day.arrivalDetails?.point || 'Airport')
-                                      });
-                                    }}
-                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
-                                      (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : day.arrivalDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'flight'
-                                        ? 'bg-indigo-600 text-white shadow-2xs'
-                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                                    }`}
+                          {(day.arrivalDetails?.enabled ?? true) && (() => {
+                            const pt = day.arrivalDetails?.point || 'Airport';
+                            const isTransfer = pt === 'Hotel Pickup' || pt === 'City Center' || pt === 'Other';
+
+                            return (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-xs">
+                                {/* Logistics Mode Toggle — automatically hidden when Hotel Pick/Drop, City Center, or Other Location is selected */}
+                                {!isTransfer && (
+                                  <div>
+                                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                      Logistics Mode
+                                    </label>
+                                    <div className="flex items-center rounded-lg bg-white border border-indigo-200 p-0.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleUpdateArrivalDetails(dayIndex, {
+                                            transitType: 'flight',
+                                            point: (day.arrivalDetails?.point === 'Railway Station' || day.arrivalDetails?.point === 'Bus Terminal') ? 'Airport' : (day.arrivalDetails?.point || 'Airport')
+                                          });
+                                        }}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                          (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : day.arrivalDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'flight'
+                                            ? 'bg-indigo-600 text-white shadow-2xs'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                        }`}
+                                      >
+                                        <Plane className="w-3.5 h-3.5" />
+                                        <span>Flight</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleUpdateArrivalDetails(dayIndex, {
+                                            transitType: 'train',
+                                            point: (day.arrivalDetails?.point === 'Airport' || day.arrivalDetails?.point === 'Bus Terminal') ? 'Railway Station' : (day.arrivalDetails?.point || 'Railway Station')
+                                          });
+                                        }}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                          (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : day.arrivalDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'train'
+                                            ? 'bg-indigo-600 text-white shadow-2xs'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                        }`}
+                                      >
+                                        <Train className="w-3.5 h-3.5" />
+                                        <span>Railway</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleUpdateArrivalDetails(dayIndex, {
+                                            transitType: 'bus',
+                                            point: (day.arrivalDetails?.point === 'Airport' || day.arrivalDetails?.point === 'Railway Station') ? 'Bus Terminal' : (day.arrivalDetails?.point || 'Bus Terminal')
+                                          });
+                                        }}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                          (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : day.arrivalDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'bus'
+                                            ? 'bg-indigo-600 text-white shadow-2xs'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                        }`}
+                                      >
+                                        <Bus className="w-3.5 h-3.5" />
+                                        <span>Bus</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                    {isTransfer ? 'Transfer Pick-up Point' : 'Arrival Point'}
+                                  </label>
+                                  <select
+                                    value={day.arrivalDetails?.point || 'Airport'}
+                                    onChange={(e) => handleUpdateArrivalDetails(dayIndex, { point: e.target.value as any })}
+                                    className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg focus:outline-none"
                                   >
-                                    <Plane className="w-3.5 h-3.5" />
-                                    <span>Flight</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      handleUpdateArrivalDetails(dayIndex, {
-                                        transitType: 'train',
-                                        point: (day.arrivalDetails?.point === 'Airport' || day.arrivalDetails?.point === 'Bus Terminal') ? 'Railway Station' : (day.arrivalDetails?.point || 'Railway Station')
-                                      });
-                                    }}
-                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
-                                      (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : day.arrivalDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'train'
-                                        ? 'bg-indigo-600 text-white shadow-2xs'
-                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                                    }`}
-                                  >
-                                    <Train className="w-3.5 h-3.5" />
-                                    <span>Railway</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      handleUpdateArrivalDetails(dayIndex, {
-                                        transitType: 'bus',
-                                        point: (day.arrivalDetails?.point === 'Airport' || day.arrivalDetails?.point === 'Railway Station') ? 'Bus Terminal' : (day.arrivalDetails?.point || 'Bus Terminal')
-                                      });
-                                    }}
-                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
-                                      (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : day.arrivalDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'bus'
-                                        ? 'bg-indigo-600 text-white shadow-2xs'
-                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                                    }`}
-                                  >
-                                    <Bus className="w-3.5 h-3.5" />
-                                    <span>Bus</span>
-                                  </button>
+                                    <option value="Airport">Airport (Domestic / International)</option>
+                                    <option value="Railway Station">Railway Station</option>
+                                    <option value="Bus Terminal">Bus Terminal</option>
+                                    <option value="Hotel Pickup">Hotel Pick-up</option>
+                                    <option value="City Center">City Center Pick-up</option>
+                                    <option value="Other">Other Location Pick-up</option>
+                                  </select>
                                 </div>
-                              </div>
 
-                              <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  Arrival Point
-                                </label>
-                                <select
-                                  value={day.arrivalDetails?.point || 'Airport'}
-                                  onChange={(e) => handleUpdateArrivalDetails(dayIndex, { point: e.target.value as any })}
-                                  className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg focus:outline-none"
-                                >
-                                  <option value="Airport">Airport (Domestic / International)</option>
-                                  <option value="Railway Station">Railway Station</option>
-                                  <option value="Bus Terminal">Bus Terminal</option>
-                                  <option value="Hotel Pickup">Hotel Pickup</option>
-                                  <option value="Other">City Center / Other Location</option>
-                                </select>
-                              </div>
+                                {/* When Hotel Pickup, City Center, or Other Location is selected: show Pick-up Location and hide flight/railway inputs */}
+                                {isTransfer ? (
+                                  <div className="sm:col-span-2">
+                                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                      Pick-up Location / Landmark / Address
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder={
+                                        pt === 'Hotel Pickup'
+                                          ? 'e.g. Hotel Taj Palace, Chanakyapuri'
+                                          : pt === 'City Center'
+                                          ? 'e.g. Connaught Place Inner Circle'
+                                          : 'e.g. Specific address or meeting point'
+                                      }
+                                      value={day.arrivalDetails?.pickupLocation || ''}
+                                      onChange={(e) => handleUpdateArrivalDetails(dayIndex, { pickupLocation: e.target.value })}
+                                      className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg focus:outline-none"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                      {(day.arrivalDetails?.transitType === 'bus' || day.arrivalDetails?.point === 'Bus Terminal')
+                                        ? 'Bus Service & Registration / Route'
+                                        : (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                        ? 'Train Number & Name / Station'
+                                        : 'Flight Number & Terminal'}
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder={
+                                        (day.arrivalDetails?.transitType === 'bus' || day.arrivalDetails?.point === 'Bus Terminal')
+                                          ? 'e.g. Zingbus / ISBT Kashmere Gate'
+                                          : (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                          ? 'e.g. 12002 Shatabdi Express / NDLS'
+                                          : 'e.g. IndiGo 6E-204 / T3'
+                                      }
+                                      value={day.arrivalDetails?.flightOrTrainNumber || ''}
+                                      onChange={(e) => handleUpdateArrivalDetails(dayIndex, { flightOrTrainNumber: e.target.value })}
+                                      className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg focus:outline-none font-mono"
+                                    />
+                                  </div>
+                                )}
 
-                              <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  {(day.arrivalDetails?.transitType === 'bus' || day.arrivalDetails?.point === 'Bus Terminal')
-                                    ? 'Bus Service & Registration / Route'
-                                    : (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
-                                    ? 'Train Number & Name / Station'
-                                    : 'Flight Number & Terminal'}
-                                </label>
-                                <input
-                                  type="text"
-                                  placeholder={
-                                    (day.arrivalDetails?.transitType === 'bus' || day.arrivalDetails?.point === 'Bus Terminal')
-                                      ? 'e.g. Zingbus / ISBT Kashmere Gate'
-                                      : (day.arrivalDetails?.transitType || (day.arrivalDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
-                                      ? 'e.g. 12002 Shatabdi Express / NDLS'
-                                      : 'e.g. IndiGo 6E-204 / T3'
-                                  }
-                                  value={day.arrivalDetails?.flightOrTrainNumber || ''}
-                                  onChange={(e) => handleUpdateArrivalDetails(dayIndex, { flightOrTrainNumber: e.target.value })}
-                                  className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg focus:outline-none font-mono"
-                                />
-                              </div>
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                    {isTransfer ? 'Pick-up Time' : 'Arrival Time'}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder={isTransfer ? 'e.g. 09:30 AM' : 'e.g. 09:30 AM'}
+                                    value={day.arrivalDetails?.arrivalTime || ''}
+                                    onChange={(e) => handleUpdateArrivalDetails(dayIndex, { arrivalTime: e.target.value })}
+                                    className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg focus:outline-none"
+                                  />
+                                </div>
 
-                              <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  Arrival Time
-                                </label>
-                                <input
-                                  type="text"
-                                  placeholder="e.g. 09:30 AM"
-                                  value={day.arrivalDetails?.arrivalTime || ''}
-                                  onChange={(e) => handleUpdateArrivalDetails(dayIndex, { arrivalTime: e.target.value })}
-                                  className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg focus:outline-none"
-                                />
-                              </div>
-
-                              {/* Hotel Check-in Inclusion & Timing */}
-                              <div className="col-span-1 sm:col-span-2 md:col-span-4 pt-3 border-t border-indigo-100 space-y-2">
+                                {/* Hotel Check-in Inclusion & Timing */}
+                                <div className="col-span-1 sm:col-span-2 md:col-span-4 pt-3 border-t border-indigo-100 space-y-2">
                                 <div className="flex items-center justify-between">
                                   <label className="inline-flex items-center gap-2 cursor-pointer font-bold text-xs text-indigo-950">
                                     <input
@@ -3479,7 +3537,8 @@ export default function ItineraryBuilder({
                                 )}
                               </div>
                             </div>
-                          )}
+                          );
+                        })()}
                         </div>
                       )}
 
@@ -3488,11 +3547,19 @@ export default function ItineraryBuilder({
                         <div className="p-4 rounded-xl bg-sky-50/70 border border-sky-200 space-y-3">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
-                              {(day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train' ? (
-                                <Train className="w-4 h-4 text-sky-600" />
-                              ) : (
-                                <Plane className="w-4 h-4 text-sky-600" />
-                              )}
+                              {(() => {
+                                const pt = day.departureDetails?.point;
+                                if (pt === 'Hotel Drop' || pt === 'City Center' || pt === 'Other') {
+                                  return <MapPin className="w-4 h-4 text-sky-600" />;
+                                }
+                                if ((day.departureDetails?.transitType || (pt === 'Railway Station' ? 'train' : 'flight')) === 'train') {
+                                  return <Train className="w-4 h-4 text-sky-600" />;
+                                }
+                                if ((day.departureDetails?.transitType || (pt === 'Bus Terminal' ? 'bus' : 'flight')) === 'bus') {
+                                  return <Bus className="w-4 h-4 text-sky-600" />;
+                                }
+                                return <Plane className="w-4 h-4 text-sky-600" />;
+                              })()}
                               <div>
                                 <span className="text-xs font-bold text-sky-950 block">
                                   Day {day.dayNumber} Guest Departure Logistics
@@ -3540,122 +3607,152 @@ export default function ItineraryBuilder({
                             </div>
                           </div>
 
-                          {Boolean(day.departureDetails?.enabled) && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-xs">
-                              {/* Flight vs Railway Logistics Mode Toggle */}
-                              <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  Logistics Mode
-                                </label>
-                                <div className="flex items-center rounded-lg bg-white border border-sky-200 p-0.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      handleUpdateDepartureDetails(dayIndex, {
-                                        transitType: 'flight',
-                                        point: (day.departureDetails?.point === 'Railway Station' || day.departureDetails?.point === 'Bus Terminal') ? 'Airport' : (day.departureDetails?.point || 'Airport')
-                                      });
-                                    }}
-                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
-                                      (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : day.departureDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'flight'
-                                        ? 'bg-sky-600 text-white shadow-2xs'
-                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                                    }`}
+                          {Boolean(day.departureDetails?.enabled) && (() => {
+                            const pt = day.departureDetails?.point || 'Airport';
+                            const isTransfer = pt === 'Hotel Drop' || pt === 'City Center' || pt === 'Other';
+
+                            return (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-xs">
+                                {/* Logistics Mode Toggle — automatically hidden when Hotel Pick/Drop, City Center, or Other Location is selected */}
+                                {!isTransfer && (
+                                  <div>
+                                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                      Logistics Mode
+                                    </label>
+                                    <div className="flex items-center rounded-lg bg-white border border-sky-200 p-0.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleUpdateDepartureDetails(dayIndex, {
+                                            transitType: 'flight',
+                                            point: (day.departureDetails?.point === 'Railway Station' || day.departureDetails?.point === 'Bus Terminal') ? 'Airport' : (day.departureDetails?.point || 'Airport')
+                                          });
+                                        }}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                          (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : day.departureDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'flight'
+                                            ? 'bg-sky-600 text-white shadow-2xs'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                        }`}
+                                      >
+                                        <Plane className="w-3.5 h-3.5" />
+                                        <span>Flight</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleUpdateDepartureDetails(dayIndex, {
+                                            transitType: 'train',
+                                            point: (day.departureDetails?.point === 'Airport' || day.departureDetails?.point === 'Bus Terminal') ? 'Railway Station' : (day.departureDetails?.point || 'Railway Station')
+                                          });
+                                        }}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                          (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : day.departureDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'train'
+                                            ? 'bg-sky-600 text-white shadow-2xs'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                        }`}
+                                      >
+                                        <Train className="w-3.5 h-3.5" />
+                                        <span>Railway</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleUpdateDepartureDetails(dayIndex, {
+                                            transitType: 'bus',
+                                            point: (day.departureDetails?.point === 'Airport' || day.departureDetails?.point === 'Railway Station') ? 'Bus Terminal' : (day.departureDetails?.point || 'Bus Terminal')
+                                          });
+                                        }}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
+                                          (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : day.departureDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'bus'
+                                            ? 'bg-sky-600 text-white shadow-2xs'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                        }`}
+                                      >
+                                        <Bus className="w-3.5 h-3.5" />
+                                        <span>Bus</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                    {isTransfer ? 'Transfer Drop-off Point' : 'Departure Point / Drop-Off'}
+                                  </label>
+                                  <select
+                                    value={day.departureDetails?.point || 'Airport'}
+                                    onChange={(e) => handleUpdateDepartureDetails(dayIndex, { point: e.target.value as any })}
+                                    className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg focus:outline-none"
                                   >
-                                    <Plane className="w-3.5 h-3.5" />
-                                    <span>Flight</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      handleUpdateDepartureDetails(dayIndex, {
-                                        transitType: 'train',
-                                        point: (day.departureDetails?.point === 'Airport' || day.departureDetails?.point === 'Bus Terminal') ? 'Railway Station' : (day.departureDetails?.point || 'Railway Station')
-                                      });
-                                    }}
-                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
-                                      (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : day.departureDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'train'
-                                        ? 'bg-sky-600 text-white shadow-2xs'
-                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                                    }`}
-                                  >
-                                    <Train className="w-3.5 h-3.5" />
-                                    <span>Railway</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      handleUpdateDepartureDetails(dayIndex, {
-                                        transitType: 'bus',
-                                        point: (day.departureDetails?.point === 'Airport' || day.departureDetails?.point === 'Railway Station') ? 'Bus Terminal' : (day.departureDetails?.point || 'Bus Terminal')
-                                      });
-                                    }}
-                                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
-                                      (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : day.departureDetails?.point === 'Bus Terminal' ? 'bus' : 'flight')) === 'bus'
-                                        ? 'bg-sky-600 text-white shadow-2xs'
-                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                                    }`}
-                                  >
-                                    <Bus className="w-3.5 h-3.5" />
-                                    <span>Bus</span>
-                                  </button>
+                                    <option value="Airport">Airport (Domestic / International)</option>
+                                    <option value="Railway Station">Railway Station</option>
+                                    <option value="Bus Terminal">Bus Terminal</option>
+                                    <option value="Hotel Drop">Hotel Drop-off</option>
+                                    <option value="City Center">City Center Drop-off</option>
+                                    <option value="Other">Other Location Drop-off</option>
+                                  </select>
+                                </div>
+
+                                {/* When Hotel Drop, City Center, or Other Location is selected: show Drop-off Location and hide flight/railway inputs */}
+                                {isTransfer ? (
+                                  <div className="sm:col-span-2">
+                                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                      Drop-off Location / Landmark / Address
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder={
+                                        pt === 'Hotel Drop'
+                                          ? 'e.g. Hotel Radisson Blu, Aerocity'
+                                          : pt === 'City Center'
+                                          ? 'e.g. Connaught Place / Central Market'
+                                          : 'e.g. Specific drop address or landmark'
+                                      }
+                                      value={day.departureDetails?.dropLocation || ''}
+                                      onChange={(e) => handleUpdateDepartureDetails(dayIndex, { dropLocation: e.target.value })}
+                                      className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg focus:outline-none"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                      {(day.departureDetails?.transitType === 'bus' || day.departureDetails?.point === 'Bus Terminal')
+                                        ? 'Bus Service & Registration / Route'
+                                        : (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                        ? 'Train Number & Name / Station'
+                                        : 'Flight Number & Terminal'}
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder={
+                                        (day.departureDetails?.transitType === 'bus' || day.departureDetails?.point === 'Bus Terminal')
+                                          ? 'e.g. Zingbus / ISBT Drop'
+                                          : (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
+                                          ? 'e.g. 20171 Vande Bharat Express'
+                                          : 'e.g. Air India AI-402 / T2'
+                                      }
+                                      value={day.departureDetails?.flightOrTrainNumber || ''}
+                                      onChange={(e) => handleUpdateDepartureDetails(dayIndex, { flightOrTrainNumber: e.target.value })}
+                                      className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg focus:outline-none font-mono"
+                                    />
+                                  </div>
+                                )}
+
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                                    {isTransfer ? 'Drop-off Time' : 'Departure Time'}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder={isTransfer ? 'e.g. 05:00 PM' : 'e.g. 18:45 PM'}
+                                    value={day.departureDetails?.departureTime || ''}
+                                    onChange={(e) => handleUpdateDepartureDetails(dayIndex, { departureTime: e.target.value })}
+                                    className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg focus:outline-none"
+                                  />
                                 </div>
                               </div>
-
-                              <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  Departure Point / Drop-Off
-                                </label>
-                                <select
-                                  value={day.departureDetails?.point || 'Airport'}
-                                  onChange={(e) => handleUpdateDepartureDetails(dayIndex, { point: e.target.value as any })}
-                                  className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg focus:outline-none"
-                                >
-                                  <option value="Airport">Airport (Domestic / International)</option>
-                                  <option value="Railway Station">Railway Station</option>
-                                  <option value="Bus Terminal">Bus Terminal</option>
-                                  <option value="Hotel Drop">Hotel Drop-off</option>
-                                  <option value="Other">City Center / Other Location</option>
-                                </select>
-                              </div>
-
-                              <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  {(day.departureDetails?.transitType === 'bus' || day.departureDetails?.point === 'Bus Terminal')
-                                    ? 'Bus Service & Registration / Route'
-                                    : (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
-                                    ? 'Train Number & Name / Station'
-                                    : 'Flight Number & Terminal'}
-                                </label>
-                                <input
-                                  type="text"
-                                  placeholder={
-                                    (day.departureDetails?.transitType === 'bus' || day.departureDetails?.point === 'Bus Terminal')
-                                      ? 'e.g. Zingbus / ISBT Drop'
-                                      : (day.departureDetails?.transitType || (day.departureDetails?.point === 'Railway Station' ? 'train' : 'flight')) === 'train'
-                                      ? 'e.g. 20171 Vande Bharat Express'
-                                      : 'e.g. Air India AI-402 / T2'
-                                  }
-                                  value={day.departureDetails?.flightOrTrainNumber || ''}
-                                  onChange={(e) => handleUpdateDepartureDetails(dayIndex, { flightOrTrainNumber: e.target.value })}
-                                  className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg focus:outline-none font-mono"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                                  Departure Time
-                                </label>
-                                <input
-                                  type="text"
-                                  placeholder="e.g. 18:45 PM"
-                                  value={day.departureDetails?.departureTime || ''}
-                                  onChange={(e) => handleUpdateDepartureDetails(dayIndex, { departureTime: e.target.value })}
-                                  className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg focus:outline-none"
-                                />
-                              </div>
-                            </div>
-                          )}
+                            );
+                          })()}
                         </div>
                       )}
 
@@ -3899,20 +3996,20 @@ export default function ItineraryBuilder({
                                         </div>
 
                                         {/* Mode Selector Tabs */}
-                                        <div className="grid grid-cols-2 sm:flex sm:inline-flex rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs gap-0.5">
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 md:flex md:flex-wrap rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs gap-0.5">
                                           <button
                                             type="button"
                                             onClick={() => {
                                               handleUpdateCityInDay(dayIndex, cityIdx, { transitType: 'car' });
                                             }}
-                                            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
+                                            className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
                                               (!city.transitType || city.transitType === 'car')
                                                 ? 'bg-amber-500 text-slate-950 shadow-2xs'
                                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                                             }`}
                                           >
                                             <Car className="w-3.5 h-3.5" />
-                                            <span>Car / Drive</span>
+                                            <span>Car</span>
                                           </button>
 
                                           <button
@@ -3934,7 +4031,7 @@ export default function ItineraryBuilder({
                                                 flightToNext: currentFl
                                               });
                                             }}
-                                            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
+                                            className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
                                               city.transitType === 'flight'
                                                 ? 'bg-indigo-600 text-white shadow-2xs'
                                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -3962,7 +4059,7 @@ export default function ItineraryBuilder({
                                                 trainToNext: currentTr
                                               });
                                             }}
-                                            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
+                                            className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
                                               city.transitType === 'train'
                                                 ? 'bg-emerald-600 text-white shadow-2xs'
                                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -3990,7 +4087,7 @@ export default function ItineraryBuilder({
                                                 busToNext: currentBs
                                               });
                                             }}
-                                            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
+                                            className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
                                               city.transitType === 'bus'
                                                 ? 'bg-amber-600 text-white shadow-2xs'
                                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
@@ -3998,6 +4095,117 @@ export default function ItineraryBuilder({
                                           >
                                             <Bus className="w-3.5 h-3.5" />
                                             <span>Bus</span>
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const currentCr = city.cruiseToNext || {
+                                                cruiseLine: 'Cordelia Cruises',
+                                                vesselName: 'MV Empress',
+                                                departurePort: `${city.destination} Cruise Port`,
+                                                departureTime: '04:00 PM',
+                                                arrivalPort: `${nextCityName} Port`,
+                                                arrivalTime: '08:00 AM',
+                                                cabinCategory: 'Ocean View Stateroom',
+                                                bookingRef: ''
+                                              };
+                                              handleUpdateCityInDay(dayIndex, cityIdx, {
+                                                transitType: 'cruise',
+                                                cruiseToNext: currentCr
+                                              });
+                                            }}
+                                            className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
+                                              city.transitType === 'cruise'
+                                                ? 'bg-cyan-600 text-white shadow-2xs'
+                                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                            }`}
+                                          >
+                                            <Ship className="w-3.5 h-3.5" />
+                                            <span>Cruise</span>
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const currentFe = city.ferryToNext || {
+                                                operator: 'Makruzz',
+                                                vesselName: 'Makruzz Gold',
+                                                departurePort: `${city.destination} Jetty`,
+                                                departureTime: '08:30 AM',
+                                                arrivalPort: `${nextCityName} Harbour`,
+                                                arrivalTime: '10:00 AM',
+                                                ticketClass: 'Premium Class',
+                                                bookingRef: ''
+                                              };
+                                              handleUpdateCityInDay(dayIndex, cityIdx, {
+                                                transitType: 'ferry',
+                                                ferryToNext: currentFe
+                                              });
+                                            }}
+                                            className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
+                                              city.transitType === 'ferry'
+                                                ? 'bg-teal-600 text-white shadow-2xs'
+                                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                            }`}
+                                          >
+                                            <Sailboat className="w-3.5 h-3.5" />
+                                            <span>Ferry</span>
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const currentTt = city.toyTrainToNext || {
+                                                trainNumber: '52451',
+                                                trainName: 'Heritage Toy Train',
+                                                departureStation: `${city.destination} Railway Stn`,
+                                                departureTime: '06:00 AM',
+                                                arrivalStation: `${nextCityName} Stn`,
+                                                arrivalTime: '11:15 AM',
+                                                coachClass: 'VistaDome Chair Car',
+                                                pnr: ''
+                                              };
+                                              handleUpdateCityInDay(dayIndex, cityIdx, {
+                                                transitType: 'toy_train',
+                                                toyTrainToNext: currentTt
+                                              });
+                                            }}
+                                            className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
+                                              city.transitType === 'toy_train'
+                                                ? 'bg-rose-600 text-white shadow-2xs'
+                                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                            }`}
+                                          >
+                                            <TrainTrack className="w-3.5 h-3.5" />
+                                            <span>Toy Train</span>
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const currentSp = city.seaplaneToNext || {
+                                                operator: 'Scenic Seaplane Charter',
+                                                flightNumber: 'SP-101',
+                                                departurePoint: `${city.destination} Water Aerodrome`,
+                                                departureTime: '09:00 AM',
+                                                arrivalPoint: `${nextCityName} Lagoon Platform`,
+                                                arrivalTime: '09:45 AM',
+                                                bookingRef: ''
+                                              };
+                                              handleUpdateCityInDay(dayIndex, cityIdx, {
+                                                transitType: 'seaplane',
+                                                seaplaneToNext: currentSp
+                                              });
+                                            }}
+                                            className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
+                                              city.transitType === 'seaplane'
+                                                ? 'bg-sky-600 text-white shadow-2xs'
+                                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                            }`}
+                                          >
+                                            <PlaneTakeoff className="w-3.5 h-3.5" />
+                                            <span>Seaplane</span>
                                           </button>
                                         </div>
                                       </div>
@@ -4339,6 +4547,374 @@ export default function ItineraryBuilder({
                                                     handleUpdateCityInDay(dayIndex, cityIdx, 'busToNext', updatedBs);
                                                   }}
                                                   className="px-1.5 py-1 bg-white border border-amber-200 rounded text-[10px]"
+                                                />
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* CRUISE MODE DETAILS */}
+                                      {city.transitType === 'cruise' && (
+                                        <div className="space-y-2 bg-cyan-50/60 p-2.5 rounded-lg border border-cyan-200">
+                                          <div className="flex items-center gap-1.5 font-bold text-cyan-950 text-[11px]">
+                                            <Ship className="w-3.5 h-3.5 text-cyan-700" />
+                                            <span>Cruise Sector: {city.destination} ➔ {nextCityName}</span>
+                                          </div>
+
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[11px]">
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Cruise Line</label>
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. Cordelia / Costa / Nile Cruise"
+                                                value={city.cruiseToNext?.cruiseLine || ''}
+                                                onChange={(e) => {
+                                                  const updatedCr = { ...city.cruiseToNext, cruiseLine: e.target.value };
+                                                  handleUpdateCityInDay(dayIndex, cityIdx, 'cruiseToNext', updatedCr);
+                                                }}
+                                                className="w-full px-2 py-1 bg-white border border-cyan-200 rounded"
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Vessel Name</label>
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. MV Empress"
+                                                value={city.cruiseToNext?.vesselName || ''}
+                                                onChange={(e) => {
+                                                  const updatedCr = { ...city.cruiseToNext, vesselName: e.target.value };
+                                                  handleUpdateCityInDay(dayIndex, cityIdx, 'cruiseToNext', updatedCr);
+                                                }}
+                                                className="w-full px-2 py-1 bg-white border border-cyan-200 rounded font-semibold"
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Departure Port & Time</label>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                <input
+                                                  type="text"
+                                                  placeholder="Port"
+                                                  value={city.cruiseToNext?.departurePort || ''}
+                                                  onChange={(e) => {
+                                                    const updatedCr = { ...city.cruiseToNext, departurePort: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'cruiseToNext', updatedCr);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-cyan-200 rounded text-[10px]"
+                                                />
+                                                <input
+                                                  type="text"
+                                                  placeholder="Time"
+                                                  value={city.cruiseToNext?.departureTime || ''}
+                                                  onChange={(e) => {
+                                                    const updatedCr = { ...city.cruiseToNext, departureTime: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'cruiseToNext', updatedCr);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-cyan-200 rounded text-[10px]"
+                                                />
+                                              </div>
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Arrival Port & Time</label>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                <input
+                                                  type="text"
+                                                  placeholder="Port"
+                                                  value={city.cruiseToNext?.arrivalPort || ''}
+                                                  onChange={(e) => {
+                                                    const updatedCr = { ...city.cruiseToNext, arrivalPort: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'cruiseToNext', updatedCr);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-cyan-200 rounded text-[10px]"
+                                                />
+                                                <input
+                                                  type="text"
+                                                  placeholder="Time"
+                                                  value={city.cruiseToNext?.arrivalTime || ''}
+                                                  onChange={(e) => {
+                                                    const updatedCr = { ...city.cruiseToNext, arrivalTime: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'cruiseToNext', updatedCr);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-cyan-200 rounded text-[10px]"
+                                                />
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* FERRY MODE DETAILS */}
+                                      {city.transitType === 'ferry' && (
+                                        <div className="space-y-2 bg-teal-50/60 p-2.5 rounded-lg border border-teal-200">
+                                          <div className="flex items-center gap-1.5 font-bold text-teal-950 text-[11px]">
+                                            <Sailboat className="w-3.5 h-3.5 text-teal-700" />
+                                            <span>Ferry Sector: {city.destination} ➔ {nextCityName}</span>
+                                          </div>
+
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[11px]">
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Ferry Operator</label>
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. Makruzz / Nautika / Green Ocean"
+                                                value={city.ferryToNext?.operator || ''}
+                                                onChange={(e) => {
+                                                  const updatedFe = { ...city.ferryToNext, operator: e.target.value };
+                                                  handleUpdateCityInDay(dayIndex, cityIdx, 'ferryToNext', updatedFe);
+                                                }}
+                                                className="w-full px-2 py-1 bg-white border border-teal-200 rounded"
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Vessel / Class</label>
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. Makruzz Gold / Premium"
+                                                value={city.ferryToNext?.vesselName || ''}
+                                                onChange={(e) => {
+                                                  const updatedFe = { ...city.ferryToNext, vesselName: e.target.value };
+                                                  handleUpdateCityInDay(dayIndex, cityIdx, 'ferryToNext', updatedFe);
+                                                }}
+                                                className="w-full px-2 py-1 bg-white border border-teal-200 rounded font-semibold"
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Boarding Jetty & Time</label>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                <input
+                                                  type="text"
+                                                  placeholder="Jetty"
+                                                  value={city.ferryToNext?.departurePort || ''}
+                                                  onChange={(e) => {
+                                                    const updatedFe = { ...city.ferryToNext, departurePort: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'ferryToNext', updatedFe);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-teal-200 rounded text-[10px]"
+                                                />
+                                                <input
+                                                  type="text"
+                                                  placeholder="Time"
+                                                  value={city.ferryToNext?.departureTime || ''}
+                                                  onChange={(e) => {
+                                                    const updatedFe = { ...city.ferryToNext, departureTime: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'ferryToNext', updatedFe);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-teal-200 rounded text-[10px]"
+                                                />
+                                              </div>
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Disembarkation Jetty & Time</label>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                <input
+                                                  type="text"
+                                                  placeholder="Jetty"
+                                                  value={city.ferryToNext?.arrivalPort || ''}
+                                                  onChange={(e) => {
+                                                    const updatedFe = { ...city.ferryToNext, arrivalPort: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'ferryToNext', updatedFe);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-teal-200 rounded text-[10px]"
+                                                />
+                                                <input
+                                                  type="text"
+                                                  placeholder="Time"
+                                                  value={city.ferryToNext?.arrivalTime || ''}
+                                                  onChange={(e) => {
+                                                    const updatedFe = { ...city.ferryToNext, arrivalTime: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'ferryToNext', updatedFe);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-teal-200 rounded text-[10px]"
+                                                />
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* TOY TRAIN MODE DETAILS */}
+                                      {city.transitType === 'toy_train' && (
+                                        <div className="space-y-2 bg-rose-50/60 p-2.5 rounded-lg border border-rose-200">
+                                          <div className="flex items-center gap-1.5 font-bold text-rose-950 text-[11px]">
+                                            <TrainTrack className="w-3.5 h-3.5 text-rose-700" />
+                                            <span>Heritage Mountain Toy Train: {city.destination} ➔ {nextCityName}</span>
+                                          </div>
+
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[11px]">
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Toy Train Name</label>
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. Kalka-Shimla / Darjeeling Toy Train"
+                                                value={city.toyTrainToNext?.trainName || ''}
+                                                onChange={(e) => {
+                                                  const updatedTt = { ...city.toyTrainToNext, trainName: e.target.value };
+                                                  handleUpdateCityInDay(dayIndex, cityIdx, 'toyTrainToNext', updatedTt);
+                                                }}
+                                                className="w-full px-2 py-1 bg-white border border-rose-200 rounded"
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Train Number / Class</label>
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. 52451 / First Class VistaDome"
+                                                value={city.toyTrainToNext?.trainNumber || ''}
+                                                onChange={(e) => {
+                                                  const updatedTt = { ...city.toyTrainToNext, trainNumber: e.target.value };
+                                                  handleUpdateCityInDay(dayIndex, cityIdx, 'toyTrainToNext', updatedTt);
+                                                }}
+                                                className="w-full px-2 py-1 bg-white border border-rose-200 rounded font-mono font-semibold"
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Departure Station & Time</label>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                <input
+                                                  type="text"
+                                                  placeholder="Station"
+                                                  value={city.toyTrainToNext?.departureStation || ''}
+                                                  onChange={(e) => {
+                                                    const updatedTt = { ...city.toyTrainToNext, departureStation: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'toyTrainToNext', updatedTt);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-rose-200 rounded text-[10px]"
+                                                />
+                                                <input
+                                                  type="text"
+                                                  placeholder="Time"
+                                                  value={city.toyTrainToNext?.departureTime || ''}
+                                                  onChange={(e) => {
+                                                    const updatedTt = { ...city.toyTrainToNext, departureTime: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'toyTrainToNext', updatedTt);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-rose-200 rounded text-[10px]"
+                                                />
+                                              </div>
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Arrival Station & Time</label>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                <input
+                                                  type="text"
+                                                  placeholder="Station"
+                                                  value={city.toyTrainToNext?.arrivalStation || ''}
+                                                  onChange={(e) => {
+                                                    const updatedTt = { ...city.toyTrainToNext, arrivalStation: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'toyTrainToNext', updatedTt);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-rose-200 rounded text-[10px]"
+                                                />
+                                                <input
+                                                  type="text"
+                                                  placeholder="Time"
+                                                  value={city.toyTrainToNext?.arrivalTime || ''}
+                                                  onChange={(e) => {
+                                                    const updatedTt = { ...city.toyTrainToNext, arrivalTime: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'toyTrainToNext', updatedTt);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-rose-200 rounded text-[10px]"
+                                                />
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* SEAPLANE MODE DETAILS */}
+                                      {city.transitType === 'seaplane' && (
+                                        <div className="space-y-2 bg-sky-50/60 p-2.5 rounded-lg border border-sky-200">
+                                          <div className="flex items-center gap-1.5 font-bold text-sky-950 text-[11px]">
+                                            <PlaneTakeoff className="w-3.5 h-3.5 text-sky-700" />
+                                            <span>Seaplane Sector: {city.destination} ➔ {nextCityName}</span>
+                                          </div>
+
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[11px]">
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Seaplane Operator</label>
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. Trans Maldivian / SpiceShuttle"
+                                                value={city.seaplaneToNext?.operator || ''}
+                                                onChange={(e) => {
+                                                  const updatedSp = { ...city.seaplaneToNext, operator: e.target.value };
+                                                  handleUpdateCityInDay(dayIndex, cityIdx, 'seaplaneToNext', updatedSp);
+                                                }}
+                                                className="w-full px-2 py-1 bg-white border border-sky-200 rounded"
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Flight / Tail No.</label>
+                                              <input
+                                                type="text"
+                                                placeholder="e.g. SP-101 / 8Q-TMD"
+                                                value={city.seaplaneToNext?.flightNumber || ''}
+                                                onChange={(e) => {
+                                                  const updatedSp = { ...city.seaplaneToNext, flightNumber: e.target.value };
+                                                  handleUpdateCityInDay(dayIndex, cityIdx, 'seaplaneToNext', updatedSp);
+                                                }}
+                                                className="w-full px-2 py-1 bg-white border border-sky-200 rounded font-mono font-semibold"
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Departure Waterdrome & Time</label>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                <input
+                                                  type="text"
+                                                  placeholder="Dock"
+                                                  value={city.seaplaneToNext?.departurePoint || ''}
+                                                  onChange={(e) => {
+                                                    const updatedSp = { ...city.seaplaneToNext, departurePoint: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'seaplaneToNext', updatedSp);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-sky-200 rounded text-[10px]"
+                                                />
+                                                <input
+                                                  type="text"
+                                                  placeholder="Time"
+                                                  value={city.seaplaneToNext?.departureTime || ''}
+                                                  onChange={(e) => {
+                                                    const updatedSp = { ...city.seaplaneToNext, departureTime: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'seaplaneToNext', updatedSp);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-sky-200 rounded text-[10px]"
+                                                />
+                                              </div>
+                                            </div>
+
+                                            <div>
+                                              <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Arrival Waterdrome & Time</label>
+                                              <div className="grid grid-cols-2 gap-1">
+                                                <input
+                                                  type="text"
+                                                  placeholder="Dock"
+                                                  value={city.seaplaneToNext?.arrivalPoint || ''}
+                                                  onChange={(e) => {
+                                                    const updatedSp = { ...city.seaplaneToNext, arrivalPoint: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'seaplaneToNext', updatedSp);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-sky-200 rounded text-[10px]"
+                                                />
+                                                <input
+                                                  type="text"
+                                                  placeholder="Time"
+                                                  value={city.seaplaneToNext?.arrivalTime || ''}
+                                                  onChange={(e) => {
+                                                    const updatedSp = { ...city.seaplaneToNext, arrivalTime: e.target.value };
+                                                    handleUpdateCityInDay(dayIndex, cityIdx, 'seaplaneToNext', updatedSp);
+                                                  }}
+                                                  className="px-1.5 py-1 bg-white border border-sky-200 rounded text-[10px]"
                                                 />
                                               </div>
                                             </div>
@@ -4736,6 +5312,26 @@ export default function ItineraryBuilder({
                             );
                           }
 
+                          if (day.excludeHotel) {
+                            return (
+                              <div className={`p-3.5 rounded-xl bg-amber-50/70 border border-dashed border-amber-300 text-xs text-amber-900 flex items-center justify-between ${itinerary.hotelTiersEnabled ? 'col-span-1 md:col-span-2' : ''}`}>
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                                  <span>Hotel accommodation: <strong>Excluded for Day {day.dayNumber}</strong> (Hidden in UI & PDF)</span>
+                                </div>
+                                <label className="flex items-center gap-2 cursor-pointer select-none bg-white px-2.5 py-1 rounded-lg border border-amber-300 text-[11px] font-semibold text-amber-900 shadow-2xs hover:bg-amber-50 transition">
+                                  <span>Exclude Hotel</span>
+                                  <input
+                                    type="checkbox"
+                                    checked={true}
+                                    onChange={(e) => handleToggleDayExcludeHotel(dayIndex, e.target.checked)}
+                                    className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500 accent-amber-600 cursor-pointer"
+                                  />
+                                </label>
+                              </div>
+                            );
+                          }
+
                           if (itinerary.hotelTiersEnabled) {
                             return (
                             /* Multi-Tiered Hotel Selection for Day */
@@ -4752,7 +5348,16 @@ export default function ItineraryBuilder({
                                     </span>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <label className="flex items-center gap-1.5 cursor-pointer select-none text-[11px] font-medium text-slate-600 hover:text-slate-900 bg-white px-2 py-1 rounded border border-slate-200 shadow-2xs">
+                                    <input
+                                      type="checkbox"
+                                      checked={Boolean(day.excludeHotel)}
+                                      onChange={(e) => handleToggleDayExcludeHotel(dayIndex, e.target.checked)}
+                                      className="w-3.5 h-3.5 text-amber-600 rounded focus:ring-amber-500 accent-amber-600 cursor-pointer"
+                                    />
+                                    <span>Exclude Hotel for this Day</span>
+                                  </label>
                                   <button
                                     type="button"
                                     onClick={() => handleAutoFillDayHotelTiers(dayIndex)}
@@ -4971,24 +5576,35 @@ export default function ItineraryBuilder({
                           return (
                           /* Standard Single Hotel Selection */
                           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
                               <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                                 <Building2 className="w-3.5 h-3.5 text-indigo-600" />
                                 Hotel for Overnight in {day.overnightLocation}
                               </span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setQuickHotelData({
-                                    ...quickHotelData,
-                                    city: day.overnightLocation
-                                  });
-                                  setQuickHotelModalDayId(day.id);
-                                }}
-                                className="text-[11px] font-bold text-indigo-600 hover:underline"
-                              >
-                                + Add New Hotel
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <label className="flex items-center gap-1.5 cursor-pointer select-none text-[11px] font-medium text-slate-600 hover:text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
+                                  <input
+                                    type="checkbox"
+                                    checked={Boolean(day.excludeHotel)}
+                                    onChange={(e) => handleToggleDayExcludeHotel(dayIndex, e.target.checked)}
+                                    className="w-3.5 h-3.5 text-amber-600 rounded focus:ring-amber-500 accent-amber-600 cursor-pointer"
+                                  />
+                                  <span>Exclude Hotel</span>
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setQuickHotelData({
+                                      ...quickHotelData,
+                                      city: day.overnightLocation
+                                    });
+                                    setQuickHotelModalDayId(day.id);
+                                  }}
+                                  className="text-[11px] font-bold text-indigo-600 hover:underline"
+                                >
+                                  + Add New Hotel
+                                </button>
+                              </div>
                             </div>
 
                             <div className="space-y-2">

@@ -9,6 +9,7 @@ export function generateAutoDayDescription(
   includeHotels: boolean = true
 ): string {
   const isLastDay = (totalDays !== undefined && dayIndex === totalDays - 1) || Boolean(day.departureDetails?.enabled);
+  const isHotelIncluded = includeHotels && !day.excludeHotel;
 
   // Multi-city sightseeing narrative
   if (day.isMultiCity && day.cities && day.cities.length > 0) {
@@ -17,13 +18,20 @@ export function generateAutoDayDescription(
     // Day 1 (or any day) arrival check
     if (day.arrivalDetails?.enabled) {
       const arr = day.arrivalDetails;
-      const pointStr = arr.point === 'Airport' ? 'Airport' : arr.point === 'Railway Station' ? 'Railway Station' : arr.point;
-      const flightStr = arr.flightOrTrainNumber ? ` (${arr.flightOrTrainNumber})` : '';
-      const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
       const startCity = day.cities[0]?.destination || day.destination;
-      bullets.push(`• Welcome to ${startCity}! Upon arrival at ${startCity} ${pointStr}${flightStr}${timeStr}, meet and greet with our representative and private chauffeur.`);
+      const isTransfer = arr.point === 'Hotel Pickup' || arr.point === 'City Center' || arr.point === 'Other';
+      if (isTransfer) {
+        const loc = arr.pickupLocation?.trim() || (arr.point === 'Hotel Pickup' ? 'your designated hotel' : arr.point === 'City Center' ? 'the city center' : 'your specified pick-up location');
+        const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
+        bullets.push(`• Welcome to ${startCity}! Meet and greet with our representative and private chauffeur upon pick-up from ${loc}${timeStr}.`);
+      } else {
+        const pointStr = arr.point === 'Airport' ? 'Airport' : arr.point === 'Railway Station' ? 'Railway Station' : arr.point === 'Bus Terminal' ? 'Bus Terminal' : arr.point;
+        const flightStr = arr.flightOrTrainNumber ? ` (${arr.flightOrTrainNumber})` : '';
+        const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
+        bullets.push(`• Welcome to ${startCity}! Upon arrival at ${startCity} ${pointStr}${flightStr}${timeStr}, meet and greet with our representative and private chauffeur.`);
+      }
       
-      if (arr.includeHotelCheckIn !== false) {
+      if (isHotelIncluded && arr.includeHotelCheckIn !== false) {
         if (arr.checkInTiming !== 'after_sightseeing') {
           bullets.push(`• Transfer directly to your hotel in ${startCity} for check-in and leisure time to freshen up before commencing the tour.`);
         }
@@ -59,10 +67,18 @@ export function generateAutoDayDescription(
         }
       }
 
-      // Inter-City Transit to next city: Car, Flight, Train, or Bus
+      // Inter-City Transit to next city: Car, Flight, Train, Bus, Cruise, Ferry, Toy Train, or Seaplane
       if (!isLast) {
         const transit = city.transitType || 'car';
-        const targetNext = day.cities![idx + 1]?.destination || city.driveToNext?.toCity || (transit === 'flight' ? city.flightToNext?.arrivalCity : transit === 'train' ? city.trainToNext?.arrivalStation : transit === 'bus' ? city.busToNext?.arrivalStation : 'the next destination');
+        const targetNext = day.cities![idx + 1]?.destination || city.driveToNext?.toCity || 
+          (transit === 'flight' ? city.flightToNext?.arrivalCity :
+           transit === 'train' ? city.trainToNext?.arrivalStation :
+           transit === 'bus' ? city.busToNext?.arrivalStation :
+           transit === 'cruise' ? city.cruiseToNext?.arrivalPort :
+           transit === 'ferry' ? city.ferryToNext?.arrivalPort :
+           transit === 'toy_train' ? city.toyTrainToNext?.arrivalStation :
+           transit === 'seaplane' ? city.seaplaneToNext?.arrivalPoint :
+           'the next destination');
 
         if (transit === 'flight') {
           const fl = city.flightToNext;
@@ -101,6 +117,58 @@ export function generateAutoDayDescription(
           } else {
             bullets.push(`• Later, board your inter-city coach / tourist bus transfer to ${targetNext}.`);
           }
+        } else if (transit === 'cruise') {
+          const cr = city.cruiseToNext;
+          if (cr) {
+            const lineStr = cr.cruiseLine ? `${cr.cruiseLine} ` : '';
+            const shipStr = cr.vesselName ? `aboard ${cr.vesselName}` : 'your luxury cruise';
+            const depPort = cr.departurePort ? ` from ${cr.departurePort}` : ` from ${city.destination}`;
+            const depTime = cr.departureTime ? ` departing at ${cr.departureTime}` : '';
+            const arrPort = cr.arrivalPort ? ` sailing to ${cr.arrivalPort} (${targetNext})` : ` sailing to ${targetNext}`;
+            const arrTime = cr.arrivalTime ? `, docking at ${cr.arrivalTime}` : '';
+            bullets.push(`• Later, transfer to the cruise terminal to embark on ${lineStr}${shipStr}${depPort}${depTime}${arrPort}${arrTime}. Enjoy scenic sailing and onboard hospitality.`);
+          } else {
+            bullets.push(`• Later, transfer to the cruise terminal to embark on your scenic cruise voyage to ${targetNext}.`);
+          }
+        } else if (transit === 'ferry') {
+          const fe = city.ferryToNext;
+          if (fe) {
+            const opStr = fe.operator ? `${fe.operator} ` : '';
+            const vesStr = fe.vesselName ? `(${fe.vesselName}) ` : '';
+            const depPort = fe.departurePort ? ` from ${fe.departurePort}` : ` from ${city.destination} Jetty`;
+            const depTime = fe.departureTime ? ` departing at ${fe.departureTime}` : '';
+            const arrPort = fe.arrivalPort ? ` for ${fe.arrivalPort} (${targetNext})` : ` for ${targetNext}`;
+            const arrTime = fe.arrivalTime ? `, arriving at ${fe.arrivalTime}` : '';
+            bullets.push(`• Later, transfer to the jetty / harbour to board ${opStr}${vesStr}high-speed ferry${depPort}${depTime}${arrPort}${arrTime}. Upon arrival, our chauffeur will receive you.`);
+          } else {
+            bullets.push(`• Later, transfer to the harbour to board your high-speed ferry transfer to ${targetNext}. Upon arrival, meet our representative.`);
+          }
+        } else if (transit === 'toy_train') {
+          const tt = city.toyTrainToNext;
+          if (tt) {
+            const nameStr = tt.trainName ? `the historic ${tt.trainName}` : 'the heritage Toy Train';
+            const numStr = tt.trainNumber ? ` (${tt.trainNumber})` : '';
+            const depStn = tt.departureStation ? ` from ${tt.departureStation}` : ` from ${city.destination}`;
+            const depTime = tt.departureTime ? ` departing at ${tt.departureTime}` : '';
+            const arrStn = tt.arrivalStation ? ` for ${tt.arrivalStation} (${targetNext})` : ` for ${targetNext}`;
+            const arrTime = tt.arrivalTime ? `, arriving at ${tt.arrivalTime}` : '';
+            bullets.push(`• Later, board ${nameStr}${numStr}${depStn}${depTime}${arrStn}${arrTime}. Experience a picturesque UNESCO heritage mountain rail journey amidst breathtaking views.`);
+          } else {
+            bullets.push(`• Later, board the heritage mountain Toy Train to ${targetNext} enjoying spectacular Himalayan and valley panoramas.`);
+          }
+        } else if (transit === 'seaplane') {
+          const sp = city.seaplaneToNext;
+          if (sp) {
+            const opStr = sp.operator ? `${sp.operator} ` : '';
+            const flStr = sp.flightNumber ? `flight ${sp.flightNumber} ` : '';
+            const depPt = sp.departurePoint ? ` from ${sp.departurePoint}` : ` from ${city.destination} Waterdrome`;
+            const depTime = sp.departureTime ? ` departing at ${sp.departureTime}` : '';
+            const arrPt = sp.arrivalPoint ? ` to ${sp.arrivalPoint} (${targetNext})` : ` to ${targetNext}`;
+            const arrTime = sp.arrivalTime ? `, landing at ${sp.arrivalTime}` : '';
+            bullets.push(`• Later, proceed to the waterdrome to board ${opStr}${flStr}scenic seaplane transfer${depPt}${depTime}${arrPt}${arrTime}. Experience thrilling water take-off, aerial panoramas, and smooth touchdown.`);
+          } else {
+            bullets.push(`• Later, board your thrilling scenic seaplane transfer to ${targetNext} enjoying sweeping aerial views.`);
+          }
         } else if (city.driveToNext) {
           const viaStr = city.driveToNext.routeVia ? ` via ${city.driveToNext.routeVia}` : '';
           if (!city.checkOut || !city.skipSightseeing) {
@@ -109,26 +177,33 @@ export function generateAutoDayDescription(
         }
       }
 
-      if (city.checkIn && !day.departureDetails?.enabled) {
+      if (isHotelIncluded && city.checkIn && !day.departureDetails?.enabled) {
         bullets.push(`• Upon arrival in ${city.destination}, transfer and check-in at your designated hotel.`);
       }
     });
 
-    if (day.arrivalDetails?.enabled && day.arrivalDetails.includeHotelCheckIn !== false && day.arrivalDetails.checkInTiming === 'after_sightseeing') {
+    if (isHotelIncluded && day.arrivalDetails?.enabled && day.arrivalDetails.includeHotelCheckIn !== false && day.arrivalDetails.checkInTiming === 'after_sightseeing') {
       bullets.push(`• Following the day's tour and travel, transfer to your hotel for smooth check-in and relaxation.`);
     }
 
     if (day.departureDetails?.enabled) {
       const dep = day.departureDetails;
-      const pointStr = dep.point === 'Airport' ? 'Airport' : dep.point === 'Railway Station' ? 'Railway Station' : dep.point;
-      const numStr = dep.flightOrTrainNumber ? ` (${dep.flightOrTrainNumber})` : '';
-      const timeStr = dep.departureTime ? ` scheduled at ${dep.departureTime}` : '';
-      const finalCity = day.cities[day.cities.length - 1]?.destination || day.destination;
-      const dropCity = finalCity;
-      bullets.push(`• Later, transfer to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished travel memories.`);
+      const isTransfer = dep.point === 'Hotel Drop' || dep.point === 'City Center' || dep.point === 'Other';
+      if (isTransfer) {
+        const loc = dep.dropLocation?.trim() || (dep.point === 'Hotel Drop' ? 'your designated hotel' : dep.point === 'City Center' ? 'the city center' : 'your onward drop-off point');
+        const timeStr = dep.departureTime ? ` at ${dep.departureTime}` : '';
+        bullets.push(`• Later, assisted drop-off at ${loc}${timeStr} for your onward journey home with cherished travel memories.`);
+      } else {
+        const pointStr = dep.point === 'Airport' ? 'Airport' : dep.point === 'Railway Station' ? 'Railway Station' : dep.point === 'Bus Terminal' ? 'Bus Terminal' : dep.point;
+        const numStr = dep.flightOrTrainNumber ? ` (${dep.flightOrTrainNumber})` : '';
+        const timeStr = dep.departureTime ? ` scheduled at ${dep.departureTime}` : '';
+        const finalCity = day.cities[day.cities.length - 1]?.destination || day.destination;
+        const dropCity = dep.dropLocation || finalCity;
+        bullets.push(`• Later, transfer to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished travel memories.`);
+      }
     }
 
-    if (!day.departureDetails?.enabled) {
+    if (!day.departureDetails?.enabled && isHotelIncluded) {
       const stayCity = day.cities[day.cities.length - 1]?.destination || day.overnightLocation || day.destination;
       bullets.push(`• Overnight stay in ${stayCity}.`);
     }
@@ -141,12 +216,19 @@ export function generateAutoDayDescription(
 
   if (day.arrivalDetails?.enabled) {
     const arr = day.arrivalDetails;
-    const pointStr = arr.point === 'Airport' ? 'Airport' : arr.point === 'Railway Station' ? 'Railway Station' : arr.point;
-    const flightStr = arr.flightOrTrainNumber ? ` (${arr.flightOrTrainNumber})` : '';
-    const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
-    bullets.push(`• Welcome to ${day.destination}! Upon arrival at ${day.destination} ${pointStr}${flightStr}${timeStr}, meet and greet with our representative and private chauffeur.`);
+    const isTransfer = arr.point === 'Hotel Pickup' || arr.point === 'City Center' || arr.point === 'Other';
+    if (isTransfer) {
+      const loc = arr.pickupLocation?.trim() || (arr.point === 'Hotel Pickup' ? 'your designated hotel' : arr.point === 'City Center' ? 'the city center' : 'your specified pick-up location');
+      const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
+      bullets.push(`• Welcome to ${day.destination}! Meet and greet with our representative and private chauffeur upon pick-up from ${loc}${timeStr}.`);
+    } else {
+      const pointStr = arr.point === 'Airport' ? 'Airport' : arr.point === 'Railway Station' ? 'Railway Station' : arr.point === 'Bus Terminal' ? 'Bus Terminal' : arr.point;
+      const flightStr = arr.flightOrTrainNumber ? ` (${arr.flightOrTrainNumber})` : '';
+      const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
+      bullets.push(`• Welcome to ${day.destination}! Upon arrival at ${day.destination} ${pointStr}${flightStr}${timeStr}, meet and greet with our representative and private chauffeur.`);
+    }
     
-    if (includeHotels && arr.includeHotelCheckIn !== false) {
+    if (isHotelIncluded && arr.includeHotelCheckIn !== false) {
       if (arr.checkInTiming !== 'after_sightseeing') {
         bullets.push(`• Transfer directly to your pre-booked hotel for check-in and leisure time to freshen up before commencing sightseeing.`);
       }
@@ -169,7 +251,7 @@ export function generateAutoDayDescription(
     }
   } else if (isLastDay && !hasDrivePastRP) {
     // Final day with no sightseeing activities: do not generate placeholder tour
-    if (includeHotels) {
+    if (isHotelIncluded) {
       bullets.push(`• Complete hotel check-out and prepare for departure.`);
     } else {
       bullets.push(`• Prepare for your onward departure.`);
@@ -180,13 +262,13 @@ export function generateAutoDayDescription(
     bullets.push(`• Drive past Rashtrapati Bhavan and Parliament.`);
   }
 
-  if (includeHotels && day.arrivalDetails?.enabled && day.arrivalDetails.includeHotelCheckIn !== false && day.arrivalDetails.checkInTiming === 'after_sightseeing') {
+  if (isHotelIncluded && day.arrivalDetails?.enabled && day.arrivalDetails.includeHotelCheckIn !== false && day.arrivalDetails.checkInTiming === 'after_sightseeing') {
     bullets.push(`• Following the sightseeing tour, transfer to your hotel for smooth check-in and relaxation.`);
   }
 
   // Highway transfer to overnight location without mentioning Kms or hours
   if (!day.departureDetails?.enabled && !day.isOvernightSameLocation && day.overnightLocation && day.overnightLocation.toLowerCase() !== day.destination.toLowerCase()) {
-    if (includeHotels) {
+    if (isHotelIncluded) {
       bullets.push(`• Later in the afternoon, commence your comfortable highway drive to ${day.overnightLocation}. Upon arrival, check-in to your hotel.`);
     } else {
       bullets.push(`• Later in the afternoon, commence your comfortable highway drive to ${day.overnightLocation}.`);
@@ -196,14 +278,21 @@ export function generateAutoDayDescription(
   // Departure logistics for single destination day (e.g. final day airport transfer)
   if (day.departureDetails?.enabled) {
     const dep = day.departureDetails;
-    const pointStr = dep.point === 'Airport' ? 'Airport' : dep.point === 'Railway Station' ? 'Railway Station' : dep.point;
-    const numStr = dep.flightOrTrainNumber ? ` (${dep.flightOrTrainNumber})` : '';
-    const timeStr = dep.departureTime ? ` scheduled at ${dep.departureTime}` : '';
-    const dropCity = dep.dropLocation || day.destination;
-    bullets.push(`• Later, you will be transferred to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished memories.`);
+    const isTransfer = dep.point === 'Hotel Drop' || dep.point === 'City Center' || dep.point === 'Other';
+    if (isTransfer) {
+      const loc = dep.dropLocation?.trim() || (dep.point === 'Hotel Drop' ? 'your designated hotel' : dep.point === 'City Center' ? 'the city center' : 'your specified drop-off location');
+      const timeStr = dep.departureTime ? ` at ${dep.departureTime}` : '';
+      bullets.push(`• Later, you will be assisted with drop-off at ${loc}${timeStr} for your onward journey home with cherished memories.`);
+    } else {
+      const pointStr = dep.point === 'Airport' ? 'Airport' : dep.point === 'Railway Station' ? 'Railway Station' : dep.point === 'Bus Terminal' ? 'Bus Terminal' : dep.point;
+      const numStr = dep.flightOrTrainNumber ? ` (${dep.flightOrTrainNumber})` : '';
+      const timeStr = dep.departureTime ? ` scheduled at ${dep.departureTime}` : '';
+      const dropCity = dep.dropLocation || day.destination;
+      bullets.push(`• Later, you will be transferred to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished memories.`);
+    }
   }
 
-  if (!day.departureDetails?.enabled) {
+  if (!day.departureDetails?.enabled && isHotelIncluded) {
     const stayCity = day.overnightLocation || day.destination;
     bullets.push(`• Overnight stay in ${stayCity}.`);
   }
@@ -213,21 +302,21 @@ export function generateAutoDayDescription(
 
 /**
  * Standardizes day description text by ensuring "Overnight stay in [City Name]."
- * is appended at the end of each day's description, except when Departure is active.
+ * is appended at the end of each day's description, except when Departure is active or hotel is excluded.
  */
 export function ensureOvernightStayText(description: string, day: ItineraryDay): string {
   let desc = (description || '').trim();
   const stayCity = (day.isMultiCity && day.cities && day.cities.length > 0 ? day.cities[day.cities.length - 1]?.destination : day.overnightLocation) || day.destination || 'the destination';
 
-  if (day.departureDetails?.enabled) {
-    // Departure is active: completely remove any overnight stay line
+  if (day.departureDetails?.enabled || day.excludeHotel) {
+    // Departure is active or hotel is excluded for this day: completely remove any overnight stay line
     desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+at\s+your\s+designated\s+hotel\s+in\s+[^\n.]*\.?/gi, '');
     desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+in\s+[^\n.]*\.?/gi, '');
     desc = desc.replace(/\n?\s*•?\s*Overnight\s+in\s+[^\n.]*\.?/gi, '');
     return desc.trim();
   }
 
-  // Departure is NOT active: ensure "Overnight stay in [City Name]." is at the end
+  // Departure is NOT active and hotel is NOT excluded: ensure "Overnight stay in [City Name]." is at the end
   desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+at\s+your\s+designated\s+hotel\s+in\s+[^\n.]*\.?/gi, '');
   desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+in\s+[^\n.]*\.?/gi, '');
   desc = desc.replace(/\n?\s*•?\s*Overnight\s+in\s+[^\n.]*\.?/gi, '');
@@ -262,6 +351,10 @@ export function getRouteSubtitle(day: ItineraryDay): string {
     if (c.transitType === 'flight') return 'flight to';
     if (c.transitType === 'train') return 'train to';
     if (c.transitType === 'bus') return 'bus to';
+    if (c.transitType === 'cruise') return 'cruise to';
+    if (c.transitType === 'ferry') return 'ferry to';
+    if (c.transitType === 'toy_train') return 'toy train to';
+    if (c.transitType === 'seaplane') return 'seaplane to';
     return 'drive to';
   };
 
@@ -269,6 +362,10 @@ export function getRouteSubtitle(day: ItineraryDay): string {
     if (c.transitType === 'flight') return 'Flight from';
     if (c.transitType === 'train') return 'Train from';
     if (c.transitType === 'bus') return 'Bus from';
+    if (c.transitType === 'cruise') return 'Cruise from';
+    if (c.transitType === 'ferry') return 'Ferry from';
+    if (c.transitType === 'toy_train') return 'Toy Train from';
+    if (c.transitType === 'seaplane') return 'Seaplane from';
     return 'Drive from';
   };
 
