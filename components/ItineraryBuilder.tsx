@@ -2407,7 +2407,7 @@ export default function ItineraryBuilder({
             <button
               type="button"
               onClick={() => validateAndProceed(2)}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#151521] hover:bg-[#26214F] rounded-lg shadow-sm transition"
+              className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-xs font-semibold text-white bg-[#151521] hover:bg-[#26214F] rounded-lg shadow-sm transition text-center"
             >
               Proceed to Pax & Vehicle →
             </button>
@@ -2988,18 +2988,18 @@ export default function ItineraryBuilder({
             )}
           </div>
 
-          <div className="flex justify-between pt-4 border-t border-slate-100">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setActiveStep(1)}
-              className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition text-center"
             >
               ← Back to Client & Dates
             </button>
             <button
               type="button"
               onClick={() => setActiveStep(3)}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#151521] hover:bg-[#26214F] rounded-lg shadow-sm transition"
+              className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-xs font-semibold text-white bg-[#151521] hover:bg-[#26214F] rounded-lg shadow-sm transition text-center"
             >
               Proceed to Day Builder →
             </button>
@@ -3758,16 +3758,16 @@ export default function ItineraryBuilder({
                                         </div>
 
                                         {/* Mode Selector Tabs */}
-                                        <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs">
+                                        <div className="grid grid-cols-2 sm:flex sm:inline-flex rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs gap-0.5">
                                           <button
                                             type="button"
                                             onClick={() => {
                                               handleUpdateCityInDay(dayIndex, cityIdx, { transitType: 'car' });
                                             }}
-                                            className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-bold transition ${
+                                            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
                                               (!city.transitType || city.transitType === 'car')
                                                 ? 'bg-amber-500 text-slate-950 shadow-2xs'
-                                                : 'text-slate-600 hover:text-slate-900'
+                                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                                             }`}
                                           >
                                             <Car className="w-3.5 h-3.5" />
@@ -3793,10 +3793,10 @@ export default function ItineraryBuilder({
                                                 flightToNext: currentFl
                                               });
                                             }}
-                                            className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-bold transition ${
+                                            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
                                               city.transitType === 'flight'
                                                 ? 'bg-indigo-600 text-white shadow-2xs'
-                                                : 'text-slate-600 hover:text-slate-900'
+                                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                                             }`}
                                           >
                                             <Plane className="w-3.5 h-3.5" />
@@ -3821,10 +3821,10 @@ export default function ItineraryBuilder({
                                                 trainToNext: currentTr
                                               });
                                             }}
-                                            className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-bold transition ${
+                                            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
                                               city.transitType === 'train'
                                                 ? 'bg-emerald-600 text-white shadow-2xs'
-                                                : 'text-slate-600 hover:text-slate-900'
+                                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                                             }`}
                                           >
                                             <Train className="w-3.5 h-3.5" />
@@ -3849,10 +3849,10 @@ export default function ItineraryBuilder({
                                                 busToNext: currentBs
                                               });
                                             }}
-                                            className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-bold transition ${
+                                            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-md text-xs font-bold transition ${
                                               city.transitType === 'bus'
                                                 ? 'bg-amber-600 text-white shadow-2xs'
-                                                : 'text-slate-600 hover:text-slate-900'
+                                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                                             }`}
                                           >
                                             <Bus className="w-3.5 h-3.5" />
@@ -5016,18 +5016,18 @@ export default function ItineraryBuilder({
             })}
           </div>
 
-          <div className="flex justify-between pt-4 border-t border-slate-200">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-200">
             <button
               type="button"
               onClick={() => setActiveStep(2)}
-              className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition text-center"
             >
               ← Back to Pax & Vehicle
             </button>
             <button
               type="button"
               onClick={() => setActiveStep(4)}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#151521] hover:bg-[#26214F] rounded-lg shadow-sm transition"
+              className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-xs font-semibold text-white bg-[#151521] hover:bg-[#26214F] rounded-lg shadow-sm transition text-center"
             >
               Proceed to Inclusions & Notes →
             </button>
@@ -5148,18 +5148,18 @@ export default function ItineraryBuilder({
             />
           </div>
 
-          <div className="flex justify-between pt-4 border-t border-slate-100">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setActiveStep(3)}
-              className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition text-center"
             >
               ← Back to Day Builder
             </button>
             <button
               type="button"
               onClick={() => setActiveStep(5)}
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#151521] hover:bg-[#26214F] rounded-lg shadow-sm transition"
+              className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-xs font-semibold text-white bg-[#151521] hover:bg-[#26214F] rounded-lg shadow-sm transition text-center"
             >
               Proceed to Pricing & Ledger →
             </button>
@@ -5906,26 +5906,26 @@ export default function ItineraryBuilder({
             </div>
           )}
 
-          <div className="flex justify-between pt-6 border-t border-slate-200">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-6 border-t border-slate-200">
             <button
               type="button"
               onClick={() => setActiveStep(4)}
-              className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition text-center"
             >
               ← Back to Inclusions & Notes
             </button>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => onSaveDraft(prepareItineraryForOutput(itinerary))}
-                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition text-center"
               >
                 Save Draft
               </button>
               <button
                 type="button"
                 onClick={() => onGeneratePreview(prepareItineraryForOutput(itinerary))}
-                className="px-6 py-2.5 text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 rounded-lg shadow-sm transition active:scale-95"
+                className="w-full sm:w-auto px-6 py-2.5 text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 rounded-lg shadow-sm transition active:scale-95 text-center"
               >
                 Generate & Preview Proposal →
               </button>

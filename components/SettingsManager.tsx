@@ -830,7 +830,7 @@ export default function SettingsManager({
         <div className="flex justify-end pt-4">
           <button
             type="submit"
-            className="px-6 py-2.5 text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg shadow-sm transition"
+            className="w-full sm:w-auto px-6 py-2.5 text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg shadow-sm transition text-center"
           >
             Save All Settings
           </button>
