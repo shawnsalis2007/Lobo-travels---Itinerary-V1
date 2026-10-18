@@ -718,7 +718,7 @@ export default function ItineraryPreview({
                       {itinerary.flightBookings.flightsBookedByUs && <Plane className="w-3.5 h-3.5 text-sky-600" />}
                       {itinerary.flightBookings.railwayBookedByUs && <Train className="w-3.5 h-3.5 text-emerald-600" />}
                       {itinerary.flightBookings.busBookedByUs && <Bus className="w-3.5 h-3.5 text-amber-600" />}
-                      Travel Details & Tickets (Confirmed Transit)
+                      Travel Details
                     </span>
                     <span className="text-[10px] font-bold text-sky-800 bg-sky-200/60 px-2 py-0.5 rounded">
                       Tickets Booked by {settings?.companyName || 'Lobo Travels'}

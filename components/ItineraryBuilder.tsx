@@ -16,6 +16,7 @@ import {
   Building2, 
   Utensils, 
   ArrowRight, 
+  ArrowRightLeft, 
   Check, 
   AlertCircle, 
   Save, 
@@ -1368,6 +1369,82 @@ export default function ItineraryBuilder({
     });
   };
 
+  // Outbound / Return logistics toggle (Flights, Railway, Bus booked by us)
+  const handleToggleOutbound = (enabled: boolean) => {
+    setItinerary(prev => {
+      const current = prev.flightBookings || {
+        flightsBookedByUs: false,
+        railwayBookedByUs: false,
+        busBookedByUs: false,
+        outboundBookedByUs: false,
+        flights: []
+      };
+
+      const primaryMode = current.railwayBookedByUs ? 'railway' : current.busBookedByUs ? 'bus' : 'flights';
+      let flights = [...(current.flights || [])];
+      let updatedDays = [...prev.days];
+
+      if (enabled) {
+        // If outbound flight doesn't exist, create it
+        let depSector = flights.find(f => f.type === 'departure');
+        if (!depSector) {
+          const lastCity = prev.days[prev.days.length - 1]?.destination || 'Delhi';
+          const transitT = primaryMode === 'railway' ? 'train' : primaryMode === 'bus' ? 'bus' : 'flight';
+          depSector = {
+            id: 'fl-' + Date.now() + '-outbound',
+            type: 'departure',
+            transitType: transitT,
+            sectorTitle: `Outbound / Return ${transitT === 'train' ? 'Train' : transitT === 'bus' ? 'Coach' : 'Flight'} (from ${lastCity})`,
+            airline: transitT === 'train' ? 'Shatabdi Express' : transitT === 'bus' ? 'Intrcity SmartBus' : 'Air India',
+            flightNumber: transitT === 'train' ? '12002' : transitT === 'bus' ? 'DL-01-B-5678' : 'AI-402',
+            departureCity: `${lastCity} ${transitT === 'bus' ? 'ISBT Terminal' : transitT === 'train' ? 'Railway Station' : '(Airport)'}`,
+            departureDate: prev.endDate || '',
+            departureTime: '18:45 PM',
+            arrivalCity: `Origin City ${transitT === 'bus' ? 'Bus Stand' : transitT === 'train' ? 'Central Station' : '(Airport)'}`,
+            arrivalDate: prev.endDate || '',
+            arrivalTime: '21:30 PM',
+            pnr: transitT === 'bus' ? 'IC-91823' : transitT === 'train' ? '284-9102834' : 'AI-DIR402',
+            cabinClass: transitT === 'train' ? 'Executive AC Chair Car' : transitT === 'bus' ? 'AC Multi-Axle Sleeper' : 'Economy',
+            baggage: transitT === 'bus' ? '2 Check-in Bags Included' : transitT === 'train' ? 'Personal Luggage Included' : '15 Kg Check-in + 7 Kg Cabin',
+            notes: 'Confirmed outbound ticket'
+          };
+          flights.push(depSector);
+        }
+
+        // Also sync to last day departure details if exists
+        const lastIdx = updatedDays.length - 1;
+        if (depSector && updatedDays[lastIdx]) {
+          const lastDay = { ...updatedDays[lastIdx] };
+          const transitT = depSector.transitType || 'flight';
+          const pointForTransit = (transit?: string) =>
+            transit === 'bus' ? 'Bus Terminal' : transit === 'train' ? 'Railway Station' : 'Airport';
+          lastDay.departureDetails = {
+            enabled: Boolean(lastDay.departureDetails?.enabled),
+            transitType: transitT,
+            point: pointForTransit(transitT),
+            flightOrTrainNumber: `${depSector.airline || ''} ${depSector.flightNumber || ''}`.trim(),
+            departureTime: depSector.departureTime || '',
+            dropLocation: depSector.departureCity || ''
+          };
+          updatedDays[lastIdx] = lastDay;
+        }
+      } else {
+        // Remove outbound flight sector
+        flights = flights.filter(f => f.type !== 'departure');
+      }
+
+      return {
+        ...prev,
+        days: updatedDays,
+        flightBookings: {
+          ...current,
+          outboundBookedByUs: enabled,
+          flights
+        }
+      };
+    });
+  };
+
   const handleToggleFlightsBookedByUs = (enabled: boolean) => {
     handleToggleBookedByUs('flights', enabled);
   };
@@ -2698,7 +2775,7 @@ export default function ItineraryBuilder({
                 </div>
               </div>
 
-              {/* 3 Selectable Options for Booked by Us */}
+              {/* Selectable Options for Booked by Us (Inbound & Outbound Logistics) */}
               <div className="flex flex-wrap items-center gap-2">
                 <label className={`inline-flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-bold transition shadow-2xs ${
                   itinerary.flightBookings?.flightsBookedByUs 
@@ -2743,6 +2820,24 @@ export default function ItineraryBuilder({
                   />
                   <Bus className="w-3.5 h-3.5 text-amber-600" />
                   <span>Bus booked by us</span>
+                </label>
+
+                <div className="h-5 w-px bg-slate-300 mx-0.5 hidden sm:block" />
+
+                {/* Outbound Logistics Toggle */}
+                <label className={`inline-flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-bold transition shadow-2xs ${
+                  (itinerary.flightBookings?.outboundBookedByUs ?? Boolean(itinerary.flightBookings?.flights?.some(f => f.type === 'departure')))
+                    ? 'bg-indigo-50 border-indigo-300 text-indigo-950' 
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={itinerary.flightBookings?.outboundBookedByUs ?? Boolean(itinerary.flightBookings?.flights?.some(f => f.type === 'departure'))}
+                    onChange={(e) => handleToggleOutbound(e.target.checked)}
+                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <ArrowRightLeft className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Outbound booked by us</span>
                 </label>
               </div>
             </div>
@@ -2791,6 +2886,23 @@ export default function ItineraryBuilder({
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
+                {/* Outbound Travel Notice if not yet added */}
+                {!itinerary.flightBookings.flights?.some(f => f.type === 'departure') && (
+                  <div className="p-3 bg-indigo-50/70 rounded-xl border border-dashed border-indigo-300 flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2 text-indigo-950">
+                      <ArrowRightLeft className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                      <span>Outbound / return travel details are currently not added. Tick &apos;Outbound booked by us&apos; to configure return flight, train, or bus.</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleOutbound(true)}
+                      className="px-3 py-1 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-2xs transition shrink-0"
+                    >
+                      + Add Outbound Sector
+                    </button>
+                  </div>
+                )}
+
                   {itinerary.flightBookings.flights?.map((flight, fIdx) => {
                     const sectorMode = flight.transitType || 'flight';
                     return (
@@ -2834,19 +2946,48 @@ export default function ItineraryBuilder({
                               </button>
                             </div>
 
-                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                              flight.type === 'arrival' 
-                                ? 'bg-indigo-100 text-indigo-800' 
-                                : flight.type === 'departure' 
-                                ? 'bg-sky-100 text-sky-800' 
-                                : 'bg-purple-100 text-purple-800'
-                            }`}>
-                              {flight.type === 'arrival' 
-                                ? (sectorMode === 'bus' ? 'Inbound Bus' : sectorMode === 'train' ? 'Inbound Train' : 'Inbound Flight')
-                                : flight.type === 'departure' 
-                                ? (sectorMode === 'bus' ? 'Outbound Bus' : sectorMode === 'train' ? 'Outbound Train' : 'Outbound Flight')
-                                : (sectorMode === 'bus' ? 'Inter-City Bus' : sectorMode === 'train' ? 'Train Sector' : 'Internal Flight')}
-                            </span>
+                            {/* Sector Type Selector (Inbound vs Outbound vs Inter-City) */}
+                            <div className="flex items-center rounded-lg bg-slate-100 p-0.5 border border-slate-200">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateFlightSector(flight.id, 'type', 'arrival')}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                                  flight.type === 'arrival'
+                                    ? 'bg-indigo-600 text-white shadow-2xs'
+                                    : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                              >
+                                Inbound
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleUpdateFlightSector(flight.id, 'type', 'departure');
+                                  setItinerary(prev => ({
+                                    ...prev,
+                                    flightBookings: prev.flightBookings ? { ...prev.flightBookings, outboundBookedByUs: true } : prev.flightBookings
+                                  }));
+                                }}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                                  flight.type === 'departure'
+                                    ? 'bg-sky-600 text-white shadow-2xs'
+                                    : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                              >
+                                Outbound
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateFlightSector(flight.id, 'type', 'intercity')}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                                  flight.type === 'intercity'
+                                    ? 'bg-purple-600 text-white shadow-2xs'
+                                    : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                              >
+                                Inter-City
+                              </button>
+                            </div>
                             <input
                               type="text"
                               value={flight.sectorTitle}

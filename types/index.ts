@@ -179,6 +179,7 @@ export interface TourFlightsBooking {
   flightsBookedByUs: boolean; // "Flight arrival and departure details if we book the flights"
   railwayBookedByUs?: boolean; // "Railway booked by us"
   busBookedByUs?: boolean; // "Bus booked by us"
+  outboundBookedByUs?: boolean; // "Outbound booked by us"
   flights: BookedFlightInfo[];
 }
 

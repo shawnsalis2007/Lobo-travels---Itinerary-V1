@@ -379,7 +379,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Scenic capital of Uttarakhand nestled in the Doon Valley between the holy Ganga and Yamuna rivers.',
     detailedDescription: 'Gateway to the Garhwal Himalayas renowned for premier educational institutes, subterranean limestone caves at Robber’s Cave, medicinal sulphur pools at Sahastradhara, and serene Tibetan monasteries.',
     recommendedDuration: '1–2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1598894000396-bc48a58da813?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1200&q=80',
     gallery: []
   },
   {
@@ -412,7 +412,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Sacred Char Dham shrine of Lord Vishnu nestled between Nar and Narayana mountain ranges.',
     detailedDescription: 'One of Hinduism’s most revered holy pilgrimage destinations located along the Alaknanda River at 3,300 meters, featuring thermal sulphur springs at Tapt Kund and Mana, the last Indian border village.',
     recommendedDuration: '1–2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1626714485844-325f16e45f1b?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5?auto=format&fit=crop&w=1200&q=80',
     gallery: []
   },
   {
@@ -423,7 +423,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'The holiest Jyotirlinga of Lord Shiva surrounded by towering snow-clad Himalayan peaks.',
     detailedDescription: 'Perched at 3,584 meters near the Mandakini River source and Chorabari Glacier, this eighth-century stone temple built by Adi Shankaracharya is one of the most sacred pilgrimage journeys on Earth.',
     recommendedDuration: '2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1605649487212-47bdab064df8?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1200&q=80',
     gallery: []
   },
   {
@@ -447,6 +447,20 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     recommendedDuration: '1–2 Days',
     heroImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
     gallery: []
+  },
+  {
+    id: 'jim-corbett',
+    name: 'Jim Corbett National Park',
+    state: 'Uttarakhand',
+    country: 'India',
+    shortDescription: "India's premier tiger reserve nestled in the Himalayan foothills along the Ramganga River.",
+    detailedDescription: "India's oldest national park, globally famed for royal Bengal tigers, wild Asian elephants, leopards, and rich Sal forests across scenic valleys and riverbeds.",
+    recommendedDuration: '2–3 Days',
+    heroImage: 'https://images.unsplash.com/photo-1549366021-9f761d450615?auto=format&fit=crop&w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1534177616072-ef7dc120449d?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1561731216-c3a4d99437d5?auto=format&fit=crop&w=800&q=80'
+    ]
   },
   {
     id: 'hanoi',
@@ -511,7 +525,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Island capital blending coastal colonial charm, Buddhist shrines, and ocean-facing parks.',
     detailedDescription: 'The vibrant commercial capital of Sri Lanka on the Indian Ocean, known for Gangaramaya Temple, sunset walks along Galle Face Green, colonial Fort architecture, and vibrant bazaars.',
     recommendedDuration: '1–2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1588258524675-c63503db4572?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1586861635167-e5223aadc9fe?auto=format&fit=crop&w=1200&q=80',
     gallery: []
   },
   {
@@ -533,7 +547,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: '“Little England” of Sri Lanka amidst misty emerald tea hills and English country cottages.',
     detailedDescription: 'Perched at 1,868 meters with cool highland climate, famous for Pedro and Mackwoods Ceylon tea plantations, colonial post offices, Gregory Lake water sports, and Ramboda waterfalls.',
     recommendedDuration: '2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1566296517004-220e93298fb9?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1546708973-b339540b5162?auto=format&fit=crop&w=1200&q=80',
     gallery: []
   },
   {
@@ -665,7 +679,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'Futuristic capital designed by legendary architects across the windswept steppe.',
     detailedDescription: 'Ultra-modern capital on the Ishim River showcasing world-renowned masterworks by Norman Foster and Kisho Kurokawa: the 97-meter Baiterek Tower, the Pyramid of Peace, and the giant tent of Khan Shatyr.',
     recommendedDuration: '2 Days',
-    heroImage: 'https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?auto=format&fit=crop&w=1200&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80',
     gallery: []
   },
   {
@@ -2718,7 +2732,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Holy Shrine',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1626714485844-325f16e45f1b?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'badrinath-tapt-kund',
@@ -2778,7 +2792,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Jyotirlinga Shrine',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df8?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'kedarnath-bhairavnath',
@@ -2911,6 +2925,54 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     category: 'Sacred Geothermal Spring',
     unesco: false,
     image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    id: 'jim-corbett-dhikala-safari',
+    destinationId: 'jim-corbett',
+    destinationName: 'Jim Corbett National Park',
+    name: 'Dhikala Zone Jeep & Canter Safari',
+    shortDescription: 'Core tiger reserve zone with expansive grasslands (Chaurs) and highest Bengal tiger density.',
+    detailedDescription: 'The most celebrated zone of Corbett National Park offering panoramic views of the Patli Dun valley, Ramganga reservoir, wild elephant herds, and royal Bengal tigers.',
+    duration: '3.5–4 Hours',
+    category: 'Wildlife Sanctuary',
+    unesco: false,
+    image: 'https://images.unsplash.com/photo-1549366021-9f761d450615?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    id: 'jim-corbett-bijrani-safari',
+    destinationId: 'jim-corbett',
+    destinationName: 'Jim Corbett National Park',
+    name: 'Bijrani Zone 4x4 Gypsy Safari',
+    shortDescription: 'Famous safari zone renowned for scenic deep sal forests, streams, and frequent tiger sightings.',
+    detailedDescription: 'A picturesque wilderness zone with dense mixed vegetation, clear streams, and abundant wildlife including tigers, spotted deer, sambar, and hornbills.',
+    duration: '3.5–4 Hours',
+    category: 'Wildlife Sanctuary',
+    unesco: false,
+    image: 'https://images.unsplash.com/photo-1534177616072-ef7dc120449d?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    id: 'jim-corbett-garjiya-devi-temple',
+    destinationId: 'jim-corbett',
+    destinationName: 'Jim Corbett National Park',
+    name: 'Garjiya Devi Temple & Kosi River',
+    shortDescription: 'Sacred Shakti shrine perched atop a colossal rock in the middle of the gushing Kosi River.',
+    detailedDescription: 'A revered pilgrimage site located on the outskirts of Ramnagar, offering tranquil river vistas and vibrant cultural significance for travelers.',
+    duration: '1–1.5 Hours',
+    category: 'Historical Monument',
+    unesco: false,
+    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    id: 'jim-corbett-corbett-falls-museum',
+    destinationId: 'jim-corbett',
+    destinationName: 'Jim Corbett National Park',
+    name: 'Corbett Falls & Heritage Museum',
+    shortDescription: 'Scenic 66-ft natural waterfall and the historic heritage bungalow of conservationist Jim Corbett.',
+    detailedDescription: 'Nestled in dense teak forests near Kaladhungi, the museum preserves personal artifacts, letters, and memories of legendary hunter-turned-conservationist Jim Corbett.',
+    duration: '1.5–2 Hours',
+    category: 'Adventure / Nature',
+    unesco: false,
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'yamunotri-divya-shila',
@@ -3246,7 +3308,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Sacred Buddhist Temple',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1588258524675-c63503db4572?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'colombo-galle-face',
@@ -3270,7 +3332,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'National Monument',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1566296517004-220e93298fb9?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1546708973-b339540b5162?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'colombo-pettah',
@@ -3306,7 +3368,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Botanical Gardens',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1588258524675-c63503db4572?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'kandy-lake',
@@ -3318,7 +3380,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Scenic Lake',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1566296517004-220e93298fb9?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1546708973-b339540b5162?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'kandy-cultural-dance',
@@ -3342,7 +3404,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Tea Plantation Tour',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1566296517004-220e93298fb9?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1546708973-b339540b5162?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'nuwara-gregory-lake',
@@ -3354,7 +3416,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Alpine Recreation Lake',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1588258524675-c63503db4572?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'nuwara-horton-plains',
@@ -3414,7 +3476,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Waterfall & Mythology',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1566296517004-220e93298fb9?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1546708973-b339540b5162?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'ella-scenic-train',
@@ -3426,7 +3488,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '4 Hours',
     category: 'World-Famous Train Ride',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1588258524675-c63503db4572?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'sigiriya-rock-fortress',
@@ -3474,7 +3536,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3.5 Hours',
     category: 'Wildlife Jeep Safari',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1588258524675-c63503db4572?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'dubai-burj-khalifa',
@@ -3954,7 +4016,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Mountain Cable Car & Panorama',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'almaty-big-lake',
@@ -3978,7 +4040,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Russian Orthodox Wooden Church',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'almaty-green-bazaar',
@@ -4002,7 +4064,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'National Monument',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'astana-khan-shatyr',
@@ -4026,7 +4088,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Modern Architecture',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'astana-hazrat-sultan',
@@ -4038,7 +4100,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Central Asian Grand Mosque',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'astana-nur-alem',
@@ -4368,6 +4430,16 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
 
 // Helper: Common Driving Distances & Times between cities
 export const INTERCITY_ROUTES: Record<string, { distanceKm: number; driveTime: string; routeVia?: string }> = {
+  'delhi-jim-corbett': { distanceKm: 245, driveTime: '5–6 Hours', routeVia: 'NH 9 & Moradabad Bypass' },
+  'jim-corbett-delhi': { distanceKm: 245, driveTime: '5–6 Hours', routeVia: 'NH 9' },
+  'nainital-jim-corbett': { distanceKm: 65, driveTime: '2 Hours', routeVia: 'Kaladhungi - Ramnagar Road' },
+  'jim-corbett-nainital': { distanceKm: 65, driveTime: '2 Hours', routeVia: 'Kaladhungi Road' },
+  'haridwar-jim-corbett': { distanceKm: 130, driveTime: '3.5 Hours', routeVia: 'NH 74 via Kashipur' },
+  'jim-corbett-haridwar': { distanceKm: 130, driveTime: '3.5 Hours', routeVia: 'NH 74' },
+  'rishikesh-jim-corbett': { distanceKm: 145, driveTime: '4 Hours', routeVia: 'NH 74' },
+  'jim-corbett-rishikesh': { distanceKm: 145, driveTime: '4 Hours', routeVia: 'NH 74' },
+  'dehradun-jim-corbett': { distanceKm: 175, driveTime: '4.5 Hours', routeVia: 'NH 74 via Haridwar & Kashipur' },
+  'jim-corbett-dehradun': { distanceKm: 175, driveTime: '4.5 Hours', routeVia: 'NH 74' },
   'delhi-agra': { distanceKm: 210, driveTime: '3.5–4 Hours', routeVia: 'Yamuna Expressway' },
   'agra-delhi': { distanceKm: 210, driveTime: '3.5–4 Hours', routeVia: 'Yamuna Expressway' },
   'agra-jaipur': { distanceKm: 240, driveTime: '4.5–5 Hours', routeVia: 'NH 21 via Fatehpur Sikri' },
@@ -4520,7 +4592,7 @@ export const FEATURED_COVER_PRESETS: CoverImagePreset[] = [
     id: 'cov-hawa-mahal',
     name: 'Hawa Mahal (Palace of Winds)',
     destination: 'Jaipur',
-    url: 'https://images.unsplash.com/photo-1609137144822-26d9c6c21e35?auto=format&fit=crop&w=1200&q=80'
+    url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80'
   },
   {
     id: 'cov-udaipur',
