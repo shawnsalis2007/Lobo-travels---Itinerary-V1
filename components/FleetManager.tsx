@@ -271,7 +271,7 @@ export default function FleetManager({
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-          className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
+          className="w-full sm:w-auto px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
         >
           <option value="all">All Statuses ({fleet.length})</option>
           <option value="active">Active</option>
@@ -512,7 +512,7 @@ export default function FleetManager({
               </div>
 
               {/* Brand */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
                     Brand <span className="text-rose-500">*</span>

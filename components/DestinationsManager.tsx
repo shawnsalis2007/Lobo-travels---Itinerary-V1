@@ -203,7 +203,7 @@ export default function DestinationsManager({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             Neon Postgres: Active
@@ -321,19 +321,20 @@ export default function DestinationsManager({
           {activeDestination && (
             <>
               {/* Destination Hero Banner */}
-              <div className="relative rounded-2xl overflow-hidden shadow-sm border border-slate-200 h-56 bg-slate-900 text-white flex flex-col justify-end p-6">
+              <div className="relative rounded-2xl overflow-hidden shadow-sm border border-slate-200 min-h-[220px] sm:h-56 bg-slate-900 text-white flex flex-col justify-end p-4 sm:p-6 pt-16 sm:pt-6">
                 <SafeImage src={activeDestination.heroImage} alt={activeDestination.name} className="absolute inset-0 w-full h-full object-cover opacity-60" />
                 
                 {/* Hero Overlay Top Actions */}
-                <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => handleOpenEditDestination(activeDestination)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-md text-white border border-white/20 text-xs font-semibold transition shadow-xs"
+                    className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-md text-white border border-white/20 text-xs font-semibold transition shadow-xs"
                     title="Edit destination details & hero photo"
                   >
                     <Edit3 className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Edit Destination</span>
+                    <span className="hidden sm:inline">Edit Destination</span>
+                    <span className="sm:hidden">Edit</span>
                   </button>
                   <button
                     type="button"
@@ -354,7 +355,7 @@ export default function DestinationsManager({
                   <div className="inline-block px-2.5 py-0.5 rounded bg-amber-400 text-slate-950 font-bold text-[10px] uppercase mb-1">
                     {activeDestination.country || 'India'} · {activeDestination.state}
                   </div>
-                  <h2 className="text-2xl font-black">{activeDestination.name}</h2>
+                  <h2 className="text-xl sm:text-2xl font-black">{activeDestination.name}</h2>
                   <p className="text-xs text-slate-200 max-w-xl line-clamp-2">
                     {activeDestination.detailedDescription || activeDestination.shortDescription}
                   </p>
@@ -362,8 +363,8 @@ export default function DestinationsManager({
               </div>
 
               {/* Attractions Section */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm">
                       Key Sights & Monuments in {activeDestination.name} ({activeAttractions.length})
@@ -375,7 +376,7 @@ export default function DestinationsManager({
 
                   <button
                     onClick={handleOpenAddAttraction}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition"
+                    className="self-start sm:self-auto flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Attraction</span>
@@ -404,7 +405,7 @@ export default function DestinationsManager({
                                 type="button"
                                 title="Edit Info & Image"
                                 onClick={() => handleEditAttraction(att)}
-                                className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition"
+                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition"
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
                               </button>
@@ -414,7 +415,7 @@ export default function DestinationsManager({
                                 onClick={() => {
                                   if (confirm(`Delete ${att.name}?`)) onDeleteAttraction(att.id);
                                 }}
-                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -447,7 +448,7 @@ export default function DestinationsManager({
       {/* Add Destination Modal */}
       {isAddDestModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 text-xs max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-sm">Add New Destination</h3>
               <button onClick={() => setIsAddDestModalOpen(false)} className="text-slate-400 hover:text-slate-600">

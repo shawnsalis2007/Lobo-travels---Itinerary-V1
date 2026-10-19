@@ -166,7 +166,7 @@ export default function HotelsManager({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             Neon Postgres: Active
@@ -218,11 +218,11 @@ export default function HotelsManager({
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
           <select
             value={cityFilter}
             onChange={(e) => setCityFilter(e.target.value)}
-            className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
+            className="flex-1 sm:flex-initial w-full sm:w-auto px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
           >
             <option value="all">All Cities ({hotels.length})</option>
             {uniqueCities.map(c => (
@@ -233,7 +233,7 @@ export default function HotelsManager({
           <select
             value={starFilter}
             onChange={(e) => setStarFilter(e.target.value)}
-            className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
+            className="flex-1 sm:flex-initial w-full sm:w-auto px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
           >
             <option value="all">All Star Categories</option>
             <option value="5">5 Star Luxury</option>
@@ -303,7 +303,7 @@ export default function HotelsManager({
                     setEditingHotel(hotel);
                     setIsEditModalOpen(true);
                   }}
-                  className="p-1 rounded text-slate-500 hover:text-indigo-600 hover:bg-slate-200 transition"
+                  className="p-1.5 rounded text-slate-500 hover:text-indigo-600 hover:bg-slate-200 transition"
                   title="Edit Hotel"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
@@ -315,7 +315,7 @@ export default function HotelsManager({
                       showToast(`Removed "${hotel.name}" from Neon Postgres`);
                     }
                   }}
-                  className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                  className="p-1.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
                   title="Delete Hotel"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -498,7 +498,7 @@ export default function HotelsManager({
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Star Category</label>
                   <select

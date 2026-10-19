@@ -1,6 +1,12 @@
-import type {Metadata} from 'next';
+import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import './globals.css'; // Global styles
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: 'Lobo Travels — Professional Itinerary Builder & Tour Operations',
