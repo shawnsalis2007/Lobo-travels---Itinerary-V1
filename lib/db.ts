@@ -15,10 +15,10 @@ export type DbProvider = 'postgres' | 'kv' | 'supabase' | 'local_file';
 export function getActiveDbProvider(): { provider: DbProvider; label: string; isCloud: boolean } {
   const pgUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL;
   if (pgUrl) {
-    const isVercelNeon = pgUrl.includes('neon.tech') || pgUrl.includes('vercel') || !!process.env.POSTGRES_URL;
+    const isNeon = pgUrl.includes('neon.tech') || pgUrl.includes('neon') || !!process.env.POSTGRES_URL;
     return {
       provider: 'postgres',
-      label: isVercelNeon ? 'Vercel Postgres (Neon)' : 'PostgreSQL Database',
+      label: isNeon ? 'Neon Postgres (Vercel)' : 'PostgreSQL Database',
       isCloud: true
     };
   }
@@ -45,13 +45,13 @@ export function getActiveDbProvider(): { provider: DbProvider; label: string; is
 
   return {
     provider: 'local_file',
-    label: 'Local Persistent Store (Ready for Vercel DB)',
+    label: 'Local File Persistence (Neon Postgres Ready)',
     isCloud: false
   };
 }
 
 // ── INITIAL DATA PREPARATION ──────────────────────────────────────────────────
-function getSeededAttractions(): Attraction[] {
+export function getSeededAttractions(): Attraction[] {
   return INITIAL_ATTRACTIONS.map(a => {
     const overrideImg = getAttractionImage(a.name, a.image) || getAttractionImage(a.id, a.image);
     return { ...a, image: overrideImg || a.image };
@@ -122,7 +122,7 @@ function writeLocalStore(updater: (data: LocalStoreData) => void): LocalStoreDat
   return current;
 }
 
-// ── VERCEL POSTGRES / NEON IMPLEMENTATION ─────────────────────────────────────
+// ── NEON POSTGRES IMPLEMENTATION ──────────────────────────────────────────────
 let isPostgresInitialized = false;
 
 async function getPostgresClient() {
@@ -132,75 +132,249 @@ async function getPostgresClient() {
   return neon(connectionString);
 }
 
-async function ensurePostgresTables() {
-  if (isPostgresInitialized) return;
+/**
+ * Creates Postgres tables for destinations, attractions, hotels, and app_settings.
+ * Seeds initial database data if tables are empty.
+ */
+export async function ensurePostgresTables(forceSeed: boolean = false) {
+  if (isPostgresInitialized && !forceSeed) return;
   const sql = await getPostgresClient();
   if (!sql) return;
 
   try {
+    // 1. Destinations Table
     await sql`
-      CREATE TABLE IF NOT EXISTS lobo_destinations (
+      CREATE TABLE IF NOT EXISTS destinations (
         id TEXT PRIMARY KEY,
-        data JSONB NOT NULL,
-        updated_at TIMESTAMPTZ DEFAULT NOW()
-      );
-    `;
-    await sql`
-      CREATE TABLE IF NOT EXISTS lobo_attractions (
-        id TEXT PRIMARY KEY,
-        data JSONB NOT NULL,
-        updated_at TIMESTAMPTZ DEFAULT NOW()
-      );
-    `;
-    await sql`
-      CREATE TABLE IF NOT EXISTS lobo_hotels (
-        id TEXT PRIMARY KEY,
-        data JSONB NOT NULL,
-        updated_at TIMESTAMPTZ DEFAULT NOW()
-      );
-    `;
-    await sql`
-      CREATE TABLE IF NOT EXISTS lobo_settings (
-        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        state TEXT,
+        country TEXT DEFAULT 'India',
+        short_description TEXT,
+        detailed_description TEXT,
+        recommended_duration TEXT,
+        hero_image TEXT,
+        gallery JSONB DEFAULT '[]'::jsonb,
         data JSONB NOT NULL,
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
     `;
 
-    // Seed if empty
-    const destCountRes = await sql`SELECT count(*)::int as cnt FROM lobo_destinations`;
-    if (destCountRes[0]?.cnt === 0) {
-      console.log('[DB] Seeding Vercel Postgres with initial destinations...');
+    // 2. Attractions Table
+    await sql`
+      CREATE TABLE IF NOT EXISTS attractions (
+        id TEXT PRIMARY KEY,
+        destination_id TEXT NOT NULL,
+        destination_name TEXT,
+        name TEXT NOT NULL,
+        short_description TEXT,
+        detailed_description TEXT,
+        duration TEXT,
+        category TEXT,
+        unesco BOOLEAN DEFAULT false,
+        image TEXT,
+        data JSONB NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `;
+
+    // 3. Hotels Table
+    await sql`
+      CREATE TABLE IF NOT EXISTS hotels (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        city TEXT NOT NULL,
+        state TEXT,
+        address TEXT,
+        star_category INT DEFAULT 4,
+        rating NUMERIC DEFAULT 4.5,
+        review_count INT DEFAULT 100,
+        phone TEXT,
+        email TEXT,
+        website TEXT,
+        description TEXT,
+        room_categories JSONB DEFAULT '[]'::jsonb,
+        meal_plans JSONB DEFAULT '[]'::jsonb,
+        check_in_time TEXT DEFAULT '14:00',
+        check_out_time TEXT DEFAULT '12:00',
+        image TEXT,
+        gallery JSONB DEFAULT '[]'::jsonb,
+        partnership_status TEXT DEFAULT 'Regular',
+        contracted_rate TEXT,
+        data JSONB NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `;
+
+    // 4. App Settings Table
+    await sql`
+      CREATE TABLE IF NOT EXISTS app_settings (
+        id TEXT PRIMARY KEY DEFAULT 'default',
+        company_name TEXT,
+        tagline TEXT,
+        email TEXT,
+        data JSONB NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `;
+
+    // Seed destinations if empty
+    const destCountRes = await sql`SELECT count(*)::int as cnt FROM destinations`;
+    if (destCountRes[0]?.cnt === 0 || forceSeed) {
+      console.log('[Neon Postgres] Seeding destinations table with initial catalog...');
       for (const d of INITIAL_DESTINATIONS) {
-        await sql`INSERT INTO lobo_destinations (id, data, updated_at) VALUES (${d.id.toLowerCase()}, ${JSON.stringify(d)}, NOW()) ON CONFLICT (id) DO NOTHING`;
+        const destId = d.id.toLowerCase().trim();
+        await sql`
+          INSERT INTO destinations (id, name, state, country, short_description, detailed_description, recommended_duration, hero_image, gallery, data, updated_at)
+          VALUES (
+            ${destId},
+            ${d.name},
+            ${d.state || ''},
+            ${d.country || 'India'},
+            ${d.shortDescription || ''},
+            ${d.detailedDescription || ''},
+            ${d.recommendedDuration || ''},
+            ${d.heroImage || ''},
+            ${JSON.stringify(d.gallery || [])},
+            ${JSON.stringify(d)},
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name,
+            state = EXCLUDED.state,
+            country = EXCLUDED.country,
+            short_description = EXCLUDED.short_description,
+            detailed_description = EXCLUDED.detailed_description,
+            recommended_duration = EXCLUDED.recommended_duration,
+            hero_image = EXCLUDED.hero_image,
+            gallery = EXCLUDED.gallery,
+            data = EXCLUDED.data,
+            updated_at = NOW();
+        `;
       }
     }
 
-    const attCountRes = await sql`SELECT count(*)::int as cnt FROM lobo_attractions`;
-    if (attCountRes[0]?.cnt === 0) {
-      console.log('[DB] Seeding Vercel Postgres with initial attractions...');
+    // Seed attractions if empty
+    const attCountRes = await sql`SELECT count(*)::int as cnt FROM attractions`;
+    if (attCountRes[0]?.cnt === 0 || forceSeed) {
+      console.log('[Neon Postgres] Seeding attractions table with initial catalog...');
       for (const a of getSeededAttractions()) {
-        await sql`INSERT INTO lobo_attractions (id, data, updated_at) VALUES (${a.id.toLowerCase()}, ${JSON.stringify(a)}, NOW()) ON CONFLICT (id) DO NOTHING`;
+        const attId = a.id.toLowerCase().trim();
+        await sql`
+          INSERT INTO attractions (id, destination_id, destination_name, name, short_description, detailed_description, duration, category, unesco, image, data, updated_at)
+          VALUES (
+            ${attId},
+            ${a.destinationId?.toLowerCase() || ''},
+            ${a.destinationName || ''},
+            ${a.name},
+            ${a.shortDescription || ''},
+            ${a.detailedDescription || ''},
+            ${a.duration || ''},
+            ${a.category || ''},
+            ${!!a.unesco},
+            ${a.image || ''},
+            ${JSON.stringify(a)},
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            destination_id = EXCLUDED.destination_id,
+            destination_name = EXCLUDED.destination_name,
+            name = EXCLUDED.name,
+            short_description = EXCLUDED.short_description,
+            detailed_description = EXCLUDED.detailed_description,
+            duration = EXCLUDED.duration,
+            category = EXCLUDED.category,
+            unesco = EXCLUDED.unesco,
+            image = EXCLUDED.image,
+            data = EXCLUDED.data,
+            updated_at = NOW();
+        `;
       }
     }
 
-    const hotelCountRes = await sql`SELECT count(*)::int as cnt FROM lobo_hotels`;
-    if (hotelCountRes[0]?.cnt === 0) {
-      console.log('[DB] Seeding Vercel Postgres with initial hotels...');
+    // Seed hotels if empty
+    const hotelCountRes = await sql`SELECT count(*)::int as cnt FROM hotels`;
+    if (hotelCountRes[0]?.cnt === 0 || forceSeed) {
+      console.log('[Neon Postgres] Seeding hotels table with initial catalog...');
       for (const h of INITIAL_HOTELS) {
-        await sql`INSERT INTO lobo_hotels (id, data, updated_at) VALUES (${h.id.toLowerCase()}, ${JSON.stringify(h)}, NOW()) ON CONFLICT (id) DO NOTHING`;
+        const hotelId = h.id.toLowerCase().trim();
+        await sql`
+          INSERT INTO hotels (id, name, city, state, address, star_category, rating, review_count, phone, email, website, description, room_categories, meal_plans, check_in_time, check_out_time, image, gallery, partnership_status, contracted_rate, data, updated_at)
+          VALUES (
+            ${hotelId},
+            ${h.name},
+            ${h.city},
+            ${h.state || ''},
+            ${h.address || ''},
+            ${h.starCategory || 4},
+            ${h.rating || 4.5},
+            ${h.reviewCount || 100},
+            ${h.phone || ''},
+            ${h.email || ''},
+            ${h.website || ''},
+            ${h.description || ''},
+            ${JSON.stringify(h.roomCategories || [])},
+            ${JSON.stringify(h.mealPlans || [])},
+            ${h.checkInTime || '14:00'},
+            ${h.checkOutTime || '12:00'},
+            ${h.image || ''},
+            ${JSON.stringify(h.gallery || [])},
+            ${h.partnershipStatus || 'Regular'},
+            ${h.contractedRate || ''},
+            ${JSON.stringify(h)},
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name,
+            city = EXCLUDED.city,
+            state = EXCLUDED.state,
+            address = EXCLUDED.address,
+            star_category = EXCLUDED.star_category,
+            rating = EXCLUDED.rating,
+            review_count = EXCLUDED.review_count,
+            phone = EXCLUDED.phone,
+            email = EXCLUDED.email,
+            website = EXCLUDED.website,
+            description = EXCLUDED.description,
+            room_categories = EXCLUDED.room_categories,
+            meal_plans = EXCLUDED.meal_plans,
+            check_in_time = EXCLUDED.check_in_time,
+            check_out_time = EXCLUDED.check_out_time,
+            image = EXCLUDED.image,
+            gallery = EXCLUDED.gallery,
+            partnership_status = EXCLUDED.partnership_status,
+            contracted_rate = EXCLUDED.contracted_rate,
+            data = EXCLUDED.data,
+            updated_at = NOW();
+        `;
       }
     }
 
-    const settingsCountRes = await sql`SELECT count(*)::int as cnt FROM lobo_settings`;
-    if (settingsCountRes[0]?.cnt === 0) {
-      console.log('[DB] Seeding Vercel Postgres with default settings...');
-      await sql`INSERT INTO lobo_settings (id, data, updated_at) VALUES ('settings', ${JSON.stringify(DEFAULT_SETTINGS)}, NOW()) ON CONFLICT (id) DO NOTHING`;
+    // Seed app_settings if empty
+    const settingsCountRes = await sql`SELECT count(*)::int as cnt FROM app_settings`;
+    if (settingsCountRes[0]?.cnt === 0 || forceSeed) {
+      console.log('[Neon Postgres] Seeding app_settings table with defaults...');
+      await sql`
+        INSERT INTO app_settings (id, company_name, tagline, email, data, updated_at)
+        VALUES (
+          'default',
+          ${DEFAULT_SETTINGS.companyName},
+          ${DEFAULT_SETTINGS.tagline || ''},
+          ${DEFAULT_SETTINGS.email || ''},
+          ${JSON.stringify(DEFAULT_SETTINGS)},
+          NOW()
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          company_name = EXCLUDED.company_name,
+          tagline = EXCLUDED.tagline,
+          email = EXCLUDED.email,
+          data = EXCLUDED.data,
+          updated_at = NOW();
+      `;
     }
 
     isPostgresInitialized = true;
   } catch (err) {
-    console.error('[DB] Postgres init error:', err);
+    console.error('[Neon Postgres] Schema initialization error:', err);
   }
 }
 
@@ -265,33 +439,32 @@ export async function getDbDestinations(): Promise<Destination[]> {
       await ensurePostgresTables();
       const sql = await getPostgresClient();
       if (sql) {
-        const rows = await sql`SELECT data FROM lobo_destinations ORDER BY (data->>'name') ASC`;
+        const rows = await sql`SELECT data FROM destinations ORDER BY name ASC`;
         if (rows.length > 0) {
           return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
         }
       }
     } catch (err) {
-      console.error('[DB] Postgres getDbDestinations error:', err);
+      console.error('[Neon Postgres] getDbDestinations error:', err);
     }
   } else if (provider === 'kv') {
     const stored = await kvGet<Destination[]>('lobo:destinations');
     if (stored && Array.isArray(stored) && stored.length > 0) {
       return stored;
     }
-    // Seed KV
     await kvSet('lobo:destinations', INITIAL_DESTINATIONS);
     return INITIAL_DESTINATIONS;
   } else if (provider === 'supabase') {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        const { data, error } = await sb.from('lobo_destinations').select('data');
+        const { data, error } = await sb.from('destinations').select('data');
         if (!error && data && data.length > 0) {
           return data.map(d => typeof d.data === 'string' ? JSON.parse(d.data) : d.data);
         }
       }
     } catch (err) {
-      console.error('[DB] Supabase getDbDestinations error:', err);
+      console.error('[Supabase] getDbDestinations error:', err);
     }
   }
 
@@ -311,14 +484,36 @@ export async function saveDbDestination(dest: Destination): Promise<Destination>
       const sql = await getPostgresClient();
       if (sql) {
         await sql`
-          INSERT INTO lobo_destinations (id, data, updated_at)
-          VALUES (${destId}, ${JSON.stringify(sanitizedDest)}, NOW())
-          ON CONFLICT (id) DO UPDATE SET data = ${JSON.stringify(sanitizedDest)}, updated_at = NOW();
+          INSERT INTO destinations (id, name, state, country, short_description, detailed_description, recommended_duration, hero_image, gallery, data, updated_at)
+          VALUES (
+            ${destId},
+            ${sanitizedDest.name},
+            ${sanitizedDest.state || ''},
+            ${sanitizedDest.country || 'India'},
+            ${sanitizedDest.shortDescription || ''},
+            ${sanitizedDest.detailedDescription || ''},
+            ${sanitizedDest.recommendedDuration || ''},
+            ${sanitizedDest.heroImage || ''},
+            ${JSON.stringify(sanitizedDest.gallery || [])},
+            ${JSON.stringify(sanitizedDest)},
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name,
+            state = EXCLUDED.state,
+            country = EXCLUDED.country,
+            short_description = EXCLUDED.short_description,
+            detailed_description = EXCLUDED.detailed_description,
+            recommended_duration = EXCLUDED.recommended_duration,
+            hero_image = EXCLUDED.hero_image,
+            gallery = EXCLUDED.gallery,
+            data = EXCLUDED.data,
+            updated_at = NOW();
         `;
         return sanitizedDest;
       }
     } catch (err) {
-      console.error('[DB] Postgres saveDbDestination error:', err);
+      console.error('[Neon Postgres] saveDbDestination error:', err);
     }
   } else if (provider === 'kv') {
     const list = await getDbDestinations();
@@ -336,11 +531,11 @@ export async function saveDbDestination(dest: Destination): Promise<Destination>
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        await sb.from('lobo_destinations').upsert({ id: destId, data: sanitizedDest, updated_at: new Date().toISOString() });
+        await sb.from('destinations').upsert({ id: destId, name: sanitizedDest.name, data: sanitizedDest, updated_at: new Date().toISOString() });
         return sanitizedDest;
       }
     } catch (err) {
-      console.error('[DB] Supabase saveDbDestination error:', err);
+      console.error('[Supabase] saveDbDestination error:', err);
     }
   }
 
@@ -366,11 +561,11 @@ export async function deleteDbDestination(id: string): Promise<boolean> {
       await ensurePostgresTables();
       const sql = await getPostgresClient();
       if (sql) {
-        await sql`DELETE FROM lobo_destinations WHERE id = ${destId}`;
+        await sql`DELETE FROM destinations WHERE id = ${destId}`;
         return true;
       }
     } catch (err) {
-      console.error('[DB] Postgres deleteDbDestination error:', err);
+      console.error('[Neon Postgres] deleteDbDestination error:', err);
     }
   } else if (provider === 'kv') {
     const list = await getDbDestinations();
@@ -381,11 +576,11 @@ export async function deleteDbDestination(id: string): Promise<boolean> {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        await sb.from('lobo_destinations').delete().eq('id', destId);
+        await sb.from('destinations').delete().eq('id', destId);
         return true;
       }
     } catch (err) {
-      console.error('[DB] Supabase deleteDbDestination error:', err);
+      console.error('[Supabase] deleteDbDestination error:', err);
     }
   }
 
@@ -406,13 +601,13 @@ export async function getDbAttractions(): Promise<Attraction[]> {
       await ensurePostgresTables();
       const sql = await getPostgresClient();
       if (sql) {
-        const rows = await sql`SELECT data FROM lobo_attractions ORDER BY (data->>'name') ASC`;
+        const rows = await sql`SELECT data FROM attractions ORDER BY name ASC`;
         if (rows.length > 0) {
           return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
         }
       }
     } catch (err) {
-      console.error('[DB] Postgres getDbAttractions error:', err);
+      console.error('[Neon Postgres] getDbAttractions error:', err);
     }
   } else if (provider === 'kv') {
     const stored = await kvGet<Attraction[]>('lobo:attractions');
@@ -426,13 +621,13 @@ export async function getDbAttractions(): Promise<Attraction[]> {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        const { data, error } = await sb.from('lobo_attractions').select('data');
+        const { data, error } = await sb.from('attractions').select('data');
         if (!error && data && data.length > 0) {
           return data.map(d => typeof d.data === 'string' ? JSON.parse(d.data) : d.data);
         }
       }
     } catch (err) {
-      console.error('[DB] Supabase getDbAttractions error:', err);
+      console.error('[Supabase] getDbAttractions error:', err);
     }
   }
 
@@ -452,14 +647,38 @@ export async function saveDbAttraction(att: Attraction): Promise<Attraction> {
       const sql = await getPostgresClient();
       if (sql) {
         await sql`
-          INSERT INTO lobo_attractions (id, data, updated_at)
-          VALUES (${attId}, ${JSON.stringify(sanitizedAtt)}, NOW())
-          ON CONFLICT (id) DO UPDATE SET data = ${JSON.stringify(sanitizedAtt)}, updated_at = NOW();
+          INSERT INTO attractions (id, destination_id, destination_name, name, short_description, detailed_description, duration, category, unesco, image, data, updated_at)
+          VALUES (
+            ${attId},
+            ${sanitizedAtt.destinationId?.toLowerCase() || ''},
+            ${sanitizedAtt.destinationName || ''},
+            ${sanitizedAtt.name},
+            ${sanitizedAtt.shortDescription || ''},
+            ${sanitizedAtt.detailedDescription || ''},
+            ${sanitizedAtt.duration || ''},
+            ${sanitizedAtt.category || ''},
+            ${!!sanitizedAtt.unesco},
+            ${sanitizedAtt.image || ''},
+            ${JSON.stringify(sanitizedAtt)},
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            destination_id = EXCLUDED.destination_id,
+            destination_name = EXCLUDED.destination_name,
+            name = EXCLUDED.name,
+            short_description = EXCLUDED.short_description,
+            detailed_description = EXCLUDED.detailed_description,
+            duration = EXCLUDED.duration,
+            category = EXCLUDED.category,
+            unesco = EXCLUDED.unesco,
+            image = EXCLUDED.image,
+            data = EXCLUDED.data,
+            updated_at = NOW();
         `;
         return sanitizedAtt;
       }
     } catch (err) {
-      console.error('[DB] Postgres saveDbAttraction error:', err);
+      console.error('[Neon Postgres] saveDbAttraction error:', err);
     }
   } else if (provider === 'kv') {
     const list = await getDbAttractions();
@@ -477,11 +696,11 @@ export async function saveDbAttraction(att: Attraction): Promise<Attraction> {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        await sb.from('lobo_attractions').upsert({ id: attId, data: sanitizedAtt, updated_at: new Date().toISOString() });
+        await sb.from('attractions').upsert({ id: attId, name: sanitizedAtt.name, data: sanitizedAtt, updated_at: new Date().toISOString() });
         return sanitizedAtt;
       }
     } catch (err) {
-      console.error('[DB] Supabase saveDbAttraction error:', err);
+      console.error('[Supabase] saveDbAttraction error:', err);
     }
   }
 
@@ -507,11 +726,11 @@ export async function deleteDbAttraction(id: string): Promise<boolean> {
       await ensurePostgresTables();
       const sql = await getPostgresClient();
       if (sql) {
-        await sql`DELETE FROM lobo_attractions WHERE id = ${attId}`;
+        await sql`DELETE FROM attractions WHERE id = ${attId}`;
         return true;
       }
     } catch (err) {
-      console.error('[DB] Postgres deleteDbAttraction error:', err);
+      console.error('[Neon Postgres] deleteDbAttraction error:', err);
     }
   } else if (provider === 'kv') {
     const list = await getDbAttractions();
@@ -522,11 +741,11 @@ export async function deleteDbAttraction(id: string): Promise<boolean> {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        await sb.from('lobo_attractions').delete().eq('id', attId);
+        await sb.from('attractions').delete().eq('id', attId);
         return true;
       }
     } catch (err) {
-      console.error('[DB] Supabase deleteDbAttraction error:', err);
+      console.error('[Supabase] deleteDbAttraction error:', err);
     }
   }
 
@@ -547,13 +766,13 @@ export async function getDbHotels(): Promise<Hotel[]> {
       await ensurePostgresTables();
       const sql = await getPostgresClient();
       if (sql) {
-        const rows = await sql`SELECT data FROM lobo_hotels ORDER BY (data->>'name') ASC`;
+        const rows = await sql`SELECT data FROM hotels ORDER BY name ASC`;
         if (rows.length > 0) {
           return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
         }
       }
     } catch (err) {
-      console.error('[DB] Postgres getDbHotels error:', err);
+      console.error('[Neon Postgres] getDbHotels error:', err);
     }
   } else if (provider === 'kv') {
     const stored = await kvGet<Hotel[]>('lobo:hotels');
@@ -566,13 +785,13 @@ export async function getDbHotels(): Promise<Hotel[]> {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        const { data, error } = await sb.from('lobo_hotels').select('data');
+        const { data, error } = await sb.from('hotels').select('data');
         if (!error && data && data.length > 0) {
           return data.map(d => typeof d.data === 'string' ? JSON.parse(d.data) : d.data);
         }
       }
     } catch (err) {
-      console.error('[DB] Supabase getDbHotels error:', err);
+      console.error('[Supabase] getDbHotels error:', err);
     }
   }
 
@@ -592,14 +811,58 @@ export async function saveDbHotel(hotel: Hotel): Promise<Hotel> {
       const sql = await getPostgresClient();
       if (sql) {
         await sql`
-          INSERT INTO lobo_hotels (id, data, updated_at)
-          VALUES (${hotelId}, ${JSON.stringify(sanitizedHotel)}, NOW())
-          ON CONFLICT (id) DO UPDATE SET data = ${JSON.stringify(sanitizedHotel)}, updated_at = NOW();
+          INSERT INTO hotels (id, name, city, state, address, star_category, rating, review_count, phone, email, website, description, room_categories, meal_plans, check_in_time, check_out_time, image, gallery, partnership_status, contracted_rate, data, updated_at)
+          VALUES (
+            ${hotelId},
+            ${sanitizedHotel.name},
+            ${sanitizedHotel.city},
+            ${sanitizedHotel.state || ''},
+            ${sanitizedHotel.address || ''},
+            ${sanitizedHotel.starCategory || 4},
+            ${sanitizedHotel.rating || 4.5},
+            ${sanitizedHotel.reviewCount || 100},
+            ${sanitizedHotel.phone || ''},
+            ${sanitizedHotel.email || ''},
+            ${sanitizedHotel.website || ''},
+            ${sanitizedHotel.description || ''},
+            ${JSON.stringify(sanitizedHotel.roomCategories || [])},
+            ${JSON.stringify(sanitizedHotel.mealPlans || [])},
+            ${sanitizedHotel.checkInTime || '14:00'},
+            ${sanitizedHotel.checkOutTime || '12:00'},
+            ${sanitizedHotel.image || ''},
+            ${JSON.stringify(sanitizedHotel.gallery || [])},
+            ${sanitizedHotel.partnershipStatus || 'Regular'},
+            ${sanitizedHotel.contractedRate || ''},
+            ${JSON.stringify(sanitizedHotel)},
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name,
+            city = EXCLUDED.city,
+            state = EXCLUDED.state,
+            address = EXCLUDED.address,
+            star_category = EXCLUDED.star_category,
+            rating = EXCLUDED.rating,
+            review_count = EXCLUDED.review_count,
+            phone = EXCLUDED.phone,
+            email = EXCLUDED.email,
+            website = EXCLUDED.website,
+            description = EXCLUDED.description,
+            room_categories = EXCLUDED.room_categories,
+            meal_plans = EXCLUDED.meal_plans,
+            check_in_time = EXCLUDED.check_in_time,
+            check_out_time = EXCLUDED.check_out_time,
+            image = EXCLUDED.image,
+            gallery = EXCLUDED.gallery,
+            partnership_status = EXCLUDED.partnership_status,
+            contracted_rate = EXCLUDED.contracted_rate,
+            data = EXCLUDED.data,
+            updated_at = NOW();
         `;
         return sanitizedHotel;
       }
     } catch (err) {
-      console.error('[DB] Postgres saveDbHotel error:', err);
+      console.error('[Neon Postgres] saveDbHotel error:', err);
     }
   } else if (provider === 'kv') {
     const list = await getDbHotels();
@@ -617,11 +880,11 @@ export async function saveDbHotel(hotel: Hotel): Promise<Hotel> {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        await sb.from('lobo_hotels').upsert({ id: hotelId, data: sanitizedHotel, updated_at: new Date().toISOString() });
+        await sb.from('hotels').upsert({ id: hotelId, name: sanitizedHotel.name, data: sanitizedHotel, updated_at: new Date().toISOString() });
         return sanitizedHotel;
       }
     } catch (err) {
-      console.error('[DB] Supabase saveDbHotel error:', err);
+      console.error('[Supabase] saveDbHotel error:', err);
     }
   }
 
@@ -647,11 +910,11 @@ export async function deleteDbHotel(id: string): Promise<boolean> {
       await ensurePostgresTables();
       const sql = await getPostgresClient();
       if (sql) {
-        await sql`DELETE FROM lobo_hotels WHERE id = ${hotelId}`;
+        await sql`DELETE FROM hotels WHERE id = ${hotelId}`;
         return true;
       }
     } catch (err) {
-      console.error('[DB] Postgres deleteDbHotel error:', err);
+      console.error('[Neon Postgres] deleteDbHotel error:', err);
     }
   } else if (provider === 'kv') {
     const list = await getDbHotels();
@@ -662,11 +925,11 @@ export async function deleteDbHotel(id: string): Promise<boolean> {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        await sb.from('lobo_hotels').delete().eq('id', hotelId);
+        await sb.from('hotels').delete().eq('id', hotelId);
         return true;
       }
     } catch (err) {
-      console.error('[DB] Supabase deleteDbHotel error:', err);
+      console.error('[Supabase] deleteDbHotel error:', err);
     }
   }
 
@@ -687,14 +950,14 @@ export async function getDbSettings(): Promise<AppSettings> {
       await ensurePostgresTables();
       const sql = await getPostgresClient();
       if (sql) {
-        const rows = await sql`SELECT data FROM lobo_settings WHERE id = 'settings' LIMIT 1`;
+        const rows = await sql`SELECT data FROM app_settings WHERE id = 'default' LIMIT 1`;
         if (rows.length > 0) {
           const raw = typeof rows[0].data === 'string' ? JSON.parse(rows[0].data) : rows[0].data;
           return { ...DEFAULT_SETTINGS, ...raw };
         }
       }
     } catch (err) {
-      console.error('[DB] Postgres getDbSettings error:', err);
+      console.error('[Neon Postgres] getDbSettings error:', err);
     }
   } else if (provider === 'kv') {
     const stored = await kvGet<AppSettings>('lobo:settings');
@@ -707,14 +970,14 @@ export async function getDbSettings(): Promise<AppSettings> {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        const { data, error } = await sb.from('lobo_settings').select('data').eq('id', 'settings').single();
+        const { data, error } = await sb.from('app_settings').select('data').eq('id', 'default').single();
         if (!error && data?.data) {
           const raw = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
           return { ...DEFAULT_SETTINGS, ...raw };
         }
       }
     } catch (err) {
-      console.error('[DB] Supabase getDbSettings error:', err);
+      console.error('[Supabase] getDbSettings error:', err);
     }
   }
 
@@ -753,14 +1016,26 @@ export async function saveDbSettings(settings: Partial<AppSettings>): Promise<Ap
       const sql = await getPostgresClient();
       if (sql) {
         await sql`
-          INSERT INTO lobo_settings (id, data, updated_at)
-          VALUES ('settings', ${JSON.stringify(merged)}, NOW())
-          ON CONFLICT (id) DO UPDATE SET data = ${JSON.stringify(merged)}, updated_at = NOW();
+          INSERT INTO app_settings (id, company_name, tagline, email, data, updated_at)
+          VALUES (
+            'default',
+            ${merged.companyName},
+            ${merged.tagline || ''},
+            ${merged.email || ''},
+            ${JSON.stringify(merged)},
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            company_name = EXCLUDED.company_name,
+            tagline = EXCLUDED.tagline,
+            email = EXCLUDED.email,
+            data = EXCLUDED.data,
+            updated_at = NOW();
         `;
         return merged;
       }
     } catch (err) {
-      console.error('[DB] Postgres saveDbSettings error:', err);
+      console.error('[Neon Postgres] saveDbSettings error:', err);
     }
   } else if (provider === 'kv') {
     await kvSet('lobo:settings', merged);
@@ -769,11 +1044,11 @@ export async function saveDbSettings(settings: Partial<AppSettings>): Promise<Ap
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        await sb.from('lobo_settings').upsert({ id: 'settings', data: merged, updated_at: new Date().toISOString() });
+        await sb.from('app_settings').upsert({ id: 'default', company_name: merged.companyName, data: merged, updated_at: new Date().toISOString() });
         return merged;
       }
     } catch (err) {
-      console.error('[DB] Supabase saveDbSettings error:', err);
+      console.error('[Supabase] saveDbSettings error:', err);
     }
   }
 
@@ -783,4 +1058,53 @@ export async function saveDbSettings(settings: Partial<AppSettings>): Promise<Ap
   });
 
   return merged;
+}
+
+// ── UTILITY: VERIFY AND SEED DATABASE ─────────────────────────────────────────
+export async function seedNeonDatabase(force: boolean = false): Promise<{
+  success: boolean;
+  provider: string;
+  destinationsCount: number;
+  attractionsCount: number;
+  hotelsCount: number;
+  settingsConfigured: boolean;
+}> {
+  const dbInfo = getActiveDbProvider();
+
+  if (dbInfo.provider === 'postgres') {
+    await ensurePostgresTables(force);
+    const sql = await getPostgresClient();
+    if (sql) {
+      const [dRes, aRes, hRes, sRes] = await Promise.all([
+        sql`SELECT count(*)::int as cnt FROM destinations`,
+        sql`SELECT count(*)::int as cnt FROM attractions`,
+        sql`SELECT count(*)::int as cnt FROM hotels`,
+        sql`SELECT count(*)::int as cnt FROM app_settings`
+      ]);
+      return {
+        success: true,
+        provider: dbInfo.label,
+        destinationsCount: dRes[0]?.cnt || 0,
+        attractionsCount: aRes[0]?.cnt || 0,
+        hotelsCount: hRes[0]?.cnt || 0,
+        settingsConfigured: (sRes[0]?.cnt || 0) > 0
+      };
+    }
+  }
+
+  const [d, a, h, s] = await Promise.all([
+    getDbDestinations(),
+    getDbAttractions(),
+    getDbHotels(),
+    getDbSettings()
+  ]);
+
+  return {
+    success: true,
+    provider: dbInfo.label,
+    destinationsCount: d.length,
+    attractionsCount: a.length,
+    hotelsCount: h.length,
+    settingsConfigured: !!s.companyName
+  };
 }

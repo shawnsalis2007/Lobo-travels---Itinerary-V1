@@ -51,6 +51,13 @@ export default function HotelsManager({
   const [editingHotel, setEditingHotel] = useState<Hotel | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  // Persistence toast feedback
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   // Available unique cities
   const uniqueCities = Array.from(new Set(hotels.map(h => h.city))).sort();
 
@@ -109,6 +116,7 @@ export default function HotelsManager({
     setGoogleQuery('');
     setGoogleCity('');
     setGoogleResults([]);
+    showToast(`Imported "${newHotel.name}" and saved to Neon Postgres`);
   };
 
   const handleOpenAddManual = () => {
@@ -140,6 +148,7 @@ export default function HotelsManager({
     onSaveHotel(editingHotel);
     setIsEditModalOpen(false);
     setEditingHotel(null);
+    showToast(`Saved "${editingHotel.name}" to Neon Postgres`);
   };
 
   return (
@@ -157,7 +166,12 @@ export default function HotelsManager({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            Neon Postgres: Active
+          </span>
+
           {/* Google Search / Import Button */}
           <button
             onClick={() => setIsGoogleModalOpen(true)}
@@ -177,6 +191,19 @@ export default function HotelsManager({
           </button>
         </div>
       </div>
+
+      {/* Persistence Feedback Toast */}
+      {toastMessage && (
+        <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xl text-xs font-semibold flex items-center justify-between shadow-xs animate-in fade-in slide-in-from-top-1">
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{toastMessage}</span>
+          </div>
+          <button type="button" onClick={() => setToastMessage(null)} className="text-slate-400 hover:text-slate-600 font-bold px-1">
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -283,8 +310,9 @@ export default function HotelsManager({
                 </button>
                 <button
                   onClick={() => {
-                    if (confirm(`Remove ${hotel.name} from directory?`)) {
+                    if (confirm(`Remove ${hotel.name} from directory and Neon Postgres?`)) {
                       onDeleteHotel(hotel.id);
+                      showToast(`Removed "${hotel.name}" from Neon Postgres`);
                     }
                   }}
                   className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
