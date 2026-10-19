@@ -78,9 +78,27 @@ import { PRESET_ROUTES } from '@/lib/mock-data';
 import { INTERCITY_ROUTES } from '@/lib/catalog-data';
 import { saveAttraction as persistAttraction, saveDestination as persistDestination } from '@/lib/storage';
 import { SafeImage } from './SafeImage';
-import { generateAutoDayDescription, ensureOvernightStayText, getRouteSubtitle, getDayMainHeading } from '@/lib/narrative-generator';
+import { 
+  generateAutoDayDescription, 
+  ensureOvernightStayText, 
+  getRouteSubtitle, 
+  getDayMainHeading,
+  syncArrivalDescription,
+  syncDepartureDescription,
+  formatArrivalLogisticsNarrative,
+  formatDepartureLogisticsNarrative
+} from '@/lib/narrative-generator';
 
-export { generateAutoDayDescription, ensureOvernightStayText, getRouteSubtitle, getDayMainHeading };
+export { 
+  generateAutoDayDescription, 
+  ensureOvernightStayText, 
+  getRouteSubtitle, 
+  getDayMainHeading,
+  syncArrivalDescription,
+  syncDepartureDescription,
+  formatArrivalLogisticsNarrative,
+  formatDepartureLogisticsNarrative
+};
 
 export const COVER_IMAGE_PRESETS = [
   { name: 'Taj Mahal (Agra)', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80' },
@@ -1079,95 +1097,140 @@ export default function ItineraryBuilder({
 
   // Day 1 Arrival details toggle & update
   const handleUpdateArrivalDetails = (dayIndex: number, partialArrival: Partial<DayArrivalDetails>) => {
-    const updatedDays = [...itinerary.days];
-    const targetDay = { ...updatedDays[dayIndex] };
-    const currentArrival = targetDay.arrivalDetails || {
-      enabled: true,
-      transitType: 'flight',
-      point: 'Airport',
-      flightOrTrainNumber: '',
-      arrivalTime: '',
-      includeHotelCheckIn: true,
-      checkInTiming: 'before_sightseeing'
-    };
+    setItinerary(prev => {
+      const updatedDays = [...prev.days];
+      const targetDay = { ...updatedDays[dayIndex] };
+      const currentArrival = targetDay.arrivalDetails || {
+        enabled: true,
+        transitType: 'flight',
+        point: 'Airport',
+        flightOrTrainNumber: '',
+        arrivalTime: '',
+        includeHotelCheckIn: true,
+        checkInTiming: 'before_sightseeing'
+      };
 
-    targetDay.arrivalDetails = { ...currentArrival, ...partialArrival };
-    targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
+      const newArrival: DayArrivalDetails = { ...currentArrival, ...partialArrival };
 
-    updatedDays[dayIndex] = targetDay;
-    setItinerary(prev => ({ ...prev, days: updatedDays }));
+      // Ensure transitType and point remain synchronized
+      if (partialArrival.transitType && !partialArrival.point) {
+        if (partialArrival.transitType === 'flight' && (newArrival.point === 'Railway Station' || newArrival.point === 'Bus Terminal')) {
+          newArrival.point = 'Airport';
+        } else if (partialArrival.transitType === 'train' && (newArrival.point === 'Airport' || newArrival.point === 'Bus Terminal')) {
+          newArrival.point = 'Railway Station';
+        } else if (partialArrival.transitType === 'bus' && (newArrival.point === 'Airport' || newArrival.point === 'Railway Station')) {
+          newArrival.point = 'Bus Terminal';
+        }
+      } else if (partialArrival.point && !partialArrival.transitType) {
+        if (partialArrival.point === 'Airport') {
+          newArrival.transitType = 'flight';
+        } else if (partialArrival.point === 'Railway Station') {
+          newArrival.transitType = 'train';
+        } else if (partialArrival.point === 'Bus Terminal') {
+          newArrival.transitType = 'bus';
+        }
+      }
+
+      targetDay.arrivalDetails = newArrival;
+      const syncedDesc = syncArrivalDescription(targetDay.description || '', targetDay, dayIndex, updatedDays.length, prev.includeHotels);
+      targetDay.description = ensureOvernightStayText(syncedDesc, targetDay);
+
+      updatedDays[dayIndex] = targetDay;
+      return { ...prev, days: updatedDays };
+    });
   };
 
   // Final Day / Any Day Departure details toggle & update
   const handleUpdateDepartureDetails = (dayIndex: number, partialDeparture: Partial<DayDepartureDetails>) => {
-    const updatedDays = [...itinerary.days];
-    const targetDay = { ...updatedDays[dayIndex] };
-    const currentDeparture = targetDay.departureDetails || {
-      enabled: false,
-      transitType: 'flight',
-      point: 'Airport',
-      flightOrTrainNumber: '',
-      departureTime: '',
-      dropLocation: ''
-    };
+    setItinerary(prev => {
+      const updatedDays = [...prev.days];
+      const targetDay = { ...updatedDays[dayIndex] };
+      const currentDeparture = targetDay.departureDetails || {
+        enabled: false,
+        transitType: 'flight',
+        point: 'Airport',
+        flightOrTrainNumber: '',
+        departureTime: '',
+        dropLocation: ''
+      };
 
-    const newDeparture = { ...currentDeparture, ...partialDeparture };
+      const newDeparture: DayDepartureDetails = { ...currentDeparture, ...partialDeparture };
 
-    // Auto-sync return flight details entered in form when Departure option is toggled or updated
-    const depFlight = itinerary.flightBookings?.flights?.find(f => f.type === 'departure');
-    if (newDeparture.enabled) {
-      if (depFlight) {
-        const autoFlightNum = `${depFlight.airline || ''} ${depFlight.flightNumber || ''}`.trim();
-        if (!newDeparture.flightOrTrainNumber && autoFlightNum) {
-          newDeparture.flightOrTrainNumber = autoFlightNum;
-        }
-        if (!newDeparture.departureTime && depFlight.departureTime) {
-          newDeparture.departureTime = depFlight.departureTime;
-        }
-        if (!newDeparture.dropLocation && depFlight.departureCity) {
-          newDeparture.dropLocation = depFlight.departureCity;
-        }
-        if (!newDeparture.point) {
+      // Ensure transitType and point remain synchronized
+      if (partialDeparture.transitType && !partialDeparture.point) {
+        if (partialDeparture.transitType === 'flight' && (newDeparture.point === 'Railway Station' || newDeparture.point === 'Bus Terminal')) {
           newDeparture.point = 'Airport';
+        } else if (partialDeparture.transitType === 'train' && (newDeparture.point === 'Airport' || newDeparture.point === 'Bus Terminal')) {
+          newDeparture.point = 'Railway Station';
+        } else if (partialDeparture.transitType === 'bus' && (newDeparture.point === 'Airport' || newDeparture.point === 'Railway Station')) {
+          newDeparture.point = 'Bus Terminal';
+        }
+      } else if (partialDeparture.point && !partialDeparture.transitType) {
+        if (partialDeparture.point === 'Airport') {
+          newDeparture.transitType = 'flight';
+        } else if (partialDeparture.point === 'Railway Station') {
+          newDeparture.transitType = 'train';
+        } else if (partialDeparture.point === 'Bus Terminal') {
+          newDeparture.transitType = 'bus';
         }
       }
-      // When Departure is active on this day: disable/clear hotel selection & overnight stay
-      delete targetDay.hotel;
-      delete targetDay.hotelTiers;
-    }
 
-    targetDay.departureDetails = newDeparture;
-    let newDesc = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);
-    targetDay.description = ensureOvernightStayText(newDesc, targetDay);
-
-    updatedDays[dayIndex] = targetDay;
-
-    // Two-way sync: If user typed in departure flight number or time, sync back to return flight in flightBookings
-    let updatedFlightBookings = itinerary.flightBookings;
-    if (depFlight && (partialDeparture.flightOrTrainNumber !== undefined || partialDeparture.departureTime !== undefined)) {
-      const updatedFlights = (itinerary.flightBookings?.flights || []).map(fl => {
-        if (fl.type === 'departure') {
-          const updated = { ...fl };
-          if (partialDeparture.departureTime !== undefined) {
-            updated.departureTime = partialDeparture.departureTime;
+      // Auto-sync return flight details entered in form when Departure option is toggled or updated
+      const depFlight = prev.flightBookings?.flights?.find(f => f.type === 'departure');
+      if (newDeparture.enabled) {
+        if (depFlight && newDeparture.transitType === 'flight') {
+          const autoFlightNum = `${depFlight.airline || ''} ${depFlight.flightNumber || ''}`.trim();
+          if (!newDeparture.flightOrTrainNumber && autoFlightNum) {
+            newDeparture.flightOrTrainNumber = autoFlightNum;
           }
-          if (partialDeparture.flightOrTrainNumber !== undefined) {
-            const parts = partialDeparture.flightOrTrainNumber.trim().split(/\s+/);
-            if (parts.length > 1) {
-              updated.airline = parts.slice(0, -1).join(' ');
-              updated.flightNumber = parts[parts.length - 1];
-            } else if (parts.length === 1 && parts[0]) {
-              updated.flightNumber = parts[0];
-            }
+          if (!newDeparture.departureTime && depFlight.departureTime) {
+            newDeparture.departureTime = depFlight.departureTime;
           }
-          return updated;
+          if (!newDeparture.dropLocation && depFlight.departureCity) {
+            newDeparture.dropLocation = depFlight.departureCity;
+          }
+          if (!newDeparture.point) {
+            newDeparture.point = 'Airport';
+          }
         }
-        return fl;
-      });
-      updatedFlightBookings = { ...itinerary.flightBookings!, flights: updatedFlights };
-    }
+        // When Departure is active on this day: disable/clear hotel selection & overnight stay
+        delete targetDay.hotel;
+        delete targetDay.hotelTiers;
+      }
 
-    setItinerary(prev => ({ ...prev, days: updatedDays, flightBookings: updatedFlightBookings }));
+      targetDay.departureDetails = newDeparture;
+      const syncedDesc = syncDepartureDescription(targetDay.description || '', targetDay, dayIndex, updatedDays.length, prev.includeHotels);
+      targetDay.description = ensureOvernightStayText(syncedDesc, targetDay);
+
+      updatedDays[dayIndex] = targetDay;
+
+      // Two-way sync: If user typed in departure flight number or time, sync back to return flight in flightBookings
+      let updatedFlightBookings = prev.flightBookings;
+      if (depFlight && newDeparture.transitType === 'flight' && (partialDeparture.flightOrTrainNumber !== undefined || partialDeparture.departureTime !== undefined)) {
+        const updatedFlights = (prev.flightBookings?.flights || []).map(fl => {
+          if (fl.type === 'departure') {
+            const updated = { ...fl };
+            if (partialDeparture.departureTime !== undefined) {
+              updated.departureTime = partialDeparture.departureTime;
+            }
+            if (partialDeparture.flightOrTrainNumber !== undefined) {
+              const parts = partialDeparture.flightOrTrainNumber.trim().split(/\s+/);
+              if (parts.length > 1) {
+                updated.airline = parts.slice(0, -1).join(' ');
+                updated.flightNumber = parts[parts.length - 1];
+              } else if (parts.length === 1 && parts[0]) {
+                updated.flightNumber = parts[0];
+              }
+            }
+            return updated;
+          }
+          return fl;
+        });
+        updatedFlightBookings = { ...prev.flightBookings!, flights: updatedFlights };
+      }
+
+      return { ...prev, days: updatedDays, flightBookings: updatedFlightBookings };
+    });
   };
 
   // Toggle exclude hotel for a specific day
@@ -3365,7 +3428,7 @@ export default function ItineraryBuilder({
                                         onClick={() => {
                                           handleUpdateArrivalDetails(dayIndex, {
                                             transitType: 'flight',
-                                            point: (day.arrivalDetails?.point === 'Railway Station' || day.arrivalDetails?.point === 'Bus Terminal') ? 'Airport' : (day.arrivalDetails?.point || 'Airport')
+                                            point: 'Airport'
                                           });
                                         }}
                                         className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
@@ -3382,7 +3445,7 @@ export default function ItineraryBuilder({
                                         onClick={() => {
                                           handleUpdateArrivalDetails(dayIndex, {
                                             transitType: 'train',
-                                            point: (day.arrivalDetails?.point === 'Airport' || day.arrivalDetails?.point === 'Bus Terminal') ? 'Railway Station' : (day.arrivalDetails?.point || 'Railway Station')
+                                            point: 'Railway Station'
                                           });
                                         }}
                                         className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
@@ -3399,7 +3462,7 @@ export default function ItineraryBuilder({
                                         onClick={() => {
                                           handleUpdateArrivalDetails(dayIndex, {
                                             transitType: 'bus',
-                                            point: (day.arrivalDetails?.point === 'Airport' || day.arrivalDetails?.point === 'Railway Station') ? 'Bus Terminal' : (day.arrivalDetails?.point || 'Bus Terminal')
+                                            point: 'Bus Terminal'
                                           });
                                         }}
                                         className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
@@ -3421,7 +3484,11 @@ export default function ItineraryBuilder({
                                   </label>
                                   <select
                                     value={day.arrivalDetails?.point || 'Airport'}
-                                    onChange={(e) => handleUpdateArrivalDetails(dayIndex, { point: e.target.value as any })}
+                                    onChange={(e) => {
+                                      const val = e.target.value as any;
+                                      const tt = val === 'Railway Station' ? 'train' : val === 'Bus Terminal' ? 'bus' : 'flight';
+                                      handleUpdateArrivalDetails(dayIndex, { point: val, transitType: tt });
+                                    }}
                                     className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg focus:outline-none"
                                   >
                                     <option value="Airport">Airport (Domestic / International)</option>
@@ -3625,7 +3692,7 @@ export default function ItineraryBuilder({
                                         onClick={() => {
                                           handleUpdateDepartureDetails(dayIndex, {
                                             transitType: 'flight',
-                                            point: (day.departureDetails?.point === 'Railway Station' || day.departureDetails?.point === 'Bus Terminal') ? 'Airport' : (day.departureDetails?.point || 'Airport')
+                                            point: 'Airport'
                                           });
                                         }}
                                         className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
@@ -3642,7 +3709,7 @@ export default function ItineraryBuilder({
                                         onClick={() => {
                                           handleUpdateDepartureDetails(dayIndex, {
                                             transitType: 'train',
-                                            point: (day.departureDetails?.point === 'Airport' || day.departureDetails?.point === 'Bus Terminal') ? 'Railway Station' : (day.departureDetails?.point || 'Railway Station')
+                                            point: 'Railway Station'
                                           });
                                         }}
                                         className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
@@ -3659,7 +3726,7 @@ export default function ItineraryBuilder({
                                         onClick={() => {
                                           handleUpdateDepartureDetails(dayIndex, {
                                             transitType: 'bus',
-                                            point: (day.departureDetails?.point === 'Airport' || day.departureDetails?.point === 'Railway Station') ? 'Bus Terminal' : (day.departureDetails?.point || 'Bus Terminal')
+                                            point: 'Bus Terminal'
                                           });
                                         }}
                                         className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md text-xs font-semibold transition ${
@@ -3681,7 +3748,11 @@ export default function ItineraryBuilder({
                                   </label>
                                   <select
                                     value={day.departureDetails?.point || 'Airport'}
-                                    onChange={(e) => handleUpdateDepartureDetails(dayIndex, { point: e.target.value as any })}
+                                    onChange={(e) => {
+                                      const val = e.target.value as any;
+                                      const tt = val === 'Railway Station' ? 'train' : val === 'Bus Terminal' ? 'bus' : 'flight';
+                                      handleUpdateDepartureDetails(dayIndex, { point: val, transitType: tt });
+                                    }}
                                     className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg focus:outline-none"
                                   >
                                     <option value="Airport">Airport (Domestic / International)</option>

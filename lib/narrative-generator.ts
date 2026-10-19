@@ -1,4 +1,220 @@
-import { ItineraryDay } from '@/types';
+import { ItineraryDay, DayArrivalDetails, DayDepartureDetails } from '@/types';
+
+/**
+ * Formats inbound arrival logistics narrative text dynamically matching transport mode:
+ * - Flight: 'Upon arrival at [Airport Name] (Flight [Number]) at [Time]...'
+ * - Railway / Train: 'Upon arrival at [Railway Station] (Train [Number]) at [Time]...'
+ * - Bus: 'Upon arrival at [Bus Stand/Location] (Bus [Details]) at [Time]...'
+ */
+export function formatArrivalLogisticsNarrative(arr: DayArrivalDetails, city: string): string {
+  const isTransfer = arr.point === 'Hotel Pickup' || arr.point === 'City Center' || arr.point === 'Other';
+  if (isTransfer) {
+    const loc = arr.pickupLocation?.trim() || (arr.point === 'Hotel Pickup' ? 'your designated hotel' : arr.point === 'City Center' ? 'the city center' : 'your specified pick-up location');
+    const timeStr = arr.arrivalTime?.trim() ? ` at ${arr.arrivalTime.trim()}` : '';
+    return `• Welcome to ${city}! Meet and greet with our representative and private chauffeur upon pick-up from ${loc}${timeStr}.`;
+  }
+
+  const mode: 'flight' | 'train' | 'bus' =
+    arr.transitType ||
+    (arr.point === 'Railway Station' ? 'train' : arr.point === 'Bus Terminal' ? 'bus' : 'flight');
+
+  const timeStr = arr.arrivalTime?.trim() ? ` at ${arr.arrivalTime.trim()}` : '';
+
+  if (mode === 'train') {
+    let stationName = city ? `${city} Railway Station` : 'the railway station';
+    if (arr.pickupLocation?.trim()) {
+      const customLoc = arr.pickupLocation.trim();
+      stationName = /station/i.test(customLoc) ? customLoc : `${customLoc} Railway Station`;
+    }
+    let trainDetails = '';
+    if (arr.flightOrTrainNumber?.trim()) {
+      const raw = arr.flightOrTrainNumber.trim();
+      const cleanNum = raw.replace(/^(train|flight|bus)\s*/i, '').trim();
+      trainDetails = cleanNum ? ` (Train ${cleanNum})` : ` (${raw})`;
+    }
+    return `• Welcome to ${city}! Upon arrival at ${stationName}${trainDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
+  }
+
+  if (mode === 'bus') {
+    let busLocation = city ? `${city} Bus Stand` : 'the bus stand';
+    if (arr.pickupLocation?.trim()) {
+      const customLoc = arr.pickupLocation.trim();
+      busLocation = /(bus|stand|terminal|isbt)/i.test(customLoc) ? customLoc : `${customLoc} Bus Stand`;
+    } else if (arr.point === 'Bus Terminal') {
+      busLocation = city ? `${city} Bus Terminal` : 'the bus terminal';
+    }
+    let busDetails = '';
+    if (arr.flightOrTrainNumber?.trim()) {
+      const raw = arr.flightOrTrainNumber.trim();
+      const cleanNum = raw.replace(/^(bus|flight|train)\s*/i, '').trim();
+      busDetails = cleanNum ? ` (Bus ${cleanNum})` : ` (${raw})`;
+    }
+    return `• Welcome to ${city}! Upon arrival at ${busLocation}${busDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
+  }
+
+  // Default: Flight
+  let airportName = city ? `${city} Airport` : 'the airport';
+  if (arr.pickupLocation?.trim()) {
+    const customLoc = arr.pickupLocation.trim();
+    airportName = /airport/i.test(customLoc) ? customLoc : `${customLoc} Airport`;
+  }
+  let flightDetails = '';
+  if (arr.flightOrTrainNumber?.trim()) {
+    const raw = arr.flightOrTrainNumber.trim();
+    const cleanNum = raw.replace(/^(flight|train|bus)\s*/i, '').trim();
+    flightDetails = cleanNum ? ` (Flight ${cleanNum})` : ` (${raw})`;
+  }
+  return `• Welcome to ${city}! Upon arrival at ${airportName}${flightDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
+}
+
+/**
+ * Formats outbound departure logistics narrative text dynamically matching transport mode:
+ * - Flight: '...transferred to [Airport Name] (Flight [Number]) at [Time]...'
+ * - Railway / Train: '...transferred to [Railway Station] (Train [Number]) at [Time]...'
+ * - Bus: '...transferred to [Bus Stand/Location] (Bus [Details]) at [Time]...'
+ */
+export function formatDepartureLogisticsNarrative(
+  dep: DayDepartureDetails,
+  city: string,
+  isMultiCity: boolean = false
+): string {
+  const isTransfer = dep.point === 'Hotel Drop' || dep.point === 'City Center' || dep.point === 'Other';
+  if (isTransfer) {
+    const loc = dep.dropLocation?.trim() || (dep.point === 'Hotel Drop' ? 'your designated hotel' : dep.point === 'City Center' ? 'the city center' : 'your specified drop-off location');
+    const timeStr = dep.departureTime?.trim() ? ` at ${dep.departureTime.trim()}` : '';
+    if (isMultiCity) {
+      return `• Later, assisted drop-off at ${loc}${timeStr} for your onward journey home with cherished travel memories.`;
+    }
+    return `• Later, you will be assisted with drop-off at ${loc}${timeStr} for your onward journey home with cherished memories.`;
+  }
+
+  const mode: 'flight' | 'train' | 'bus' =
+    dep.transitType ||
+    (dep.point === 'Railway Station' ? 'train' : dep.point === 'Bus Terminal' ? 'bus' : 'flight');
+
+  const timeStr = dep.departureTime?.trim() ? ` at ${dep.departureTime.trim()}` : '';
+  const prefix = isMultiCity ? '• Later, transfer to' : '• Later, you will be transferred to';
+  const memories = isMultiCity ? 'cherished travel memories.' : 'cherished memories.';
+
+  if (mode === 'train') {
+    let stationName = city ? `${city} Railway Station` : 'the railway station';
+    if (dep.dropLocation?.trim()) {
+      const customLoc = dep.dropLocation.trim();
+      stationName = /station/i.test(customLoc) ? customLoc : `${customLoc} Railway Station`;
+    }
+    let trainDetails = '';
+    if (dep.flightOrTrainNumber?.trim()) {
+      const raw = dep.flightOrTrainNumber.trim();
+      const cleanNum = raw.replace(/^(train|flight|bus)\s*/i, '').trim();
+      trainDetails = cleanNum ? ` (Train ${cleanNum})` : ` (${raw})`;
+    }
+    return `${prefix} ${stationName}${trainDetails}${timeStr} for your departure / drop-off and onward journey home with ${memories}`;
+  }
+
+  if (mode === 'bus') {
+    let busLocation = city ? `${city} Bus Stand` : 'the bus stand';
+    if (dep.dropLocation?.trim()) {
+      const customLoc = dep.dropLocation.trim();
+      busLocation = /(bus|stand|terminal|isbt)/i.test(customLoc) ? customLoc : `${customLoc} Bus Stand`;
+    } else if (dep.point === 'Bus Terminal') {
+      busLocation = city ? `${city} Bus Terminal` : 'the bus terminal';
+    }
+    let busDetails = '';
+    if (dep.flightOrTrainNumber?.trim()) {
+      const raw = dep.flightOrTrainNumber.trim();
+      const cleanNum = raw.replace(/^(bus|flight|train)\s*/i, '').trim();
+      busDetails = cleanNum ? ` (Bus ${cleanNum})` : ` (${raw})`;
+    }
+    return `${prefix} ${busLocation}${busDetails}${timeStr} for your departure / drop-off and onward journey home with ${memories}`;
+  }
+
+  // Default: Flight
+  let airportName = city ? `${city} Airport` : 'the airport';
+  if (dep.dropLocation?.trim()) {
+    const customLoc = dep.dropLocation.trim();
+    airportName = /airport/i.test(customLoc) ? customLoc : `${customLoc} Airport`;
+  }
+  let flightDetails = '';
+  if (dep.flightOrTrainNumber?.trim()) {
+    const raw = dep.flightOrTrainNumber.trim();
+    const cleanNum = raw.replace(/^(flight|train|bus)\s*/i, '').trim();
+    flightDetails = cleanNum ? ` (Flight ${cleanNum})` : ` (${raw})`;
+  }
+  return `${prefix} ${airportName}${flightDetails}${timeStr} for your departure / drop-off and onward journey home with ${memories}`;
+}
+
+/**
+ * Dynamically synchronizes day description text when arrival logistics change.
+ * Preserves custom sightseeing notes while updating the arrival bullet.
+ */
+export function syncArrivalDescription(
+  currentDescription: string,
+  day: ItineraryDay,
+  dayIndex: number,
+  totalDays?: number,
+  includeHotels: boolean = true
+): string {
+  if (!day.arrivalDetails?.enabled) {
+    if (!currentDescription) return '';
+    return currentDescription
+      .replace(/^[•\-*]?\s*(Welcome to|Upon arrival at|Meet and greet with)[^\n]+(\n|$)/im, '')
+      .replace(/\n\n+/g, '\n')
+      .trim();
+  }
+
+  const city = (day.isMultiCity && day.cities && day.cities.length > 0 ? day.cities[0]?.destination : day.destination) || '';
+  const newArrivalBullet = formatArrivalLogisticsNarrative(day.arrivalDetails, city);
+
+  if (!currentDescription || !currentDescription.trim()) {
+    return generateAutoDayDescription(day, dayIndex, totalDays, includeHotels);
+  }
+
+  const arrivalRegex = /^[•\-*]?\s*(Welcome to|Upon arrival at|Meet and greet with)[^\n]+(\n|$)/im;
+  if (arrivalRegex.test(currentDescription)) {
+    return currentDescription.replace(arrivalRegex, newArrivalBullet + '\n').replace(/\n\n+/g, '\n').trim();
+  }
+
+  return `${newArrivalBullet}\n${currentDescription.trim()}`;
+}
+
+/**
+ * Dynamically synchronizes day description text when departure logistics change.
+ * Preserves custom sightseeing notes while updating the departure bullet.
+ */
+export function syncDepartureDescription(
+  currentDescription: string,
+  day: ItineraryDay,
+  dayIndex: number,
+  totalDays?: number,
+  includeHotels: boolean = true
+): string {
+  if (!day.departureDetails?.enabled) {
+    if (!currentDescription) return '';
+    return currentDescription
+      .replace(/^[•\-*]?\s*(Later,\s+)?(you\s+will\s+be\s+transferred\s+to|transfer\s+to|you\s+will\s+be\s+assisted\s+with\s+drop-off|assisted\s+drop-off|transferred\s+to)[^\n]+(\n|$)/im, '')
+      .replace(/\n\n+/g, '\n')
+      .trim();
+  }
+
+  const city = (day.isMultiCity && day.cities && day.cities.length > 0 ? day.cities[day.cities.length - 1]?.destination : day.destination) || '';
+  const newDepartureBullet = formatDepartureLogisticsNarrative(day.departureDetails, city, Boolean(day.isMultiCity));
+
+  if (!currentDescription || !currentDescription.trim()) {
+    return generateAutoDayDescription(day, dayIndex, totalDays, includeHotels);
+  }
+
+  const departureRegex = /^[•\-*]?\s*(Later,\s+)?(you\s+will\s+be\s+transferred\s+to|transfer\s+to|you\s+will\s+be\s+assisted\s+with\s+drop-off|assisted\s+drop-off|transferred\s+to)[^\n]+(\n|$)/im;
+  if (departureRegex.test(currentDescription)) {
+    return currentDescription.replace(departureRegex, newDepartureBullet + '\n').replace(/\n\n+/g, '\n').trim();
+  }
+
+  const overnightRegex = /\n?\s*•?\s*Overnight\s+stay[^\n.]*\.?/i;
+  if (overnightRegex.test(currentDescription)) {
+    return currentDescription.replace(overnightRegex, `\n${newDepartureBullet}`);
+  }
+
+  return `${currentDescription.trim()}\n${newDepartureBullet}`;
+}
 
 // Dynamic Day Sightseeing Narrative Generator
 // Generates structured bullet points with attraction sub-points, omitting meals
@@ -18,18 +234,8 @@ export function generateAutoDayDescription(
     // Day 1 (or any day) arrival check
     if (day.arrivalDetails?.enabled) {
       const arr = day.arrivalDetails;
-      const startCity = day.cities[0]?.destination || day.destination;
-      const isTransfer = arr.point === 'Hotel Pickup' || arr.point === 'City Center' || arr.point === 'Other';
-      if (isTransfer) {
-        const loc = arr.pickupLocation?.trim() || (arr.point === 'Hotel Pickup' ? 'your designated hotel' : arr.point === 'City Center' ? 'the city center' : 'your specified pick-up location');
-        const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
-        bullets.push(`• Welcome to ${startCity}! Meet and greet with our representative and private chauffeur upon pick-up from ${loc}${timeStr}.`);
-      } else {
-        const pointStr = arr.point === 'Airport' ? 'Airport' : arr.point === 'Railway Station' ? 'Railway Station' : arr.point === 'Bus Terminal' ? 'Bus Terminal' : arr.point;
-        const flightStr = arr.flightOrTrainNumber ? ` (${arr.flightOrTrainNumber})` : '';
-        const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
-        bullets.push(`• Welcome to ${startCity}! Upon arrival at ${startCity} ${pointStr}${flightStr}${timeStr}, meet and greet with our representative and private chauffeur.`);
-      }
+      const startCity = day.cities[0]?.destination || day.destination || '';
+      bullets.push(formatArrivalLogisticsNarrative(arr, startCity));
       
       if (isHotelIncluded && arr.includeHotelCheckIn !== false) {
         if (arr.checkInTiming !== 'after_sightseeing') {
@@ -188,19 +394,8 @@ export function generateAutoDayDescription(
 
     if (day.departureDetails?.enabled) {
       const dep = day.departureDetails;
-      const isTransfer = dep.point === 'Hotel Drop' || dep.point === 'City Center' || dep.point === 'Other';
-      if (isTransfer) {
-        const loc = dep.dropLocation?.trim() || (dep.point === 'Hotel Drop' ? 'your designated hotel' : dep.point === 'City Center' ? 'the city center' : 'your onward drop-off point');
-        const timeStr = dep.departureTime ? ` at ${dep.departureTime}` : '';
-        bullets.push(`• Later, assisted drop-off at ${loc}${timeStr} for your onward journey home with cherished travel memories.`);
-      } else {
-        const pointStr = dep.point === 'Airport' ? 'Airport' : dep.point === 'Railway Station' ? 'Railway Station' : dep.point === 'Bus Terminal' ? 'Bus Terminal' : dep.point;
-        const numStr = dep.flightOrTrainNumber ? ` (${dep.flightOrTrainNumber})` : '';
-        const timeStr = dep.departureTime ? ` scheduled at ${dep.departureTime}` : '';
-        const finalCity = day.cities[day.cities.length - 1]?.destination || day.destination;
-        const dropCity = dep.dropLocation || finalCity;
-        bullets.push(`• Later, transfer to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished travel memories.`);
-      }
+      const finalCity = day.cities[day.cities.length - 1]?.destination || day.destination;
+      bullets.push(formatDepartureLogisticsNarrative(dep, finalCity, true));
     }
 
     if (!day.departureDetails?.enabled && isHotelIncluded) {
@@ -216,17 +411,7 @@ export function generateAutoDayDescription(
 
   if (day.arrivalDetails?.enabled) {
     const arr = day.arrivalDetails;
-    const isTransfer = arr.point === 'Hotel Pickup' || arr.point === 'City Center' || arr.point === 'Other';
-    if (isTransfer) {
-      const loc = arr.pickupLocation?.trim() || (arr.point === 'Hotel Pickup' ? 'your designated hotel' : arr.point === 'City Center' ? 'the city center' : 'your specified pick-up location');
-      const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
-      bullets.push(`• Welcome to ${day.destination}! Meet and greet with our representative and private chauffeur upon pick-up from ${loc}${timeStr}.`);
-    } else {
-      const pointStr = arr.point === 'Airport' ? 'Airport' : arr.point === 'Railway Station' ? 'Railway Station' : arr.point === 'Bus Terminal' ? 'Bus Terminal' : arr.point;
-      const flightStr = arr.flightOrTrainNumber ? ` (${arr.flightOrTrainNumber})` : '';
-      const timeStr = arr.arrivalTime ? ` at ${arr.arrivalTime}` : '';
-      bullets.push(`• Welcome to ${day.destination}! Upon arrival at ${day.destination} ${pointStr}${flightStr}${timeStr}, meet and greet with our representative and private chauffeur.`);
-    }
+    bullets.push(formatArrivalLogisticsNarrative(arr, day.destination));
     
     if (isHotelIncluded && arr.includeHotelCheckIn !== false) {
       if (arr.checkInTiming !== 'after_sightseeing') {
@@ -278,18 +463,7 @@ export function generateAutoDayDescription(
   // Departure logistics for single destination day (e.g. final day airport transfer)
   if (day.departureDetails?.enabled) {
     const dep = day.departureDetails;
-    const isTransfer = dep.point === 'Hotel Drop' || dep.point === 'City Center' || dep.point === 'Other';
-    if (isTransfer) {
-      const loc = dep.dropLocation?.trim() || (dep.point === 'Hotel Drop' ? 'your designated hotel' : dep.point === 'City Center' ? 'the city center' : 'your specified drop-off location');
-      const timeStr = dep.departureTime ? ` at ${dep.departureTime}` : '';
-      bullets.push(`• Later, you will be assisted with drop-off at ${loc}${timeStr} for your onward journey home with cherished memories.`);
-    } else {
-      const pointStr = dep.point === 'Airport' ? 'Airport' : dep.point === 'Railway Station' ? 'Railway Station' : dep.point === 'Bus Terminal' ? 'Bus Terminal' : dep.point;
-      const numStr = dep.flightOrTrainNumber ? ` (${dep.flightOrTrainNumber})` : '';
-      const timeStr = dep.departureTime ? ` scheduled at ${dep.departureTime}` : '';
-      const dropCity = dep.dropLocation || day.destination;
-      bullets.push(`• Later, you will be transferred to ${dropCity} ${pointStr}${numStr}${timeStr} for your departure / drop-off and onward journey home with cherished memories.`);
-    }
+    bullets.push(formatDepartureLogisticsNarrative(dep, day.destination, false));
   }
 
   if (!day.departureDetails?.enabled && isHotelIncluded) {

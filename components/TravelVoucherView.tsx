@@ -313,10 +313,16 @@ export default function TravelVoucherView({
                       {/* Day 1 Arrival Info */}
                       {day.dayNumber === 1 && day.arrivalDetails?.enabled && (() => {
                         const arr = day.arrivalDetails;
+                        const isTrain = arr.transitType === 'train' || arr.point === 'Railway Station';
+                        const isBus = arr.transitType === 'bus' || arr.point === 'Bus Terminal';
                         const isTransfer = arr.point === 'Hotel Pickup' || arr.point === 'City Center' || arr.point === 'Other';
+                        const rawNum = arr.flightOrTrainNumber?.trim() || '';
+                        const cleanNum = rawNum.replace(/^(flight|train|bus)\s*/i, '').trim();
+                        const numLabel = cleanNum ? (isTrain ? `Train ${cleanNum}` : isBus ? `Bus ${cleanNum}` : `Flight ${cleanNum}`) : rawNum;
+
                         return (
                           <div className="text-indigo-900 text-[10px] font-medium bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 inline-block mb-1 mr-2">
-                            {isTransfer ? 'Pick-up' : 'Arrival'}: {arr.pickupLocation || arr.point} {!isTransfer && arr.flightOrTrainNumber && `(${arr.flightOrTrainNumber})`} {arr.arrivalTime && `at ${arr.arrivalTime}`} {!day.excludeHotel && itinerary.includeHotels !== false ? `· ${arr.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}` : ''}
+                            {isTransfer ? 'Pick-up' : 'Arrival'}: {arr.pickupLocation || arr.point} {!isTransfer && numLabel && `(${numLabel})`} {arr.arrivalTime && `at ${arr.arrivalTime}`} {!day.excludeHotel && itinerary.includeHotels !== false ? `· ${arr.checkInTiming === 'after_sightseeing' ? 'Check-in After Tour' : 'Hotel Check-in First'}` : ''}
                           </div>
                         );
                       })()}
@@ -324,10 +330,16 @@ export default function TravelVoucherView({
                       {/* Final Day Departure Info */}
                       {day.departureDetails?.enabled && (() => {
                         const dep = day.departureDetails;
+                        const isTrain = dep.transitType === 'train' || dep.point === 'Railway Station';
+                        const isBus = dep.transitType === 'bus' || dep.point === 'Bus Terminal';
                         const isTransfer = dep.point === 'Hotel Drop' || dep.point === 'City Center' || dep.point === 'Other';
+                        const rawNum = dep.flightOrTrainNumber?.trim() || '';
+                        const cleanNum = rawNum.replace(/^(flight|train|bus)\s*/i, '').trim();
+                        const numLabel = cleanNum ? (isTrain ? `Train ${cleanNum}` : isBus ? `Bus ${cleanNum}` : `Flight ${cleanNum}`) : rawNum;
+
                         return (
                           <div className="text-sky-900 text-[10px] font-medium bg-sky-50 px-2 py-0.5 rounded border border-sky-100 inline-block mb-1">
-                            {isTransfer ? 'Drop-off' : 'Departure'}: {dep.dropLocation || dep.point} {!isTransfer && dep.flightOrTrainNumber && `(${dep.flightOrTrainNumber})`} {dep.departureTime && `at ${dep.departureTime}`}
+                            {isTransfer ? 'Drop-off' : 'Departure'}: {dep.dropLocation || dep.point} {!isTransfer && numLabel && `(${numLabel})`} {dep.departureTime && `at ${dep.departureTime}`}
                           </div>
                         );
                       })()}

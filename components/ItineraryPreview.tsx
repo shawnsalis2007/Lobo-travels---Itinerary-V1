@@ -874,6 +874,12 @@ export default function ItineraryPreview({
                           </h4>
                           {(() => {
                             const isDepartureActive = Boolean(day.departureDetails?.enabled);
+                            const dep = day.departureDetails;
+                            const isTrain = dep?.transitType === 'train' || dep?.point === 'Railway Station';
+                            const isBus = dep?.transitType === 'bus' || dep?.point === 'Bus Terminal';
+                            const rawNum = dep?.flightOrTrainNumber?.trim() || '';
+                            const cleanNum = rawNum.replace(/^(flight|train|bus)\s*/i, '').trim();
+                            const numLabel = cleanNum ? (isTrain ? `Train ${cleanNum}` : isBus ? `Bus ${cleanNum}` : `Flight ${cleanNum}`) : rawNum;
 
                             return (
                               <div className="text-[10px] text-slate-500 font-medium">
@@ -885,7 +891,7 @@ export default function ItineraryPreview({
                                 {isDepartureActive && (
                                   <>
                                     Drop-off: <strong>{day.departureDetails?.point || 'Airport / Station'}</strong>
-                                    {day.departureDetails?.flightOrTrainNumber ? ` (${day.departureDetails.flightOrTrainNumber})` : ''}
+                                    {numLabel ? ` (${numLabel})` : ''}
                                     {day.departureDetails?.departureTime ? ` at ${day.departureDetails.departureTime}` : ''}
                                   </>
                                 )}
@@ -908,7 +914,12 @@ export default function ItineraryPreview({
                     {day.dayNumber === 1 && day.arrivalDetails?.enabled && (() => {
                       const arr = day.arrivalDetails;
                       const isTrain = arr.transitType === 'train' || arr.point === 'Railway Station';
+                      const isBus = arr.transitType === 'bus' || arr.point === 'Bus Terminal';
                       const isTransfer = arr.point === 'Hotel Pickup' || arr.point === 'City Center' || arr.point === 'Other';
+                      const rawNum = arr.flightOrTrainNumber?.trim() || '';
+                      const cleanNum = rawNum.replace(/^(flight|train|bus)\s*/i, '').trim();
+                      const numLabel = cleanNum ? (isTrain ? `Train ${cleanNum}` : isBus ? `Bus ${cleanNum}` : `Flight ${cleanNum}`) : rawNum;
+
                       return (
                         <div className="p-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-xs flex items-center justify-between text-indigo-950">
                           <div className="flex items-center gap-2">
@@ -916,13 +927,15 @@ export default function ItineraryPreview({
                               <MapPin className="w-3.5 h-3.5 text-indigo-600" />
                             ) : isTrain ? (
                               <Train className="w-3.5 h-3.5 text-indigo-600" />
+                            ) : isBus ? (
+                              <Bus className="w-3.5 h-3.5 text-indigo-600" />
                             ) : (
                               <Plane className="w-3.5 h-3.5 text-indigo-600" />
                             )}
                             <span className="font-bold">{isTransfer ? 'Pick-up' : 'Arrival'}: {arr.pickupLocation || arr.point}</span>
-                            {!isTransfer && arr.flightOrTrainNumber && (
+                            {!isTransfer && numLabel && (
                               <span className="text-[11px] font-mono text-indigo-800">
-                                ({arr.flightOrTrainNumber})
+                                ({numLabel})
                               </span>
                             )}
                             {arr.arrivalTime && (
@@ -944,7 +957,12 @@ export default function ItineraryPreview({
                     {day.departureDetails?.enabled && (() => {
                       const dep = day.departureDetails;
                       const isTrain = dep.transitType === 'train' || dep.point === 'Railway Station';
+                      const isBus = dep.transitType === 'bus' || dep.point === 'Bus Terminal';
                       const isTransfer = dep.point === 'Hotel Drop' || dep.point === 'City Center' || dep.point === 'Other';
+                      const rawNum = dep.flightOrTrainNumber?.trim() || '';
+                      const cleanNum = rawNum.replace(/^(flight|train|bus)\s*/i, '').trim();
+                      const numLabel = cleanNum ? (isTrain ? `Train ${cleanNum}` : isBus ? `Bus ${cleanNum}` : `Flight ${cleanNum}`) : rawNum;
+
                       return (
                         <div className="p-2.5 rounded-lg bg-sky-50 border border-sky-200 text-xs flex items-center justify-between text-sky-950">
                           <div className="flex items-center gap-2">
@@ -952,13 +970,15 @@ export default function ItineraryPreview({
                               <MapPin className="w-3.5 h-3.5 text-sky-600" />
                             ) : isTrain ? (
                               <Train className="w-3.5 h-3.5 text-sky-600" />
+                            ) : isBus ? (
+                              <Bus className="w-3.5 h-3.5 text-sky-600" />
                             ) : (
                               <Plane className="w-3.5 h-3.5 text-sky-600" />
                             )}
                             <span className="font-bold">{isTransfer ? 'Drop-off' : 'Departure / Drop'}: {dep.dropLocation || dep.point}</span>
-                            {!isTransfer && dep.flightOrTrainNumber && (
+                            {!isTransfer && numLabel && (
                               <span className="text-[11px] font-mono text-sky-800">
-                                ({dep.flightOrTrainNumber})
+                                ({numLabel})
                               </span>
                             )}
                             {dep.departureTime && (
