@@ -302,14 +302,14 @@ export function generateAutoDayDescription(
         } else if (transit === 'train') {
           const tr = city.trainToNext;
           if (tr) {
-            const trainStr = tr.trainName || tr.trainNumber ? `the ${tr.trainName || ''} (${tr.trainNumber || ''})` : 'your express train';
+            const trainStr = tr.trainName || tr.trainNumber ? `the ${tr.trainName || ''} (${tr.trainNumber || ''})` : 'your train';
             const depTimeStr = tr.departureTime ? ` departing at ${tr.departureTime}` : '';
             const depStationStr = tr.departureStation ? ` from ${tr.departureStation}` : ` from ${city.destination}`;
             const arrStationStr = tr.arrivalStation ? ` for ${tr.arrivalStation} (${targetNext})` : ` for ${targetNext}`;
             const arrTimeStr = tr.arrivalTime ? `, arriving at ${tr.arrivalTime}` : '';
             bullets.push(`• Later, transfer to the railway station to board ${trainStr}${depStationStr}${depTimeStr}${arrStationStr}${arrTimeStr}. Upon arrival, meet our chauffeur and proceed to your hotel.`);
           } else {
-            bullets.push(`• Later, transfer to the railway station to board your express train to ${targetNext}. Upon arrival, meet our chauffeur and proceed to your hotel.`);
+            bullets.push(`• Later, transfer to the railway station to board your train to ${targetNext}. Upon arrival, meet our chauffeur and proceed to your hotel.`);
           }
         } else if (transit === 'bus') {
           const bs = city.busToNext;

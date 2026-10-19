@@ -1275,7 +1275,7 @@ export default function ItineraryBuilder({
               id: 'fl-' + Date.now() + '-1',
               type: 'arrival',
               transitType: 'train',
-              sectorTitle: `Inbound Express Train (to ${firstCity})`,
+              sectorTitle: `Inbound Train (to ${firstCity})`,
               airline: 'Vande Bharat Express',
               flightNumber: '20171',
               departureCity: 'Mumbai Central (MMCT)',
@@ -1293,7 +1293,7 @@ export default function ItineraryBuilder({
               id: 'fl-' + Date.now() + '-2',
               type: 'departure',
               transitType: 'train',
-              sectorTitle: `Outbound Express Train (from ${lastCity})`,
+              sectorTitle: `Outbound Train (from ${lastCity})`,
               airline: 'Shatabdi Express',
               flightNumber: '12002',
               departureCity: `${lastCity} Station`,
@@ -1619,7 +1619,7 @@ export default function ItineraryBuilder({
         flights: []
       };
       const defaultCarrier = mode === 'bus' ? 'Zingbus Premium' : mode === 'train' ? 'Vande Bharat Express' : 'IndiGo';
-      const defaultSectorTitle = mode === 'bus' ? 'Inter-City Coach Sector' : mode === 'train' ? 'Railway Express Sector' : 'Domestic / Internal Flight Sector';
+      const defaultSectorTitle = mode === 'bus' ? 'Inter-City Coach Sector' : mode === 'train' ? 'Train Sector' : 'Domestic / Internal Flight Sector';
       const defaultClass = mode === 'bus' ? 'AC Multi-Axle Sleeper' : mode === 'train' ? 'Executive Chair Car (EC)' : 'Economy';
       const newSector: BookedFlightInfo = {
         id: 'fl-' + Date.now(),
@@ -2888,7 +2888,7 @@ export default function ItineraryBuilder({
                     className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
                   />
                   <Train className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Railway booked by us</span>
+                  <span>Train booked by us</span>
                 </label>
 
                 <label className={`inline-flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-bold transition shadow-2xs ${
@@ -3016,7 +3016,7 @@ export default function ItineraryBuilder({
                                 }`}
                               >
                                 <Train className="w-3 h-3" />
-                                <span>Railway</span>
+                                <span>Train</span>
                               </button>
                               <button
                                 type="button"
@@ -3455,7 +3455,7 @@ export default function ItineraryBuilder({
                                         }`}
                                       >
                                         <Train className="w-3.5 h-3.5" />
-                                        <span>Railway</span>
+                                        <span>Train</span>
                                       </button>
                                       <button
                                         type="button"
@@ -3492,7 +3492,7 @@ export default function ItineraryBuilder({
                                     className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg focus:outline-none"
                                   >
                                     <option value="Airport">Airport (Domestic / International)</option>
-                                    <option value="Railway Station">Railway Station</option>
+                                    <option value="Railway Station">Train Station</option>
                                     <option value="Bus Terminal">Bus Terminal</option>
                                     <option value="Hotel Pickup">Hotel Pick-up</option>
                                     <option value="City Center">City Center Pick-up</option>
@@ -3632,7 +3632,7 @@ export default function ItineraryBuilder({
                                   Day {day.dayNumber} Guest Departure Logistics
                                 </span>
                                 <span className="text-[10px] text-sky-700">
-                                  {itinerary.flightBookings?.flightsBookedByUs ? 'Linked with Confirmed Return Flight' : 'Final day airport / railway station departure drop'}
+                                  {itinerary.flightBookings?.flightsBookedByUs ? 'Linked with Confirmed Return Flight' : 'Final day airport / train station departure drop'}
                                 </span>
                               </div>
                             </div>
@@ -3719,7 +3719,7 @@ export default function ItineraryBuilder({
                                         }`}
                                       >
                                         <Train className="w-3.5 h-3.5" />
-                                        <span>Railway</span>
+                                        <span>Train</span>
                                       </button>
                                       <button
                                         type="button"
@@ -3756,7 +3756,7 @@ export default function ItineraryBuilder({
                                     className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg focus:outline-none"
                                   >
                                     <option value="Airport">Airport (Domestic / International)</option>
-                                    <option value="Railway Station">Railway Station</option>
+                                    <option value="Railway Station">Train Station</option>
                                     <option value="Bus Terminal">Bus Terminal</option>
                                     <option value="Hotel Drop">Hotel Drop-off</option>
                                     <option value="City Center">City Center Drop-off</option>
