@@ -299,14 +299,19 @@ export default function DestinationsManager({
           </div>
 
           {/* Destinations Scroll List */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-2 shadow-xs space-y-1 max-h-[600px] overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-slate-200 p-2 shadow-xs space-y-1 max-h-[260px] sm:max-h-[340px] lg:max-h-[600px] overflow-y-auto">
             {filteredDestinations.map((dest) => {
               const isSelected = dest.id === selectedDestinationId;
               const count = attractions.filter(a => a.destinationName.toLowerCase() === dest.name.toLowerCase()).length;
               return (
                 <div
                   key={dest.id}
-                  onClick={() => setSelectedDestinationId(dest.id)}
+                  onClick={() => {
+                    setSelectedDestinationId(dest.id);
+                    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                      document.getElementById('active-destination-view')?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
                   className={`p-3 rounded-xl cursor-pointer transition flex items-center justify-between text-xs ${
                     isSelected
                       ? 'bg-[#151521] text-white shadow-xs'
@@ -353,7 +358,7 @@ export default function DestinationsManager({
         </div>
 
         {/* Right Column: Destination Details & Attractions */}
-        <div className="lg:col-span-8 space-y-6">
+        <div id="active-destination-view" className="lg:col-span-8 space-y-6">
           {activeDestination && (
             <>
               {/* Destination Hero Banner */}
