@@ -224,6 +224,8 @@ export default function ItineraryBuilder({
     });
   }, [localDestinations]);
 
+
+
   // Destination custom text mode tracking per dayIndex: boolean
   const [customDestMode, setCustomDestMode] = useState<Record<number, boolean>>({});
   // Overnight custom text mode tracking per dayIndex: boolean
@@ -403,6 +405,125 @@ export default function ItineraryBuilder({
       updatedAt: new Date().toISOString()
     };
   });
+
+  // Active inbound & outbound transport types for React state dependency
+  const day1Arrival = itinerary.days[0]?.arrivalDetails;
+  const lastDayDeparture = itinerary.days[itinerary.days.length - 1]?.departureDetails;
+
+  const inboundTransportType: 'flight' | 'train' | 'bus' =
+    day1Arrival?.transitType ||
+    (day1Arrival?.point === 'Railway Station' ? 'train' : day1Arrival?.point === 'Bus Terminal' ? 'bus' : 'flight');
+
+  const outboundTransportType: 'flight' | 'train' | 'bus' =
+    lastDayDeparture?.transitType ||
+    (lastDayDeparture?.point === 'Railway Station' ? 'train' : lastDayDeparture?.point === 'Bus Terminal' ? 'bus' : 'flight');
+
+  const inboundPoint = day1Arrival?.point || 'Airport';
+  const outboundPoint = lastDayDeparture?.point || 'Airport';
+
+  const prevInboundTransportRef = React.useRef<string>(`${inboundTransportType}:${inboundPoint}:${day1Arrival?.enabled ?? true}`);
+  const prevOutboundTransportRef = React.useRef<string>(`${outboundTransportType}:${outboundPoint}:${lastDayDeparture?.enabled ?? false}`);
+
+  // React State Dependency: explicitly listens to inboundTransportType and outboundTransportType
+  // When inboundTransportType or outboundTransportType changes, forces a state recalculation so text dynamically replaces references to Flight/Airport, Train/Station, or Bus/Terminal immediately
+  React.useEffect(() => {
+    const currentInboundKey = `${inboundTransportType}:${inboundPoint}:${day1Arrival?.enabled ?? true}`;
+    const currentOutboundKey = `${outboundTransportType}:${outboundPoint}:${lastDayDeparture?.enabled ?? false}`;
+
+    const inboundChanged = prevInboundTransportRef.current !== currentInboundKey;
+    const outboundChanged = prevOutboundTransportRef.current !== currentOutboundKey;
+
+    prevInboundTransportRef.current = currentInboundKey;
+    prevOutboundTransportRef.current = currentOutboundKey;
+
+    if (!inboundChanged && !outboundChanged) return;
+
+    setItinerary(prev => {
+      if (!prev.days || prev.days.length === 0) return prev;
+      let hasChanges = false;
+      const updatedDays = [...prev.days];
+
+      if (inboundChanged && updatedDays[0] && (updatedDays[0].arrivalDetails?.enabled ?? true)) {
+        const targetDay = { ...updatedDays[0] };
+        const currentArr = targetDay.arrivalDetails || {
+          enabled: true,
+          transitType: inboundTransportType,
+          point: inboundPoint
+        };
+        const updatedArr: DayArrivalDetails = {
+          ...currentArr,
+          transitType: inboundTransportType,
+          point: inboundPoint
+        };
+
+        // Clear stale pickup locations across transport modes
+        if (updatedArr.pickupLocation) {
+          if (inboundTransportType === 'train' && /airport|terminal|bus/i.test(updatedArr.pickupLocation)) updatedArr.pickupLocation = '';
+          else if (inboundTransportType === 'bus' && /airport|station|railway/i.test(updatedArr.pickupLocation)) updatedArr.pickupLocation = '';
+          else if (inboundTransportType === 'flight' && /station|railway|terminal|bus/i.test(updatedArr.pickupLocation)) updatedArr.pickupLocation = '';
+        }
+
+        // Clean stale carrier numbers
+        if (updatedArr.flightOrTrainNumber) {
+          if (inboundTransportType === 'train' && /^(indigo|air\s*india|vistara|spicejet|akasa|zingbus|6e|ai|uk|sg|\b(6e|ai|uk|sg)[- ]?\d+)/i.test(updatedArr.flightOrTrainNumber)) {
+            updatedArr.flightOrTrainNumber = '12002';
+          } else if (inboundTransportType === 'bus' && /^(indigo|air\s*india|vistara|spicejet|akasa|12002|20171|6e|ai|uk|sg)/i.test(updatedArr.flightOrTrainNumber)) {
+            updatedArr.flightOrTrainNumber = 'DL-01-A-1234';
+          } else if (inboundTransportType === 'flight' && /^(zingbus|intrcity|12002|20171|dl-)/i.test(updatedArr.flightOrTrainNumber)) {
+            updatedArr.flightOrTrainNumber = '6E-204';
+          }
+        }
+
+        targetDay.arrivalDetails = updatedArr;
+        const syncedDesc = syncArrivalDescription(targetDay.description || '', targetDay, 0, updatedDays.length, prev.includeHotels);
+        targetDay.description = ensureOvernightStayText(syncedDesc, targetDay);
+        updatedDays[0] = targetDay;
+        hasChanges = true;
+      }
+
+      const lastIdx = updatedDays.length - 1;
+      if (outboundChanged && updatedDays[lastIdx] && updatedDays[lastIdx].departureDetails?.enabled) {
+        const targetDay = { ...updatedDays[lastIdx] };
+        const currentDep = targetDay.departureDetails || {
+          enabled: true,
+          transitType: outboundTransportType,
+          point: outboundPoint
+        };
+        const updatedDep: DayDepartureDetails = {
+          ...currentDep,
+          transitType: outboundTransportType,
+          point: outboundPoint
+        };
+
+        // Clear stale drop-off locations across transport modes
+        if (updatedDep.dropLocation) {
+          if (outboundTransportType === 'train' && /airport|terminal|bus/i.test(updatedDep.dropLocation)) updatedDep.dropLocation = '';
+          else if (outboundTransportType === 'bus' && /airport|station|railway/i.test(updatedDep.dropLocation)) updatedDep.dropLocation = '';
+          else if (outboundTransportType === 'flight' && /station|railway|terminal|bus/i.test(updatedDep.dropLocation)) updatedDep.dropLocation = '';
+        }
+
+        // Clean stale carrier numbers
+        if (updatedDep.flightOrTrainNumber) {
+          if (outboundTransportType === 'train' && /^(indigo|air\s*india|vistara|spicejet|akasa|zingbus|6e|ai|uk|sg|\b(6e|ai|uk|sg)[- ]?\d+)/i.test(updatedDep.flightOrTrainNumber)) {
+            updatedDep.flightOrTrainNumber = '12002';
+          } else if (outboundTransportType === 'bus' && /^(indigo|air\s*india|vistara|spicejet|akasa|12002|20171|6e|ai|uk|sg)/i.test(updatedDep.flightOrTrainNumber)) {
+            updatedDep.flightOrTrainNumber = 'DL-01-B-5678';
+          } else if (outboundTransportType === 'flight' && /^(zingbus|intrcity|12002|20171|dl-)/i.test(updatedDep.flightOrTrainNumber)) {
+            updatedDep.flightOrTrainNumber = 'AI-402';
+          }
+        }
+
+        targetDay.departureDetails = updatedDep;
+        const syncedDesc = syncDepartureDescription(targetDay.description || '', targetDay, lastIdx, updatedDays.length, prev.includeHotels);
+        targetDay.description = ensureOvernightStayText(syncedDesc, targetDay);
+        updatedDays[lastIdx] = targetDay;
+        hasChanges = true;
+      }
+
+      if (!hasChanges) return prev;
+      return { ...prev, days: updatedDays };
+    });
+  }, [inboundTransportType, outboundTransportType, inboundPoint, outboundPoint, day1Arrival?.enabled, lastDayDeparture?.enabled]);
 
   // Extract authentic sight photos chosen in the itinerary days for 1-click cover photo selection
   const tourAttractionPhotos = React.useMemo(() => {
@@ -1131,6 +1252,24 @@ export default function ItineraryBuilder({
         }
       }
 
+      // If active transport mode changed, clear stale locations and carrier numbers
+      if (partialArrival.transitType && partialArrival.transitType !== currentArrival.transitType) {
+        if (newArrival.pickupLocation) {
+          if (newArrival.transitType === 'train' && /airport|terminal|bus/i.test(newArrival.pickupLocation)) newArrival.pickupLocation = '';
+          else if (newArrival.transitType === 'bus' && /airport|station|railway/i.test(newArrival.pickupLocation)) newArrival.pickupLocation = '';
+          else if (newArrival.transitType === 'flight' && /station|railway|terminal|bus/i.test(newArrival.pickupLocation)) newArrival.pickupLocation = '';
+        }
+        if (newArrival.flightOrTrainNumber) {
+          if (newArrival.transitType === 'train' && /^(indigo|air\s*india|vistara|spicejet|akasa|zingbus|6e|ai|uk|sg|\b(6e|ai|uk|sg)[- ]?\d+)/i.test(newArrival.flightOrTrainNumber)) {
+            newArrival.flightOrTrainNumber = '12002';
+          } else if (newArrival.transitType === 'bus' && /^(indigo|air\s*india|vistara|spicejet|akasa|12002|20171|6e|ai|uk|sg)/i.test(newArrival.flightOrTrainNumber)) {
+            newArrival.flightOrTrainNumber = 'DL-01-A-1234';
+          } else if (newArrival.transitType === 'flight' && /^(zingbus|intrcity|12002|20171|dl-)/i.test(newArrival.flightOrTrainNumber)) {
+            newArrival.flightOrTrainNumber = '6E-204';
+          }
+        }
+      }
+
       targetDay.arrivalDetails = newArrival;
       const syncedDesc = syncArrivalDescription(targetDay.description || '', targetDay, dayIndex, updatedDays.length, prev.includeHotels);
       targetDay.description = ensureOvernightStayText(syncedDesc, targetDay);
@@ -1172,6 +1311,24 @@ export default function ItineraryBuilder({
           newDeparture.transitType = 'train';
         } else if (partialDeparture.point === 'Bus Terminal') {
           newDeparture.transitType = 'bus';
+        }
+      }
+
+      // If active transport mode changed, clear stale locations and carrier numbers
+      if (partialDeparture.transitType && partialDeparture.transitType !== currentDeparture.transitType) {
+        if (newDeparture.dropLocation) {
+          if (newDeparture.transitType === 'train' && /airport|terminal|bus/i.test(newDeparture.dropLocation)) newDeparture.dropLocation = '';
+          else if (newDeparture.transitType === 'bus' && /airport|station|railway/i.test(newDeparture.dropLocation)) newDeparture.dropLocation = '';
+          else if (newDeparture.transitType === 'flight' && /station|railway|terminal|bus/i.test(newDeparture.dropLocation)) newDeparture.dropLocation = '';
+        }
+        if (newDeparture.flightOrTrainNumber) {
+          if (newDeparture.transitType === 'train' && /^(indigo|air\s*india|vistara|spicejet|akasa|zingbus|6e|ai|uk|sg|\b(6e|ai|uk|sg)[- ]?\d+)/i.test(newDeparture.flightOrTrainNumber)) {
+            newDeparture.flightOrTrainNumber = '12002';
+          } else if (newDeparture.transitType === 'bus' && /^(indigo|air\s*india|vistara|spicejet|akasa|12002|20171|6e|ai|uk|sg)/i.test(newDeparture.flightOrTrainNumber)) {
+            newDeparture.flightOrTrainNumber = 'DL-01-B-5678';
+          } else if (newDeparture.transitType === 'flight' && /^(zingbus|intrcity|12002|20171|dl-)/i.test(newDeparture.flightOrTrainNumber)) {
+            newDeparture.flightOrTrainNumber = 'AI-402';
+          }
         }
       }
 
@@ -1387,6 +1544,79 @@ export default function ItineraryBuilder({
             }
           ];
         }
+      } else if (enabled && flights.length > 0) {
+        const firstCity = prev.days[0]?.destination || 'Delhi';
+        const lastCity = prev.days[prev.days.length - 1]?.destination || 'Delhi';
+        const targetTransit: 'train' | 'bus' | 'flight' = mode === 'railway' ? 'train' : mode === 'bus' ? 'bus' : 'flight';
+
+        flights = flights.map(fl => {
+          if (fl.type === 'arrival') {
+            if (targetTransit === 'train') {
+              return {
+                ...fl,
+                transitType: 'train',
+                sectorTitle: `Inbound Train (to ${firstCity})`,
+                airline: 'Vande Bharat Express',
+                flightNumber: '20171',
+                arrivalCity: `${firstCity} Junction (NDLS)`,
+                cabinClass: 'Executive AC Chair Car'
+              };
+            } else if (targetTransit === 'bus') {
+              return {
+                ...fl,
+                transitType: 'bus',
+                sectorTitle: `Inbound Inter-City Coach (to ${firstCity})`,
+                airline: 'Zingbus Premium',
+                flightNumber: 'DL-01-A-1234',
+                arrivalCity: `${firstCity} ISBT Terminal`,
+                cabinClass: 'AC Multi-Axle Sleeper'
+              };
+            } else {
+              return {
+                ...fl,
+                transitType: 'flight',
+                sectorTitle: `Inbound / Arrival Flight (to ${firstCity})`,
+                airline: 'IndiGo',
+                flightNumber: '6E-204',
+                arrivalCity: `${firstCity} (Airport)`,
+                cabinClass: 'Economy'
+              };
+            }
+          } else if (fl.type === 'departure') {
+            if (targetTransit === 'train') {
+              return {
+                ...fl,
+                transitType: 'train',
+                sectorTitle: `Outbound Train (from ${lastCity})`,
+                airline: 'Shatabdi Express',
+                flightNumber: '12002',
+                departureCity: `${lastCity} Station`,
+                cabinClass: 'Executive AC Chair Car'
+              };
+            } else if (targetTransit === 'bus') {
+              return {
+                ...fl,
+                transitType: 'bus',
+                sectorTitle: `Outbound Inter-City Coach (from ${lastCity})`,
+                airline: 'Intrcity SmartBus',
+                flightNumber: 'DL-01-B-5678',
+                departureCity: `${lastCity} ISBT Terminal`,
+                cabinClass: 'AC Multi-Axle Sleeper'
+              };
+            } else {
+              return {
+                ...fl,
+                transitType: 'flight',
+                sectorTitle: `Outbound / Return Flight (from ${lastCity})`,
+                airline: 'Air India',
+                flightNumber: 'AI-402',
+                departureCity: `${lastCity} (Airport)`,
+                cabinClass: 'Economy'
+              };
+            }
+          }
+          return { ...fl, transitType: targetTransit };
+        });
       }
 
       // Automatically sync to arrival day and departure day
@@ -1400,20 +1630,23 @@ export default function ItineraryBuilder({
         if (arrSector && updatedDays[0]) {
           const day1 = { ...updatedDays[0] };
           const transitT = arrSector.transitType || (mode === 'railway' ? 'train' : mode === 'bus' ? 'bus' : 'flight');
+          let cleanPickup = arrSector.arrivalCity || '';
+          if (transitT === 'train' && /airport|terminal|bus/i.test(cleanPickup)) cleanPickup = '';
+          else if (transitT === 'bus' && /airport|station|railway/i.test(cleanPickup)) cleanPickup = '';
+          else if (transitT === 'flight' && /station|railway|terminal|bus/i.test(cleanPickup)) cleanPickup = '';
+
           day1.arrivalDetails = {
             enabled: true,
             transitType: transitT,
             point: pointForTransit(transitT),
             flightOrTrainNumber: `${arrSector.airline || ''} ${arrSector.flightNumber || ''}`.trim(),
             arrivalTime: arrSector.arrivalTime || '',
-            pickupLocation: arrSector.arrivalCity || '',
+            pickupLocation: cleanPickup,
             includeHotelCheckIn: day1.arrivalDetails?.includeHotelCheckIn ?? true,
             checkInTiming: day1.arrivalDetails?.checkInTiming || 'before_sightseeing'
           };
-          day1.description = ensureOvernightStayText(
-            generateAutoDayDescription(day1, 0, updatedDays.length, prev.includeHotels),
-            day1
-          );
+          const syncedDesc = syncArrivalDescription(day1.description || '', day1, 0, updatedDays.length, prev.includeHotels);
+          day1.description = ensureOvernightStayText(syncedDesc, day1);
           updatedDays[0] = day1;
         }
 
@@ -1422,22 +1655,25 @@ export default function ItineraryBuilder({
           const lastDay = { ...updatedDays[lastIdx] };
           const wasEnabled = Boolean(lastDay.departureDetails?.enabled);
           const transitT = depSector.transitType || (mode === 'railway' ? 'train' : mode === 'bus' ? 'bus' : 'flight');
+          let cleanDrop = depSector.departureCity || '';
+          if (transitT === 'train' && /airport|terminal|bus/i.test(cleanDrop)) cleanDrop = '';
+          else if (transitT === 'bus' && /airport|station|railway/i.test(cleanDrop)) cleanDrop = '';
+          else if (transitT === 'flight' && /station|railway|terminal|bus/i.test(cleanDrop)) cleanDrop = '';
+
           lastDay.departureDetails = {
             enabled: wasEnabled,
             transitType: transitT,
             point: pointForTransit(transitT),
             flightOrTrainNumber: `${depSector.airline || ''} ${depSector.flightNumber || ''}`.trim(),
             departureTime: depSector.departureTime || '',
-            dropLocation: depSector.departureCity || ''
+            dropLocation: cleanDrop
           };
           if (wasEnabled) {
             delete lastDay.hotel;
             delete lastDay.hotelTiers;
           }
-          lastDay.description = ensureOvernightStayText(
-            generateAutoDayDescription(lastDay, lastIdx, updatedDays.length, prev.includeHotels),
-            lastDay
-          );
+          const syncedDesc = syncDepartureDescription(lastDay.description || '', lastDay, lastIdx, updatedDays.length, prev.includeHotels);
+          lastDay.description = ensureOvernightStayText(syncedDesc, lastDay);
           updatedDays[lastIdx] = lastDay;
         }
       }
@@ -1538,13 +1774,33 @@ export default function ItineraryBuilder({
       if (!prev.flightBookings) return prev;
       const updatedFlights = prev.flightBookings.flights.map(fl => {
         if (fl.id === flightId) {
-          return { ...fl, [field]: value };
+          const updated = { ...fl, [field]: value };
+          if (field === 'transitType') {
+            const tt = value as 'flight' | 'train' | 'bus';
+            if (tt === 'train') {
+              if (!updated.airline || /^(indigo|air\s*india|vistara|spicejet|akasa|zingbus)/i.test(updated.airline)) updated.airline = 'Vande Bharat Express';
+              if (!updated.flightNumber || /^(6e|ai|uk|sg|dl-)/i.test(updated.flightNumber)) updated.flightNumber = '20171';
+              if (updated.arrivalCity) updated.arrivalCity = updated.arrivalCity.replace(/\(Airport\)|ISBT/gi, 'Railway Station');
+              if (updated.departureCity) updated.departureCity = updated.departureCity.replace(/\(Airport\)|ISBT/gi, 'Railway Station');
+            } else if (tt === 'bus') {
+              if (!updated.airline || /^(indigo|air\s*india|vistara|spicejet|akasa|shatabdi|vande)/i.test(updated.airline)) updated.airline = 'Zingbus Premium';
+              if (!updated.flightNumber || /^(6e|ai|uk|sg|12002|20171)/i.test(updated.flightNumber)) updated.flightNumber = 'DL-01-A-1234';
+              if (updated.arrivalCity) updated.arrivalCity = updated.arrivalCity.replace(/\(Airport\)|Railway Station/gi, 'ISBT Terminal');
+              if (updated.departureCity) updated.departureCity = updated.departureCity.replace(/\(Airport\)|Railway Station/gi, 'ISBT Terminal');
+            } else if (tt === 'flight') {
+              if (!updated.airline || /^(shatabdi|vande|zingbus|intrcity)/i.test(updated.airline)) updated.airline = 'IndiGo';
+              if (!updated.flightNumber || /^(12002|20171|dl-)/i.test(updated.flightNumber)) updated.flightNumber = '6E-204';
+              if (updated.arrivalCity) updated.arrivalCity = updated.arrivalCity.replace(/Railway Station|ISBT Terminal/gi, '(Airport)');
+              if (updated.departureCity) updated.departureCity = updated.departureCity.replace(/Railway Station|ISBT Terminal/gi, '(Airport)');
+            }
+          }
+          return updated;
         }
         return fl;
       });
 
       // State sync: Return flight / transit details entered in form automatically populate/sync to Departure Day
-      let updatedDays = prev.days;
+      let updatedDays = [...prev.days];
       const targetFlight = updatedFlights.find(fl => fl.id === flightId);
       const pointForTransit = (transit?: string) =>
         transit === 'bus' ? 'Bus Terminal' : transit === 'train' ? 'Railway Station' : 'Airport';
@@ -1571,11 +1827,8 @@ export default function ItineraryBuilder({
           delete lastDay.hotel;
           delete lastDay.hotelTiers;
         }
-        lastDay.description = ensureOvernightStayText(
-          generateAutoDayDescription(lastDay, targetIdx, updatedDays.length, prev.includeHotels),
-          lastDay
-        );
-        updatedDays = [...prev.days];
+        const syncedDesc = syncDepartureDescription(lastDay.description || '', lastDay, targetIdx, updatedDays.length, prev.includeHotels);
+        lastDay.description = ensureOvernightStayText(syncedDesc, lastDay);
         updatedDays[targetIdx] = lastDay;
       } else if (targetFlight && targetFlight.type === 'arrival' && updatedDays.length > 0) {
         const day1 = { ...updatedDays[0] };
@@ -1591,11 +1844,8 @@ export default function ItineraryBuilder({
           arrivalTime: targetFlight.arrivalTime || currentArr.arrivalTime || '',
           pickupLocation: targetFlight.arrivalCity || currentArr.pickupLocation || ''
         };
-        day1.description = ensureOvernightStayText(
-          generateAutoDayDescription(day1, 0, updatedDays.length, prev.includeHotels),
-          day1
-        );
-        updatedDays = [...prev.days];
+        const syncedDesc = syncArrivalDescription(day1.description || '', day1, 0, updatedDays.length, prev.includeHotels);
+        day1.description = ensureOvernightStayText(syncedDesc, day1);
         updatedDays[0] = day1;
       }
 
@@ -1682,7 +1932,8 @@ export default function ItineraryBuilder({
         includeHotelCheckIn: day1.arrivalDetails?.includeHotelCheckIn ?? true,
         checkInTiming: day1.arrivalDetails?.checkInTiming || 'before_sightseeing'
       };
-      day1.description = generateAutoDayDescription(day1, 0, itinerary.days.length, itinerary.includeHotels);
+      const syncedDesc = syncArrivalDescription(day1.description || '', day1, 0, itinerary.days.length, itinerary.includeHotels);
+      day1.description = ensureOvernightStayText(syncedDesc, day1);
       updatedDays[0] = day1;
     }
 
@@ -1703,10 +1954,8 @@ export default function ItineraryBuilder({
         delete lastDay.hotel;
         delete lastDay.hotelTiers;
       }
-      lastDay.description = ensureOvernightStayText(
-        generateAutoDayDescription(lastDay, lastIdx, itinerary.days.length, itinerary.includeHotels),
-        lastDay
-      );
+      const syncedDesc = syncDepartureDescription(lastDay.description || '', lastDay, lastIdx, itinerary.days.length, itinerary.includeHotels);
+      lastDay.description = ensureOvernightStayText(syncedDesc, lastDay);
       updatedDays[lastIdx] = lastDay;
     }
 

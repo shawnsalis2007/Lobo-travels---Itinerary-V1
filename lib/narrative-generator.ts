@@ -2,16 +2,16 @@ import { ItineraryDay, DayArrivalDetails, DayDepartureDetails } from '@/types';
 
 /**
  * Formats inbound arrival logistics narrative text dynamically matching transport mode:
- * - Flight: 'Upon arrival at [Airport Name] (Flight [Number]) at [Time]...'
- * - Railway / Train: 'Upon arrival at [Railway Station] (Train [Number]) at [Time]...'
- * - Bus: 'Upon arrival at [Bus Stand/Location] (Bus [Details]) at [Time]...'
+ * - Flight: 'Upon arrival at [Airport Name] (Flight [Number])...'
+ * - Railway / Train: 'Upon arrival at [Railway Station] (Train [Number])...'
+ * - Bus: 'Upon arrival at [Bus Station] (Bus [Details])...'
  */
 export function formatArrivalLogisticsNarrative(arr: DayArrivalDetails, city: string): string {
   const isTransfer = arr.point === 'Hotel Pickup' || arr.point === 'City Center' || arr.point === 'Other';
   if (isTransfer) {
     const loc = arr.pickupLocation?.trim() || (arr.point === 'Hotel Pickup' ? 'your designated hotel' : arr.point === 'City Center' ? 'the city center' : 'your specified pick-up location');
     const timeStr = arr.arrivalTime?.trim() ? ` at ${arr.arrivalTime.trim()}` : '';
-    return `• Welcome to ${city}! Meet and greet with our representative and private chauffeur upon pick-up from ${loc}${timeStr}.`;
+    return `• Meet and greet with our representative and private chauffeur upon pick-up from ${loc}${timeStr}.`;
   }
 
   const mode: 'flight' | 'train' | 'bus' =
@@ -24,54 +24,81 @@ export function formatArrivalLogisticsNarrative(arr: DayArrivalDetails, city: st
     let stationName = city ? `${city} Railway Station` : 'the railway station';
     if (arr.pickupLocation?.trim()) {
       const customLoc = arr.pickupLocation.trim();
-      stationName = /station/i.test(customLoc) ? customLoc : `${customLoc} Railway Station`;
+      if (!/airport|terminal|bus/i.test(customLoc)) {
+        stationName = /station/i.test(customLoc) ? customLoc : `${customLoc} Railway Station`;
+      }
     }
     let trainDetails = '';
     if (arr.flightOrTrainNumber?.trim()) {
       const raw = arr.flightOrTrainNumber.trim();
-      const cleanNum = raw.replace(/^(train|flight|bus)\s*/i, '').trim();
-      trainDetails = cleanNum ? ` (Train ${cleanNum})` : ` (${raw})`;
+      const isFlightOrBus = /^(indigo|air\s*india|vistara|spicejet|akasa|emirates|qatar|etihad|flydubai|zingbus|intrcity|6e-|ai-|uk-|sg-|\b(6e|ai|uk|sg|qp|g8|ix)[- ]?\d+)/i.test(raw);
+      if (!isFlightOrBus) {
+        const cleanNum = raw.replace(/^(train|flight|bus)\s*/i, '').trim();
+        trainDetails = cleanNum ? ` (Train ${cleanNum})` : ` (${raw})`;
+      } else {
+        trainDetails = ' (Train 12002)';
+      }
+    } else {
+      trainDetails = ' (Train 12002)';
     }
-    return `• Welcome to ${city}! Upon arrival at ${stationName}${trainDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
+    return `• Upon arrival at ${stationName}${trainDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
   }
 
   if (mode === 'bus') {
-    let busLocation = city ? `${city} Bus Stand` : 'the bus stand';
+    let busLocation = city ? `${city} Bus Station` : 'the bus station';
     if (arr.pickupLocation?.trim()) {
       const customLoc = arr.pickupLocation.trim();
-      busLocation = /(bus|stand|terminal|isbt)/i.test(customLoc) ? customLoc : `${customLoc} Bus Stand`;
+      if (!/airport|railway/i.test(customLoc)) {
+        busLocation = /(bus|station|stand|terminal|isbt)/i.test(customLoc) ? customLoc : `${customLoc} Bus Station`;
+      }
     } else if (arr.point === 'Bus Terminal') {
-      busLocation = city ? `${city} Bus Terminal` : 'the bus terminal';
+      busLocation = city ? `${city} Bus Station` : 'the bus station';
     }
     let busDetails = '';
     if (arr.flightOrTrainNumber?.trim()) {
       const raw = arr.flightOrTrainNumber.trim();
-      const cleanNum = raw.replace(/^(bus|flight|train)\s*/i, '').trim();
-      busDetails = cleanNum ? ` (Bus ${cleanNum})` : ` (${raw})`;
+      const isFlightOrTrain = /^(indigo|air\s*india|vistara|spicejet|akasa|emirates|qatar|etihad|flydubai|shatabdi|vande\s*bharat|rajdhani|6e-|ai-|uk-|sg-|12\d{3}|20\d{3}|\b(6e|ai|uk|sg|qp|g8|ix)[- ]?\d+)/i.test(raw);
+      if (!isFlightOrTrain) {
+        const cleanNum = raw.replace(/^(bus|flight|train)\s*/i, '').trim();
+        busDetails = cleanNum ? ` (Bus ${cleanNum})` : ` (${raw})`;
+      } else {
+        busDetails = ' (Bus DL-01-A-1234)';
+      }
+    } else {
+      busDetails = ' (Bus DL-01-A-1234)';
     }
-    return `• Welcome to ${city}! Upon arrival at ${busLocation}${busDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
+    return `• Upon arrival at ${busLocation}${busDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
   }
 
   // Default: Flight
   let airportName = city ? `${city} Airport` : 'the airport';
   if (arr.pickupLocation?.trim()) {
     const customLoc = arr.pickupLocation.trim();
-    airportName = /airport/i.test(customLoc) ? customLoc : `${customLoc} Airport`;
+    if (!/station|railway|bus\s*(stand|terminal|station)/i.test(customLoc)) {
+      airportName = /airport/i.test(customLoc) ? customLoc : `${customLoc} Airport`;
+    }
   }
   let flightDetails = '';
   if (arr.flightOrTrainNumber?.trim()) {
     const raw = arr.flightOrTrainNumber.trim();
-    const cleanNum = raw.replace(/^(flight|train|bus)\s*/i, '').trim();
-    flightDetails = cleanNum ? ` (Flight ${cleanNum})` : ` (${raw})`;
+    const isTrainOrBus = /^(12\d{3}|20\d{3}|DL-|intrcity|zingbus|shatabdi|vande\s*bharat|rajdhani)/i.test(raw);
+    if (!isTrainOrBus) {
+      const cleanNum = raw.replace(/^(flight|train|bus)\s*/i, '').trim();
+      flightDetails = cleanNum ? ` (Flight ${cleanNum})` : ` (${raw})`;
+    } else {
+      flightDetails = ' (Flight 6E-204)';
+    }
+  } else {
+    flightDetails = ' (Flight 6E-204)';
   }
-  return `• Welcome to ${city}! Upon arrival at ${airportName}${flightDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
+  return `• Upon arrival at ${airportName}${flightDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
 }
 
 /**
  * Formats outbound departure logistics narrative text dynamically matching transport mode:
  * - Flight: '...transferred to [Airport Name] (Flight [Number]) at [Time]...'
  * - Railway / Train: '...transferred to [Railway Station] (Train [Number]) at [Time]...'
- * - Bus: '...transferred to [Bus Stand/Location] (Bus [Details]) at [Time]...'
+ * - Bus: '...transferred to [Bus Station] (Bus [Details]) at [Time]...'
  */
 export function formatDepartureLogisticsNarrative(
   dep: DayDepartureDetails,
@@ -100,30 +127,48 @@ export function formatDepartureLogisticsNarrative(
     let stationName = city ? `${city} Railway Station` : 'the railway station';
     if (dep.dropLocation?.trim()) {
       const customLoc = dep.dropLocation.trim();
-      stationName = /station/i.test(customLoc) ? customLoc : `${customLoc} Railway Station`;
+      if (!/airport|terminal|bus/i.test(customLoc)) {
+        stationName = /station/i.test(customLoc) ? customLoc : `${customLoc} Railway Station`;
+      }
     }
     let trainDetails = '';
     if (dep.flightOrTrainNumber?.trim()) {
       const raw = dep.flightOrTrainNumber.trim();
-      const cleanNum = raw.replace(/^(train|flight|bus)\s*/i, '').trim();
-      trainDetails = cleanNum ? ` (Train ${cleanNum})` : ` (${raw})`;
+      const isFlightOrBus = /^(indigo|air\s*india|vistara|spicejet|akasa|emirates|qatar|etihad|flydubai|zingbus|intrcity|6e-|ai-|uk-|sg-|\b(6e|ai|uk|sg|qp|g8|ix)[- ]?\d+)/i.test(raw);
+      if (!isFlightOrBus) {
+        const cleanNum = raw.replace(/^(train|flight|bus)\s*/i, '').trim();
+        trainDetails = cleanNum ? ` (Train ${cleanNum})` : ` (${raw})`;
+      } else {
+        trainDetails = ' (Train 12002)';
+      }
+    } else {
+      trainDetails = ' (Train 12002)';
     }
     return `${prefix} ${stationName}${trainDetails}${timeStr} for your departure / drop-off and onward journey home with ${memories}`;
   }
 
   if (mode === 'bus') {
-    let busLocation = city ? `${city} Bus Stand` : 'the bus stand';
+    let busLocation = city ? `${city} Bus Station` : 'the bus station';
     if (dep.dropLocation?.trim()) {
       const customLoc = dep.dropLocation.trim();
-      busLocation = /(bus|stand|terminal|isbt)/i.test(customLoc) ? customLoc : `${customLoc} Bus Stand`;
+      if (!/airport|railway/i.test(customLoc)) {
+        busLocation = /(bus|station|stand|terminal|isbt)/i.test(customLoc) ? customLoc : `${customLoc} Bus Station`;
+      }
     } else if (dep.point === 'Bus Terminal') {
-      busLocation = city ? `${city} Bus Terminal` : 'the bus terminal';
+      busLocation = city ? `${city} Bus Station` : 'the bus station';
     }
     let busDetails = '';
     if (dep.flightOrTrainNumber?.trim()) {
       const raw = dep.flightOrTrainNumber.trim();
-      const cleanNum = raw.replace(/^(bus|flight|train)\s*/i, '').trim();
-      busDetails = cleanNum ? ` (Bus ${cleanNum})` : ` (${raw})`;
+      const isFlightOrTrain = /^(indigo|air\s*india|vistara|spicejet|akasa|emirates|qatar|etihad|flydubai|shatabdi|vande\s*bharat|rajdhani|6e-|ai-|uk-|sg-|12\d{3}|20\d{3}|\b(6e|ai|uk|sg|qp|g8|ix)[- ]?\d+)/i.test(raw);
+      if (!isFlightOrTrain) {
+        const cleanNum = raw.replace(/^(bus|flight|train)\s*/i, '').trim();
+        busDetails = cleanNum ? ` (Bus ${cleanNum})` : ` (${raw})`;
+      } else {
+        busDetails = ' (Bus DL-01-B-5678)';
+      }
+    } else {
+      busDetails = ' (Bus DL-01-B-5678)';
     }
     return `${prefix} ${busLocation}${busDetails}${timeStr} for your departure / drop-off and onward journey home with ${memories}`;
   }
@@ -132,20 +177,29 @@ export function formatDepartureLogisticsNarrative(
   let airportName = city ? `${city} Airport` : 'the airport';
   if (dep.dropLocation?.trim()) {
     const customLoc = dep.dropLocation.trim();
-    airportName = /airport/i.test(customLoc) ? customLoc : `${customLoc} Airport`;
+    if (!/station|railway|bus\s*(stand|terminal|station)/i.test(customLoc)) {
+      airportName = /airport/i.test(customLoc) ? customLoc : `${customLoc} Airport`;
+    }
   }
   let flightDetails = '';
   if (dep.flightOrTrainNumber?.trim()) {
     const raw = dep.flightOrTrainNumber.trim();
-    const cleanNum = raw.replace(/^(flight|train|bus)\s*/i, '').trim();
-    flightDetails = cleanNum ? ` (Flight ${cleanNum})` : ` (${raw})`;
+    const isTrainOrBus = /^(12\d{3}|20\d{3}|DL-|intrcity|zingbus|shatabdi|vande\s*bharat|rajdhani)/i.test(raw);
+    if (!isTrainOrBus) {
+      const cleanNum = raw.replace(/^(flight|train|bus)\s*/i, '').trim();
+      flightDetails = cleanNum ? ` (Flight ${cleanNum})` : ` (${raw})`;
+    } else {
+      flightDetails = ' (Flight AI-402)';
+    }
+  } else {
+    flightDetails = ' (Flight AI-402)';
   }
   return `${prefix} ${airportName}${flightDetails}${timeStr} for your departure / drop-off and onward journey home with ${memories}`;
 }
 
 /**
  * Dynamically synchronizes day description text when arrival logistics change.
- * Preserves custom sightseeing notes while updating the arrival bullet.
+ * Clears stale wording and replaces references to Flight/Airport, Train/Station, or Bus/Terminal immediately.
  */
 export function syncArrivalDescription(
   currentDescription: string,
@@ -157,7 +211,7 @@ export function syncArrivalDescription(
   if (!day.arrivalDetails?.enabled) {
     if (!currentDescription) return '';
     return currentDescription
-      .replace(/^[•\-*]?\s*(Welcome to|Upon arrival at|Meet and greet with)[^\n]+(\n|$)/im, '')
+      .replace(/^[•\-*]?\s*(Welcome to|Upon arrival|Upon arriving|Arrive at|Arrive in|Arrival at|Arrival in|Meet and greet with)[^\n]+(\n|$)/im, '')
       .replace(/\n\n+/g, '\n')
       .trim();
   }
@@ -169,9 +223,28 @@ export function syncArrivalDescription(
     return generateAutoDayDescription(day, dayIndex, totalDays, includeHotels);
   }
 
-  const arrivalRegex = /^[•\-*]?\s*(Welcome to|Upon arrival at|Meet and greet with)[^\n]+(\n|$)/im;
-  if (arrivalRegex.test(currentDescription)) {
-    return currentDescription.replace(arrivalRegex, newArrivalBullet + '\n').replace(/\n\n+/g, '\n').trim();
+  // 1. Any bulleted arrival line (starts with • / - / *)
+  const arrivalBulletRegex = /^[•\-*]\s*(Welcome to|Upon arrival|Upon arriving|Arrive at|Arrive in|Arrival at|Arrival in|Meet and greet with)[^\n]+(\n|$)/im;
+  if (arrivalBulletRegex.test(currentDescription)) {
+    return currentDescription.replace(arrivalBulletRegex, newArrivalBullet + '\n').replace(/\n\n+/g, '\n').trim();
+  }
+
+  // 2. Any bullet line explicitly referencing airport, railway station, train station, or bus station
+  const transportLineRegex = /^[•\-*]\s*[^.\n]*(airport|railway\s*station|train\s*station|bus\s*(station|terminal|stand)|flight\s*\d+|train\s*\d+)[^\n]*[.!?]?(\n|$)/im;
+  if (transportLineRegex.test(currentDescription)) {
+    return currentDescription.replace(transportLineRegex, newArrivalBullet + '\n').replace(/\n\n+/g, '\n').trim();
+  }
+
+  // 3. First sentence in an unbulleted paragraph describing arrival
+  const firstSentenceRegex = /^(Welcome to|Upon arrival|Upon arriving|Arrive at|Arrive in|Arrival at|Arrival in|Meet and greet)[^.!?]+[.!?]\s*/i;
+  if (firstSentenceRegex.test(currentDescription)) {
+    return currentDescription.replace(firstSentenceRegex, newArrivalBullet + '\n').replace(/\n\n+/g, '\n').trim();
+  }
+
+  // 4. Fallback: If line starts with "Welcome to" or "Upon arrival" without bullet
+  const looseArrivalRegex = /^(Welcome to|Upon arrival|Upon arriving|Arrive at|Arrive in|Arrival at|Arrival in|Meet and greet)[^\n]+(\n|$)/im;
+  if (looseArrivalRegex.test(currentDescription)) {
+    return currentDescription.replace(looseArrivalRegex, newArrivalBullet + '\n').replace(/\n\n+/g, '\n').trim();
   }
 
   return `${newArrivalBullet}\n${currentDescription.trim()}`;
@@ -179,7 +252,7 @@ export function syncArrivalDescription(
 
 /**
  * Dynamically synchronizes day description text when departure logistics change.
- * Preserves custom sightseeing notes while updating the departure bullet.
+ * Clears stale wording and replaces references to Flight/Airport, Train/Station, or Bus/Terminal immediately.
  */
 export function syncDepartureDescription(
   currentDescription: string,
@@ -191,7 +264,7 @@ export function syncDepartureDescription(
   if (!day.departureDetails?.enabled) {
     if (!currentDescription) return '';
     return currentDescription
-      .replace(/^[•\-*]?\s*(Later,\s+)?(you\s+will\s+be\s+transferred\s+to|transfer\s+to|you\s+will\s+be\s+assisted\s+with\s+drop-off|assisted\s+drop-off|transferred\s+to)[^\n]+(\n|$)/im, '')
+      .replace(/^[•\-*]?\s*(Later,\s+)?(you\s+will\s+be\s+transferred\s+to|transfer\s+to|you\s+will\s+be\s+assisted\s+with\s+drop-off|assisted\s+drop-off|transferred\s+to|drop-off\s+at)[^\n]+(\n|$)/im, '')
       .replace(/\n\n+/g, '\n')
       .trim();
   }
@@ -203,14 +276,28 @@ export function syncDepartureDescription(
     return generateAutoDayDescription(day, dayIndex, totalDays, includeHotels);
   }
 
-  const departureRegex = /^[•\-*]?\s*(Later,\s+)?(you\s+will\s+be\s+transferred\s+to|transfer\s+to|you\s+will\s+be\s+assisted\s+with\s+drop-off|assisted\s+drop-off|transferred\s+to)[^\n]+(\n|$)/im;
+  // 1. Existing departure bullet (starts with • / - / *)
+  const departureRegex = /^[•\-*]\s*(Later,\s+)?(you\s+will\s+be\s+transferred\s+to|transfer\s+to|you\s+will\s+be\s+assisted\s+with\s+drop-off|assisted\s+drop-off|transferred\s+to|drop-off\s+at|departure\s+transfer)[^\n]+(\n|$)/im;
   if (departureRegex.test(currentDescription)) {
     return currentDescription.replace(departureRegex, newDepartureBullet + '\n').replace(/\n\n+/g, '\n').trim();
   }
 
+  // 2. Line referencing departure transport (airport, railway station, train station, bus station)
+  const dropOffLineRegex = /\n?\s*•\s*[^\n]*(airport|railway\s*station|train\s*station|bus\s*(station|terminal|stand)|transferred to|drop-off at)[^\n]*[.!?]?(\n|$)/im;
+  if (dropOffLineRegex.test(currentDescription)) {
+    return currentDescription.replace(dropOffLineRegex, `\n${newDepartureBullet}\n`).replace(/\n\n+/g, '\n').trim();
+  }
+
+  // 3. Overnight stay line on departure day replaced
   const overnightRegex = /\n?\s*•?\s*Overnight\s+stay[^\n.]*\.?/i;
   if (overnightRegex.test(currentDescription)) {
     return currentDescription.replace(overnightRegex, `\n${newDepartureBullet}`);
+  }
+
+  // 4. Loose departure regex without bullet
+  const looseDepRegex = /^(Later,\s+)?(you\s+will\s+be\s+transferred\s+to|transfer\s+to|you\s+will\s+be\s+assisted\s+with\s+drop-off|assisted\s+drop-off|transferred\s+to|drop-off\s+at|departure\s+transfer)[^\n]+(\n|$)/im;
+  if (looseDepRegex.test(currentDescription)) {
+    return currentDescription.replace(looseDepRegex, newDepartureBullet + '\n').replace(/\n\n+/g, '\n').trim();
   }
 
   return `${currentDescription.trim()}\n${newDepartureBullet}`;
