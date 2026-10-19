@@ -401,8 +401,12 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     shortDescription: 'The Lake District of Kumaon centered around the emerald crescent-shaped Naini Lake.',
     detailedDescription: 'Picturesque hill retreat surrounded by seven lush peaks, featuring rowing boat rides on Naini Lake, the revered Naina Devi Temple, and snow-capped Himalayan vantage points.',
     recommendedDuration: '2–3 Days',
-    heroImage: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=1200&q=80',
-    gallery: []
+    heroImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Naini_Lake%2C_Nainital%2C_Uttarakhand%2C_India.jpg/1280px-Naini_Lake%2C_Nainital%2C_Uttarakhand%2C_India.jpg',
+    gallery: [
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg/1280px-Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg/1280px-Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/View_of_Nainital_from_Snow_View_Point.jpg/1280px-View_of_Nainital_from_Snow_View_Point.jpg'
+    ]
   },
   {
     id: 'badrinath',
@@ -2608,11 +2612,11 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     destinationName: 'Mussoorie',
     name: 'Kempty Falls Cascades',
     shortDescription: 'Famous tiered mountain waterfall cascading down 40 feet into a refreshing natural splash pool.',
-    detailedDescription: 'Iconic tourist landmark developed by British officer John Mekinan in the 1830s, surrounded by mountain ridges.',
+    detailedDescription: 'Iconic tourist landmark developed by British officer John Mekinan in the 1830s, surrounded by high mountain cliffs and lush Garhwal valleys.',
     duration: '2 Hours',
     category: 'Waterfall',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=800&q=80'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Kempty_Falls_Mussoorie_2.jpg/1280px-Kempty_Falls_Mussoorie_2.jpg'
   },
   {
     id: 'mussoorie-gun-hill',
@@ -2666,13 +2670,25 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'nainital-naini-lake',
     destinationId: 'nainital',
     destinationName: 'Nainital',
-    name: 'Naini Lake Boating & Naina Devi Temple',
-    shortDescription: 'Emerald crescent lake flanked by seven hills, home to the sacred Maa Naina Devi Shakti Peetha.',
+    name: 'Naini Lake Boating & Promenade',
+    shortDescription: 'Emerald crescent lake flanked by seven peaks with colorful traditional rowing boats.',
     detailedDescription: 'Iconic centerpiece of Nainital with traditional colorful rowing boats, paddle boats, and lakeside promenades.',
     duration: '2 Hours',
     category: 'Sacred Lake & Boating',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=800&q=80'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg/1280px-Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg'
+  },
+  {
+    id: 'nainital-naina-devi',
+    destinationId: 'nainital',
+    destinationName: 'Nainital',
+    name: 'Maa Naina Devi Temple & Sacred Ghat',
+    shortDescription: 'Ancient 51 Shakti Peetha shrine located on the northern shore of Naini Lake.',
+    detailedDescription: 'Revered Hindu temple where the eyes (Naina) of Goddess Sati are believed to have fallen, offering panoramic lake views and spiritual serenity.',
+    duration: '1.5 Hours',
+    category: 'Sacred Temple',
+    unesco: false,
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg/1280px-Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg'
   },
   {
     id: 'nainital-snow-view',
@@ -2684,7 +2700,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Himalayan Panorama',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=800&q=80'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/View_of_Nainital_from_Snow_View_Point.jpg/1280px-View_of_Nainital_from_Snow_View_Point.jpg'
   },
   {
     id: 'nainital-tiffin-top',
@@ -2696,19 +2712,19 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Hilltop Viewpoint',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Tiffin-top_Nainital.jpg/1280px-Tiffin-top_Nainital.jpg'
   },
   {
     id: 'nainital-eco-cave',
     destinationId: 'nainital',
     destinationName: 'Nainital',
-    name: 'Eco Cave Gardens & Musical Fountain',
+    name: 'Eco Cave Gardens & Nature Park',
     shortDescription: 'Network of six interconnected natural rocky caves shaped like Himalayan animal habitats.',
     detailedDescription: 'Thrilling crawl-through cave system featuring Tiger Cave, Panther Cave, and Bat Cave with hanging gardens.',
     duration: '1.5 Hours',
     category: 'Adventure Garden',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Cave_park%2C_Nainital_2.jpg/1280px-Cave_park%2C_Nainital_2.jpg'
   },
   {
     id: 'nainital-mall-road',
@@ -2720,7 +2736,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Promenade & Shopping',
     unesco: false,
-    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Nainital%2C_Mall_Road.jpg/1280px-Nainital%2C_Mall_Road.jpg'
   },
   {
     id: 'badrinath-temple',
@@ -4978,6 +4994,32 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'jhalana leopard safari': 'https://upload.wikimedia.org/wikipedia/commons/3/33/Indian_leopard_in_Jawai_Bandh_April_2025_by_Tisha_Mukherjee_02.jpg',
   'jhalana safari': 'https://upload.wikimedia.org/wikipedia/commons/3/33/Indian_leopard_in_Jawai_Bandh_April_2025_by_Tisha_Mukherjee_02.jpg',
   'jhalana': 'https://upload.wikimedia.org/wikipedia/commons/3/33/Indian_leopard_in_Jawai_Bandh_April_2025_by_Tisha_Mukherjee_02.jpg',
+
+  // Mussoorie - Kempty Falls
+  'mussoorie-kempty-falls': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Kempty_Falls_Mussoorie_2.jpg/1280px-Kempty_Falls_Mussoorie_2.jpg',
+  'kempty falls': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Kempty_Falls_Mussoorie_2.jpg/1280px-Kempty_Falls_Mussoorie_2.jpg',
+  'kempty falls cascades': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Kempty_Falls_Mussoorie_2.jpg/1280px-Kempty_Falls_Mussoorie_2.jpg',
+
+  // Nainital
+  'nainital-naini-lake': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg/1280px-Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg',
+  'naini lake': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg/1280px-Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg',
+  'naini lake boating & promenade': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg/1280px-Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg',
+  'nainital-naina-devi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg/1280px-Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg',
+  'naina devi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg/1280px-Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg',
+  'naina devi temple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg/1280px-Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg',
+  'maa naina devi temple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg/1280px-Maa_Naina_Devi_Temple%2C_Nainital%2C_Uttarakhand%2C_India.jpg',
+  'nainital-snow-view': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/View_of_Nainital_from_Snow_View_Point.jpg/1280px-View_of_Nainital_from_Snow_View_Point.jpg',
+  'snow view': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/View_of_Nainital_from_Snow_View_Point.jpg/1280px-View_of_Nainital_from_Snow_View_Point.jpg',
+  'snow view point': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/View_of_Nainital_from_Snow_View_Point.jpg/1280px-View_of_Nainital_from_Snow_View_Point.jpg',
+  'snow view point aerial ropeway': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/View_of_Nainital_from_Snow_View_Point.jpg/1280px-View_of_Nainital_from_Snow_View_Point.jpg',
+  'nainital-tiffin-top': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Tiffin-top_Nainital.jpg/1280px-Tiffin-top_Nainital.jpg',
+  'tiffin top': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Tiffin-top_Nainital.jpg/1280px-Tiffin-top_Nainital.jpg',
+  "dorothy's seat": 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Tiffin-top_Nainital.jpg/1280px-Tiffin-top_Nainital.jpg',
+  'nainital-eco-cave': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Cave_park%2C_Nainital_2.jpg/1280px-Cave_park%2C_Nainital_2.jpg',
+  'eco cave': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Cave_park%2C_Nainital_2.jpg/1280px-Cave_park%2C_Nainital_2.jpg',
+  'eco cave gardens': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Cave_park%2C_Nainital_2.jpg/1280px-Cave_park%2C_Nainital_2.jpg',
+  'nainital-mall-road': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Nainital%2C_Mall_Road.jpg/1280px-Nainital%2C_Mall_Road.jpg',
+  'mall road nainital': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Nainital%2C_Mall_Road.jpg/1280px-Nainital%2C_Mall_Road.jpg',
 };
 
 export function getAttractionImage(attractionNameOrId: string, defaultImage?: string): string {

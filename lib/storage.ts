@@ -16,8 +16,8 @@ import { getAttractionImage } from './catalog-data';
 const STORAGE_KEYS = {
   SETTINGS: 'lobo_settings_v1',
   VEHICLES: 'lobo_vehicles_v1',
-  DESTINATIONS: 'lobo_destinations_v8',
-  ATTRACTIONS: 'lobo_attractions_v12',
+  DESTINATIONS: 'lobo_destinations_v9',
+  ATTRACTIONS: 'lobo_attractions_v13',
   HOTELS: 'lobo_hotels_v1',
   ITINERARIES: 'lobo_itineraries_v3',
   NEXT_REF: 'lobo_next_ref_v1',
