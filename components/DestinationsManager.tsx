@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MapPin, 
   Plus, 
@@ -64,6 +64,27 @@ export default function DestinationsManager({
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  useEffect(() => {
+    if (destinations.length > 0 && !destinations.some(d => d.id === selectedDestinationId)) {
+      setSelectedDestinationId(destinations[0].id);
+    }
+  }, [destinations, selectedDestinationId]);
+
+  const handleDeleteDestination = (dest: Destination) => {
+    if (confirm(`Delete destination "${dest.name}" and all its sights/attractions? This action cannot be undone.`)) {
+      try {
+        const remaining = destinations.filter(d => d.id !== dest.id);
+        if (selectedDestinationId === dest.id) {
+          setSelectedDestinationId(remaining[0]?.id || '');
+        }
+        onDeleteDestination(dest.id);
+        showToast(`Deleted "${dest.name}" successfully`);
+      } catch (err: any) {
+        alert(`Could not delete destination: ${err?.message || 'Unknown error'}`);
+      }
+    }
   };
 
   const handleOpenEditDestination = (dest: Destination) => {
@@ -304,11 +325,26 @@ export default function DestinationsManager({
                     </div>
                   </div>
 
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    isSelected ? 'bg-[#26214F] text-amber-200' : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {count} sights
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      isSelected ? 'bg-[#26214F] text-amber-200' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {count} sights
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteDestination(dest);
+                      }}
+                      className={`p-1 rounded-md opacity-60 hover:opacity-100 transition ${
+                        isSelected ? 'hover:bg-rose-900/60 text-rose-300' : 'hover:bg-rose-100 text-slate-400 hover:text-rose-600'
+                      }`}
+                      title={`Delete ${dest.name}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -338,12 +374,7 @@ export default function DestinationsManager({
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (confirm(`Delete destination "${activeDestination.name}" and all its attractions from Neon Postgres?`)) {
-                        onDeleteDestination(activeDestination.id);
-                        showToast(`Deleted "${activeDestination.name}" from Neon Postgres`);
-                      }
-                    }}
+                    onClick={() => handleDeleteDestination(activeDestination)}
                     className="p-1.5 rounded-lg bg-rose-600/50 hover:bg-rose-600/80 backdrop-blur-md text-rose-100 border border-rose-400/30 text-xs font-semibold transition shadow-xs"
                     title="Delete Destination"
                   >
@@ -413,7 +444,10 @@ export default function DestinationsManager({
                                 type="button"
                                 title="Delete"
                                 onClick={() => {
-                                  if (confirm(`Delete ${att.name}?`)) onDeleteAttraction(att.id);
+                                  if (confirm(`Delete ${att.name}?`)) {
+                                    onDeleteAttraction(att.id);
+                                    showToast(`Deleted sight "${att.name}"`);
+                                  }
                                 }}
                                 className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                               >
@@ -654,24 +688,45 @@ export default function DestinationsManager({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAddAttractionModalOpen(false);
-                  setEditingAttraction(null);
-                }}
-                className="px-3.5 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveAttraction}
-                className="px-4 py-1.5 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg"
-              >
-                Save to Neon Postgres
-              </button>
+            <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
+              {editingAttraction?.id ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const idToDelete = editingAttraction.id!;
+                    const nameToDelete = editingAttraction.name || 'this sight';
+                    if (confirm(`Are you sure you want to delete sight "${nameToDelete}"?`)) {
+                      onDeleteAttraction(idToDelete);
+                      setIsAddAttractionModalOpen(false);
+                      setEditingAttraction(null);
+                      showToast(`Deleted sight "${nameToDelete}"`);
+                    }
+                  }}
+                  className="px-3 py-1.5 text-rose-600 hover:bg-rose-50 rounded-lg font-medium flex items-center gap-1.5 transition text-xs"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Sight</span>
+                </button>
+              ) : <div />}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddAttractionModalOpen(false);
+                    setEditingAttraction(null);
+                  }}
+                  className="px-3.5 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveAttraction}
+                  className="px-4 py-1.5 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg"
+                >
+                  Save to Neon Postgres
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -777,24 +832,41 @@ export default function DestinationsManager({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsEditDestModalOpen(false);
-                  setEditingDestination(null);
-                }}
-                className="px-3.5 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveEditedDestination}
-                className="px-4 py-1.5 font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg shadow-sm transition"
-              >
-                Save to Neon Postgres
-              </button>
+            <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
+              {editingDestination?.id ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = destinations.find(d => d.id === editingDestination.id) || (editingDestination as Destination);
+                    setIsEditDestModalOpen(false);
+                    setEditingDestination(null);
+                    handleDeleteDestination(target);
+                  }}
+                  className="px-3 py-1.5 text-rose-600 hover:bg-rose-50 rounded-lg font-medium flex items-center gap-1.5 transition text-xs"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Destination</span>
+                </button>
+              ) : <div />}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditDestModalOpen(false);
+                    setEditingDestination(null);
+                  }}
+                  className="px-3.5 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEditedDestination}
+                  className="px-4 py-1.5 font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg shadow-sm transition"
+                >
+                  Save to Neon Postgres
+                </button>
+              </div>
             </div>
           </div>
         </div>

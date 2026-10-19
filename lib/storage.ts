@@ -24,7 +24,53 @@ const STORAGE_KEYS = {
   FLEET: 'lobo_fleet_v1',
   DRIVERS: 'lobo_drivers_v1',
   BOOKINGS: 'lobo_bookings_v1',
+  DELETED_DESTS: 'lobo_deleted_destinations_v1',
+  DELETED_ATTS: 'lobo_deleted_attractions_v1',
 };
+
+export function getDeletedDestinations(): Set<string> {
+  const list = getStorageItem<string[]>(STORAGE_KEYS.DELETED_DESTS, []);
+  return new Set(Array.isArray(list) ? list.map(s => s.toLowerCase().trim()) : []);
+}
+
+export function recordDeletedDestination(id: string): void {
+  const set = getDeletedDestinations();
+  set.add(id.toLowerCase().trim());
+  try {
+    localStorage.setItem(STORAGE_KEYS.DELETED_DESTS, JSON.stringify(Array.from(set)));
+  } catch (_) {}
+}
+
+export function unrecordDeletedDestination(id: string): void {
+  const set = getDeletedDestinations();
+  if (set.delete(id.toLowerCase().trim())) {
+    try {
+      localStorage.setItem(STORAGE_KEYS.DELETED_DESTS, JSON.stringify(Array.from(set)));
+    } catch (_) {}
+  }
+}
+
+export function getDeletedAttractions(): Set<string> {
+  const list = getStorageItem<string[]>(STORAGE_KEYS.DELETED_ATTS, []);
+  return new Set(Array.isArray(list) ? list.map(s => s.toLowerCase().trim()) : []);
+}
+
+export function recordDeletedAttraction(id: string): void {
+  const set = getDeletedAttractions();
+  set.add(id.toLowerCase().trim());
+  try {
+    localStorage.setItem(STORAGE_KEYS.DELETED_ATTS, JSON.stringify(Array.from(set)));
+  } catch (_) {}
+}
+
+export function unrecordDeletedAttraction(id: string): void {
+  const set = getDeletedAttractions();
+  if (set.delete(id.toLowerCase().trim())) {
+    try {
+      localStorage.setItem(STORAGE_KEYS.DELETED_ATTS, JSON.stringify(Array.from(set)));
+    } catch (_) {}
+  }
+}
 
 // In-memory cache for synchronous snapshots
 let isInitialized = false;
@@ -139,10 +185,18 @@ function refreshAllCaches(): void {
 
     // Auto-merge newly loaded destinations catalog
     const storedDests = getStorageItem<Destination[]>(STORAGE_KEYS.DESTINATIONS, []);
+    const deletedDests = getDeletedDestinations();
     const destMap = new Map<string, Destination>();
-    // 1. Initial canonical destinations as baseline
-    INITIAL_DESTINATIONS.forEach(d => destMap.set(d.id.toLowerCase(), d));
-    // 2. User edits and custom destinations take precedence
+
+    // 1. Initial canonical destinations as baseline (excluding deleted and standalone kempty-falls)
+    INITIAL_DESTINATIONS.forEach(d => {
+      const lowerId = d.id.toLowerCase();
+      if (!deletedDests.has(lowerId) && lowerId !== 'kempty-falls') {
+        destMap.set(lowerId, d);
+      }
+    });
+
+    // 2. User edits and custom destinations take precedence (excluding deleted and standalone kempty-falls)
     if (Array.isArray(storedDests)) {
       storedDests.forEach(d => {
         const lowerName = (d.name || '').toLowerCase();
@@ -150,22 +204,21 @@ function refreshAllCaches(): void {
         if ((lowerName.includes('dalhousie') && lowerName.includes('mcleodganj')) || lowerId === 'dalhousie-mcleodganj') {
           return; // Remove obsolete combined entry
         }
-        destMap.set(d.id.toLowerCase(), d);
+        if (deletedDests.has(lowerId) || lowerId === 'kempty-falls' || lowerName === 'kempty falls') {
+          return; // Strictly exclude deleted or duplicate kempty-falls destination
+        }
+        destMap.set(lowerId, d);
       });
     }
-    // Ensure Kempty Falls destination is updated with the canonical Dreamstime photo
-    const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
-    const kemptyD = destMap.get('kempty-falls');
-    if (kemptyD) {
-      kemptyD.heroImage = kemptyFallsUrl;
-      kemptyD.gallery = [kemptyFallsUrl];
-    } else {
-      const canonicalKempty = INITIAL_DESTINATIONS.find(d => d.id === 'kempty-falls');
-      if (canonicalKempty) destMap.set('kempty-falls', canonicalKempty);
-    }
+
+    // Strictly ensure kempty-falls standalone destination is purged
+    destMap.delete('kempty-falls');
+
+    // Ensure Mussoorie gallery has the clean high-resolution photo
+    const kemptyCleanUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg';
     const mussoorieD = destMap.get('mussoorie');
     if (mussoorieD && (!mussoorieD.gallery || mussoorieD.gallery.length === 0)) {
-      mussoorieD.gallery = [kemptyFallsUrl];
+      mussoorieD.gallery = [kemptyCleanUrl];
     }
     destinationsCache = Array.from(destMap.values());
     try {
@@ -174,25 +227,45 @@ function refreshAllCaches(): void {
 
     // Auto-merge newly loaded attractions catalog
     const storedAtts = getStorageItem<Attraction[]>(STORAGE_KEYS.ATTRACTIONS, []);
+    const deletedAtts = getDeletedAttractions();
     const attMap = new Map<string, Attraction>();
-    // 1. Initial canonical attractions as baseline
+
+    // 1. Initial canonical attractions as baseline (excluding deleted)
     INITIAL_ATTRACTIONS.forEach(a => {
-      const overrideImg = getAttractionImage(a.name, a.image) || getAttractionImage(a.id, a.image);
-      attMap.set(a.id.toLowerCase(), { ...a, image: overrideImg || a.image });
+      const lowerId = a.id.toLowerCase();
+      if (!deletedAtts.has(lowerId)) {
+        const overrideImg = getAttractionImage(a.name, a.image) || getAttractionImage(a.id, a.image);
+        attMap.set(lowerId, { ...a, image: overrideImg || a.image });
+      }
     });
-    // 2. User edits and custom attractions take precedence
+
+    // 2. User edits and custom attractions take precedence (excluding deleted)
     if (Array.isArray(storedAtts)) {
       storedAtts.forEach(a => {
-        attMap.set(a.id.toLowerCase(), a);
+        const lowerId = a.id.toLowerCase();
+        if (!deletedAtts.has(lowerId)) {
+          attMap.set(lowerId, a);
+        }
       });
     }
-    // 3. Re-apply canonical attraction overrides so image corrections (like Kempty Falls) always take effect
+
+    // 3. Re-apply canonical attraction overrides so image corrections (like Kempty Falls under Mussoorie) always take effect
     attMap.forEach((att, key) => {
       const overrideImg = getAttractionImage(att.name, att.image) || getAttractionImage(att.id, att.image);
       if (overrideImg && overrideImg !== att.image) {
         attMap.set(key, { ...att, image: overrideImg });
       }
     });
+
+    // Ensure Kempty Falls is correctly mapped under Mussoorie
+    const kemptyAtt = attMap.get('mussoorie-kempty-falls');
+    if (kemptyAtt) {
+      kemptyAtt.destinationId = 'mussoorie';
+      kemptyAtt.destinationName = 'Mussoorie';
+      kemptyAtt.name = 'Kempty Falls';
+      kemptyAtt.image = kemptyCleanUrl;
+    }
+
     attractionsCache = Array.from(attMap.values());
     try {
       localStorage.setItem(STORAGE_KEYS.ATTRACTIONS, JSON.stringify(attractionsCache));
@@ -365,6 +438,7 @@ export function getDestinations(): Destination[] {
 }
 
 export function saveDestination(destination: Destination): void {
+  unrecordDeletedDestination(destination.id);
   const current = getDestinations();
   const index = current.findIndex(d => d.id.toLowerCase() === destination.id.toLowerCase());
   let updated: Destination[];
@@ -386,7 +460,20 @@ export function saveDestination(destination: Destination): void {
 
 export function deleteDestination(id: string): void {
   const current = getDestinations();
-  setStorageItem(STORAGE_KEYS.DESTINATIONS, current.filter(d => d.id.toLowerCase() !== id.toLowerCase()));
+  const lowerId = id.toLowerCase().trim();
+
+  // Record tombstone so refreshAllCaches does not resurrect deleted destination
+  recordDeletedDestination(lowerId);
+
+  // Remove from destinations
+  const updatedDests = current.filter(d => d.id.toLowerCase() !== lowerId && d.name.toLowerCase() !== lowerId);
+  setStorageItem(STORAGE_KEYS.DESTINATIONS, updatedDests);
+
+  // Cascade delete any attractions belonging to this destination locally
+  const currentAtts = getAttractions();
+  const updatedAtts = currentAtts.filter(a => a.destinationId?.toLowerCase() !== lowerId && a.destinationName?.toLowerCase() !== lowerId);
+  setStorageItem(STORAGE_KEYS.ATTRACTIONS, updatedAtts);
+
   if (typeof window !== 'undefined') {
     fetch(`/api/destinations?id=${encodeURIComponent(id)}&type=destination`, {
       method: 'DELETE'
@@ -400,6 +487,7 @@ export function getAttractions(): Attraction[] {
 }
 
 export function saveAttraction(attraction: Attraction): void {
+  unrecordDeletedAttraction(attraction.id);
   const current = getAttractions();
   const index = current.findIndex(a => a.id.toLowerCase() === attraction.id.toLowerCase());
   let updated: Attraction[];
@@ -421,7 +509,14 @@ export function saveAttraction(attraction: Attraction): void {
 
 export function deleteAttraction(id: string): void {
   const current = getAttractions();
-  setStorageItem(STORAGE_KEYS.ATTRACTIONS, current.filter(a => a.id.toLowerCase() !== id.toLowerCase()));
+  const lowerId = id.toLowerCase().trim();
+
+  // Record tombstone so refreshAllCaches does not resurrect deleted attraction
+  recordDeletedAttraction(lowerId);
+
+  const updated = current.filter(a => a.id.toLowerCase() !== lowerId && a.name.toLowerCase() !== lowerId);
+  setStorageItem(STORAGE_KEYS.ATTRACTIONS, updated);
+
   if (typeof window !== 'undefined') {
     fetch(`/api/destinations?id=${encodeURIComponent(id)}&type=attraction`, {
       method: 'DELETE'
@@ -480,30 +575,49 @@ export async function syncFromCloudDatabase(): Promise<boolean> {
     let hasUpdates = false;
 
     if (destRes?.success) {
-      const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
+      const deletedDests = getDeletedDestinations();
+      const deletedAtts = getDeletedAttractions();
+      const kemptyCleanUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg';
+
       if (Array.isArray(destRes.destinations) && destRes.destinations.length > 0) {
-        destRes.destinations.forEach((d: Destination) => {
-          if (d.id === 'kempty-falls' || (d.name && d.name.toLowerCase() === 'kempty falls')) {
-            d.heroImage = kemptyFallsUrl;
-            d.gallery = [kemptyFallsUrl];
-          } else if (d.id === 'mussoorie') {
-            if (!d.gallery || d.gallery.length === 0) {
-              d.gallery = [kemptyFallsUrl];
+        const filteredDests = destRes.destinations
+          .filter((d: Destination) => {
+            const lowerId = (d.id || '').toLowerCase();
+            const lowerName = (d.name || '').toLowerCase();
+            return !deletedDests.has(lowerId) && lowerId !== 'kempty-falls' && lowerName !== 'kempty falls';
+          })
+          .map((d: Destination) => {
+            if (d.id === 'mussoorie' && (!d.gallery || d.gallery.length === 0)) {
+              return { ...d, gallery: [kemptyCleanUrl] };
             }
-          }
-        });
-        destinationsCache = destRes.destinations;
-        localStorage.setItem(STORAGE_KEYS.DESTINATIONS, JSON.stringify(destRes.destinations));
+            return d;
+          });
+
+        destinationsCache = filteredDests;
+        localStorage.setItem(STORAGE_KEYS.DESTINATIONS, JSON.stringify(filteredDests));
         hasUpdates = true;
       }
       if (Array.isArray(destRes.attractions) && destRes.attractions.length > 0) {
-        destRes.attractions.forEach((a: Attraction) => {
-          if (a.id === 'mussoorie-kempty-falls' || a.id === 'kempty-falls' || (a.name && a.name.toLowerCase() === 'kempty falls') || (a.name && a.name.toLowerCase() === 'kempty falls cascades')) {
-            a.image = kemptyFallsUrl;
-          }
-        });
-        attractionsCache = destRes.attractions;
-        localStorage.setItem(STORAGE_KEYS.ATTRACTIONS, JSON.stringify(destRes.attractions));
+        const filteredAtts = destRes.attractions
+          .filter((a: Attraction) => {
+            const lowerId = (a.id || '').toLowerCase();
+            return !deletedAtts.has(lowerId);
+          })
+          .map((a: Attraction) => {
+            if (a.id === 'mussoorie-kempty-falls' || (a.name && (a.name.toLowerCase() === 'kempty falls' || a.name.toLowerCase() === 'kempty falls cascades'))) {
+              return {
+                ...a,
+                destinationId: 'mussoorie',
+                destinationName: 'Mussoorie',
+                name: 'Kempty Falls',
+                image: kemptyCleanUrl
+              };
+            }
+            return a;
+          });
+
+        attractionsCache = filteredAtts;
+        localStorage.setItem(STORAGE_KEYS.ATTRACTIONS, JSON.stringify(filteredAtts));
         hasUpdates = true;
       }
     }

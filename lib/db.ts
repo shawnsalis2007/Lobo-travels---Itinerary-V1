@@ -76,25 +76,22 @@ function readLocalStore(): LocalStoreData {
     if (fs.existsSync(LOCAL_DATA_FILE)) {
       const raw = fs.readFileSync(LOCAL_DATA_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object') {
-        const dests: Destination[] = Array.isArray(parsed.destinations) ? parsed.destinations : INITIAL_DESTINATIONS;
-        const atts: Attraction[] = Array.isArray(parsed.attractions) ? parsed.attractions : getSeededAttractions();
-        const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
-        const kIdx = dests.findIndex(d => d.id === 'kempty-falls' || (d.name && d.name.toLowerCase() === 'kempty falls'));
-        if (kIdx >= 0) {
-          dests[kIdx].heroImage = kemptyFallsUrl;
-          dests[kIdx].gallery = [kemptyFallsUrl];
-        } else {
-          const canonical = INITIAL_DESTINATIONS.find(d => d.id === 'kempty-falls');
-          if (canonical) dests.push(canonical);
-        }
-        const mIdx = dests.findIndex(d => d.id === 'mussoorie');
+        // Strictly filter out any standalone kempty-falls destination entry
+        const rawDests: Destination[] = Array.isArray(parsed.destinations) ? parsed.destinations : INITIAL_DESTINATIONS;
+        const dests: Destination[] = rawDests.filter((d: Destination) => d.id !== 'kempty-falls' && (d.name || '').toLowerCase() !== 'kempty falls');
+        const atts: Attraction[] = Array.isArray(parsed.attractions) ? (parsed.attractions as Attraction[]) : getSeededAttractions();
+        const kemptyAttUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg';
+        
+        const mIdx = dests.findIndex((d: Destination) => d.id === 'mussoorie');
         if (mIdx >= 0 && (!dests[mIdx].gallery || dests[mIdx].gallery.length === 0)) {
-          dests[mIdx].gallery = [kemptyFallsUrl];
+          dests[mIdx].gallery = [kemptyAttUrl];
         }
-        atts.forEach(a => {
-          if (a.id === 'mussoorie-kempty-falls' || a.id === 'kempty-falls' || (a.name && a.name.toLowerCase() === 'kempty falls')) {
-            a.image = kemptyFallsUrl;
+        atts.forEach((a: Attraction) => {
+          if (a.id === 'mussoorie-kempty-falls' || (a.name && (a.name.toLowerCase() === 'kempty falls' || a.name.toLowerCase() === 'kempty falls cascades'))) {
+            a.destinationId = 'mussoorie';
+            a.destinationName = 'Mussoorie';
+            a.name = 'Kempty Falls';
+            a.image = kemptyAttUrl;
           }
         });
         return {
@@ -104,8 +101,7 @@ function readLocalStore(): LocalStoreData {
           settings: parsed.settings ? { ...DEFAULT_SETTINGS, ...parsed.settings } : DEFAULT_SETTINGS
         };
       }
-    }
-  } catch (err) {
+    } catch (err) {
     console.warn('[DB] Could not read local file store, initializing defaults:', err);
   }
 
@@ -392,90 +388,34 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       `;
     }
 
-    // Ensure Kempty Falls destination and attraction have the canonical Dreamstime photo in Neon Postgres
-    const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
-    const kemptyDest = INITIAL_DESTINATIONS.find(d => d.id === 'kempty-falls') || {
-      id: 'kempty-falls',
-      name: 'Kempty Falls',
-      state: 'Uttarakhand',
-      country: 'India',
-      shortDescription: 'Famous tiered mountain waterfall and premier tourist destination near Mussoorie.',
-      detailedDescription: 'Iconic tourist landmark developed in the 1830s cascading down 40 feet into a refreshing natural mountain pool, surrounded by high Himalayan cliffs and lush Garhwal valleys.',
-      recommendedDuration: '1 Day',
-      heroImage: kemptyFallsUrl,
-      gallery: [kemptyFallsUrl]
-    };
-
+    // 1. Permanently remove any duplicate standalone Kempty Falls destination from Neon Postgres
+    const kemptyCleanUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg';
     try {
-      const kemptyJson = JSON.stringify(kemptyDest);
-      const kemptyGalleryJson = JSON.stringify([kemptyFallsUrl]);
+      await sql`DELETE FROM destinations WHERE id = 'kempty-falls' OR lower(name) = 'kempty falls';`;
 
-      // 1. Insert or update kempty-falls directly in destinations table
-      await sql`
-        INSERT INTO destinations (id, name, state, country, short_description, detailed_description, recommended_duration, hero_image, gallery, data, updated_at)
-        VALUES (
-          'kempty-falls',
-          ${kemptyDest.name},
-          ${kemptyDest.state || 'Uttarakhand'},
-          ${kemptyDest.country || 'India'},
-          ${kemptyDest.shortDescription || ''},
-          ${kemptyDest.detailedDescription || ''},
-          ${kemptyDest.recommendedDuration || '1 Day'},
-          ${kemptyFallsUrl},
-          ${kemptyGalleryJson},
-          ${kemptyJson},
-          NOW()
-        )
-        ON CONFLICT (id) DO UPDATE SET
-          name = EXCLUDED.name,
-          state = EXCLUDED.state,
-          country = EXCLUDED.country,
-          short_description = EXCLUDED.short_description,
-          detailed_description = EXCLUDED.detailed_description,
-          recommended_duration = EXCLUDED.recommended_duration,
-          hero_image = ${kemptyFallsUrl},
-          gallery = ${kemptyGalleryJson},
-          data = ${kemptyJson},
-          updated_at = NOW();
-      `;
-
-      // 2. Also update any existing destination record where id or name matches Kempty Falls
+      // 2. Ensure Mussoorie gallery in destinations table uses clean high-resolution image
+      const mussoorieGalleryJson = JSON.stringify([kemptyCleanUrl]);
       await sql`
         UPDATE destinations
         SET 
-          hero_image = ${kemptyFallsUrl},
-          gallery = ${kemptyGalleryJson},
-          data = jsonb_set(
-            jsonb_set(data, '{heroImage}', to_jsonb(${kemptyFallsUrl}::text)),
-            '{gallery}',
-            ${kemptyGalleryJson}::jsonb
-          ),
-          updated_at = NOW()
-        WHERE id = 'kempty-falls' OR lower(name) = 'kempty falls';
-      `;
-
-      // 3. Update Mussoorie gallery in destinations table to include Kempty Falls photo
-      await sql`
-        UPDATE destinations
-        SET 
-          gallery = ${kemptyGalleryJson},
-          data = jsonb_set(data, '{gallery}', ${kemptyGalleryJson}::jsonb),
+          gallery = ${mussoorieGalleryJson},
+          data = jsonb_set(data, '{gallery}', ${mussoorieGalleryJson}::jsonb),
           updated_at = NOW()
         WHERE id = 'mussoorie';
       `;
 
-      // 4. Update attractions table for Kempty Falls
-      const kemptyAtt = getSeededAttractions().find(a => a.id === 'mussoorie-kempty-falls') || {
+      // 3. Re-add Kempty Falls strictly as an attraction underneath Mussoorie
+      const kemptyAtt = {
         id: 'mussoorie-kempty-falls',
         destinationId: 'mussoorie',
         destinationName: 'Mussoorie',
-        name: 'Kempty Falls Cascades',
-        shortDescription: 'Famous tiered mountain waterfall and premier tourist destination near Mussoorie.',
-        detailedDescription: 'Cascades down 40 feet into a refreshing natural mountain pool, developed in the 1830s by British officer John Mekinnan.',
+        name: 'Kempty Falls',
+        shortDescription: 'Famous tiered mountain waterfall cascading down 40 feet into a refreshing natural splash pool.',
+        detailedDescription: 'Iconic tourist landmark developed by British officer John Mekinan in the 1830s, surrounded by high mountain cliffs and lush Garhwal valleys near Mussoorie.',
         duration: '2 Hours',
         category: 'Waterfall',
         unesco: false,
-        image: kemptyFallsUrl
+        image: kemptyCleanUrl
       };
       const kemptyAttJson = JSON.stringify(kemptyAtt);
 
@@ -485,32 +425,50 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
           'mussoorie-kempty-falls',
           'mussoorie',
           'Mussoorie',
-          'Kempty Falls Cascades',
-          ${kemptyAtt.shortDescription || ''},
-          ${kemptyAtt.detailedDescription || ''},
-          ${kemptyAtt.duration || '2 Hours'},
-          ${kemptyAtt.category || 'Waterfall'},
+          'Kempty Falls',
+          ${kemptyAtt.shortDescription},
+          ${kemptyAtt.detailedDescription},
+          ${kemptyAtt.duration},
+          ${kemptyAtt.category},
           false,
-          ${kemptyFallsUrl},
+          ${kemptyCleanUrl},
           ${kemptyAttJson},
           NOW()
         )
         ON CONFLICT (id) DO UPDATE SET
-          image = ${kemptyFallsUrl},
-          data = jsonb_set(data, '{image}', to_jsonb(${kemptyFallsUrl}::text)),
+          destination_id = 'mussoorie',
+          destination_name = 'Mussoorie',
+          name = EXCLUDED.name,
+          short_description = EXCLUDED.short_description,
+          detailed_description = EXCLUDED.detailed_description,
+          duration = EXCLUDED.duration,
+          category = EXCLUDED.category,
+          image = ${kemptyCleanUrl},
+          data = ${kemptyAttJson},
           updated_at = NOW();
       `;
 
       await sql`
         UPDATE attractions
         SET 
-          image = ${kemptyFallsUrl},
-          data = jsonb_set(data, '{image}', to_jsonb(${kemptyFallsUrl}::text)),
+          destination_id = 'mussoorie',
+          destination_name = 'Mussoorie',
+          name = 'Kempty Falls',
+          image = ${kemptyCleanUrl},
+          data = jsonb_set(
+            jsonb_set(
+              jsonb_set(data, '{image}', to_jsonb(${kemptyCleanUrl}::text)),
+              '{destinationId}',
+              '"mussoorie"'::jsonb
+            ),
+            '{destinationName}',
+            '"Mussoorie"'::jsonb
+          ),
           updated_at = NOW()
         WHERE id IN ('mussoorie-kempty-falls', 'kempty-falls') OR lower(name) = 'kempty falls' OR lower(name) = 'kempty falls cascades';
       `;
     } catch (kemptyErr) {
-      console.warn('[Neon Postgres] Sync Kempty Falls Dreamstime photo warning:', kemptyErr);
+      console.warn('[Neon Postgres] Sync Kempty Falls attraction warning:', kemptyErr);
     }
 
     isPostgresInitialized = true;
@@ -580,17 +538,16 @@ export async function getDbDestinations(): Promise<Destination[]> {
       await ensurePostgresTables();
       const sql = await getPostgresClient();
       if (sql) {
-        const rows = await sql`SELECT data FROM destinations ORDER BY name ASC`;
+        const rows = await sql`SELECT data FROM destinations WHERE id != 'kempty-falls' AND lower(name) != 'kempty falls' ORDER BY name ASC`;
         if (rows.length > 0) {
-          const list = rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
-          const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
+          const list = rows
+            .map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data)
+            .filter((d: Destination) => d.id !== 'kempty-falls' && (d.name || '').toLowerCase() !== 'kempty falls');
+          const kemptyCleanUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg';
           list.forEach((d: Destination) => {
-            if (d.id === 'kempty-falls' || (d.name && d.name.toLowerCase() === 'kempty falls')) {
-              d.heroImage = kemptyFallsUrl;
-              d.gallery = [kemptyFallsUrl];
-            } else if (d.id === 'mussoorie') {
+            if (d.id === 'mussoorie') {
               if (!d.gallery || d.gallery.length === 0) {
-                d.gallery = [kemptyFallsUrl];
+                d.gallery = [kemptyCleanUrl];
               }
             }
           });
@@ -603,17 +560,20 @@ export async function getDbDestinations(): Promise<Destination[]> {
   } else if (provider === 'kv') {
     const stored = await kvGet<Destination[]>('lobo:destinations');
     if (stored && Array.isArray(stored) && stored.length > 0) {
-      return stored;
+      return stored.filter(d => d.id !== 'kempty-falls' && (d.name || '').toLowerCase() !== 'kempty falls');
     }
-    await kvSet('lobo:destinations', INITIAL_DESTINATIONS);
-    return INITIAL_DESTINATIONS;
+    const filteredInitial = INITIAL_DESTINATIONS.filter(d => d.id !== 'kempty-falls');
+    await kvSet('lobo:destinations', filteredInitial);
+    return filteredInitial;
   } else if (provider === 'supabase') {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        const { data, error } = await sb.from('destinations').select('data');
+        const { data, error } = await sb.from('destinations').select('data').neq('id', 'kempty-falls');
         if (!error && data && data.length > 0) {
-          return data.map(d => typeof d.data === 'string' ? JSON.parse(d.data) : d.data);
+          return data
+            .map(d => typeof d.data === 'string' ? JSON.parse(d.data) : d.data)
+            .filter((d: Destination) => d.id !== 'kempty-falls' && (d.name || '').toLowerCase() !== 'kempty falls');
         }
       }
     } catch (err) {
@@ -623,7 +583,7 @@ export async function getDbDestinations(): Promise<Destination[]> {
 
   // Fallback: Local JSON Store
   const local = readLocalStore();
-  return local.destinations;
+  return local.destinations.filter(d => d.id !== 'kempty-falls' && (d.name || '').toLowerCase() !== 'kempty falls');
 }
 
 export async function saveDbDestination(dest: Destination): Promise<Destination> {
@@ -714,32 +674,42 @@ export async function deleteDbDestination(id: string): Promise<boolean> {
       await ensurePostgresTables();
       const sql = await getPostgresClient();
       if (sql) {
-        await sql`DELETE FROM destinations WHERE id = ${destId}`;
+        // Delete destination record by id or name
+        await sql`DELETE FROM destinations WHERE id = ${destId} OR lower(name) = ${destId} OR id = ${id}`;
+        // Cascade delete all attractions belonging to this destination
+        await sql`DELETE FROM attractions WHERE destination_id = ${destId} OR lower(destination_name) = ${destId} OR destination_id = ${id}`;
         return true;
       }
     } catch (err) {
       console.error('[Neon Postgres] deleteDbDestination error:', err);
+      throw err;
     }
   } else if (provider === 'kv') {
     const list = await getDbDestinations();
-    const updated = list.filter(d => d.id.toLowerCase() !== destId);
+    const updated = list.filter(d => d.id.toLowerCase() !== destId && d.name.toLowerCase() !== destId && d.id !== id);
     await kvSet('lobo:destinations', updated);
+    const attList = await getDbAttractions();
+    const updatedAtts = attList.filter(a => a.destinationId?.toLowerCase() !== destId && a.destinationName?.toLowerCase() !== destId && a.destinationId !== id);
+    await kvSet('lobo:attractions', updatedAtts);
     return true;
   } else if (provider === 'supabase') {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        await sb.from('destinations').delete().eq('id', destId);
+        await sb.from('destinations').delete().or(`id.eq.${destId},name.ilike.${destId}`);
+        await sb.from('attractions').delete().or(`destination_id.eq.${destId},destination_name.ilike.${destId}`);
         return true;
       }
     } catch (err) {
       console.error('[Supabase] deleteDbDestination error:', err);
+      throw err;
     }
   }
 
   // Fallback: Local JSON Store
   writeLocalStore(data => {
-    data.destinations = data.destinations.filter(d => d.id.toLowerCase() !== destId);
+    data.destinations = data.destinations.filter(d => d.id.toLowerCase() !== destId && d.name.toLowerCase() !== destId && d.id !== id);
+    data.attractions = data.attractions.filter(a => a.destinationId?.toLowerCase() !== destId && a.destinationName?.toLowerCase() !== destId && a.destinationId !== id);
   });
 
   return true;
@@ -757,10 +727,13 @@ export async function getDbAttractions(): Promise<Attraction[]> {
         const rows = await sql`SELECT data FROM attractions ORDER BY name ASC`;
         if (rows.length > 0) {
           const list = rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
-          const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
+          const kemptyCleanUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg';
           list.forEach((a: Attraction) => {
-            if (a.id === 'mussoorie-kempty-falls' || a.id === 'kempty-falls' || (a.name && a.name.toLowerCase() === 'kempty falls') || (a.name && a.name.toLowerCase() === 'kempty falls cascades')) {
-              a.image = kemptyFallsUrl;
+            if (a.id === 'mussoorie-kempty-falls' || (a.name && (a.name.toLowerCase() === 'kempty falls' || a.name.toLowerCase() === 'kempty falls cascades'))) {
+              a.destinationId = 'mussoorie';
+              a.destinationName = 'Mussoorie';
+              a.name = 'Kempty Falls';
+              a.image = kemptyCleanUrl;
             }
           });
           return list;
@@ -886,32 +859,34 @@ export async function deleteDbAttraction(id: string): Promise<boolean> {
       await ensurePostgresTables();
       const sql = await getPostgresClient();
       if (sql) {
-        await sql`DELETE FROM attractions WHERE id = ${attId}`;
+        await sql`DELETE FROM attractions WHERE id = ${attId} OR lower(name) = ${attId} OR id = ${id}`;
         return true;
       }
     } catch (err) {
       console.error('[Neon Postgres] deleteDbAttraction error:', err);
+      throw err;
     }
   } else if (provider === 'kv') {
     const list = await getDbAttractions();
-    const updated = list.filter(a => a.id.toLowerCase() !== attId);
+    const updated = list.filter(a => a.id.toLowerCase() !== attId && a.name.toLowerCase() !== attId && a.id !== id);
     await kvSet('lobo:attractions', updated);
     return true;
   } else if (provider === 'supabase') {
     try {
       const sb = await getSupabaseClient();
       if (sb) {
-        await sb.from('attractions').delete().eq('id', attId);
+        await sb.from('attractions').delete().or(`id.eq.${attId},name.ilike.${attId}`);
         return true;
       }
     } catch (err) {
       console.error('[Supabase] deleteDbAttraction error:', err);
+      throw err;
     }
   }
 
   // Fallback: Local JSON Store
   writeLocalStore(data => {
-    data.attractions = data.attractions.filter(a => a.id.toLowerCase() !== attId);
+    data.attractions = data.attractions.filter(a => a.id.toLowerCase() !== attId && a.name.toLowerCase() !== attId && a.id !== id);
   });
 
   return true;

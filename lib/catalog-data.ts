@@ -392,20 +392,7 @@ export const COMPREHENSIVE_DESTINATIONS: Destination[] = [
     recommendedDuration: '2–3 Days',
     heroImage: 'https://images.unsplash.com/photo-1597074866923-dc0589150358?auto=format&fit=crop&w=1200&q=80',
     gallery: [
-      'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg'
-    ]
-  },
-  {
-    id: 'kempty-falls',
-    name: 'Kempty Falls',
-    state: 'Uttarakhand',
-    country: 'India',
-    shortDescription: 'Famous tiered mountain waterfall and premier tourist destination near Mussoorie.',
-    detailedDescription: 'Iconic tourist landmark developed in the 1830s cascading down 40 feet into a refreshing natural mountain pool, surrounded by high Himalayan cliffs and lush Garhwal valleys.',
-    recommendedDuration: '1 Day',
-    heroImage: 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg',
-    gallery: [
-      'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg'
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg'
     ]
   },
   {
@@ -2625,13 +2612,13 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     id: 'mussoorie-kempty-falls',
     destinationId: 'mussoorie',
     destinationName: 'Mussoorie',
-    name: 'Kempty Falls Cascades',
+    name: 'Kempty Falls',
     shortDescription: 'Famous tiered mountain waterfall cascading down 40 feet into a refreshing natural splash pool.',
     detailedDescription: 'Iconic tourist landmark developed by British officer John Mekinan in the 1830s, surrounded by high mountain cliffs and lush Garhwal valleys.',
     duration: '2 Hours',
     category: 'Waterfall',
     unesco: false,
-    image: 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg'
   },
   {
     id: 'mussoorie-gun-hill',
@@ -5011,11 +4998,11 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'jhalana': 'https://upload.wikimedia.org/wikipedia/commons/3/33/Indian_leopard_in_Jawai_Bandh_April_2025_by_Tisha_Mukherjee_02.jpg',
 
   // Mussoorie - Kempty Falls
-  'mussoorie-kempty-falls': 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg',
-  'kempty-falls': 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg',
-  'kempty falls': 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg',
-  'kempty falls cascades': 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg',
-  'kempty': 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg',
+  'mussoorie-kempty-falls': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg',
+  'kempty-falls': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg',
+  'kempty falls': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg',
+  'kempty falls cascades': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg',
+  'kempty': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Kempty_Waterfalls.jpg/1280px-Kempty_Waterfalls.jpg',
 
   // Nainital
   'nainital-naini-lake': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg/1280px-Boat_riding_in_Naini_Lake_at_Nainital%2C_Uttarkhand%2C_India.jpg',

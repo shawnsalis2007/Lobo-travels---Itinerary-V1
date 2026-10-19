@@ -90,8 +90,16 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    const type = searchParams.get('type') || 'destination';
+    let id = searchParams.get('id');
+    let type = searchParams.get('type') || 'destination';
+
+    if (!id) {
+      try {
+        const body = await req.json();
+        if (body?.id) id = body.id;
+        if (body?.type) type = body.type;
+      } catch (_) {}
+    }
 
     if (!id) {
       return NextResponse.json(
