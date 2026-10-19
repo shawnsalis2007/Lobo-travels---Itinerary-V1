@@ -23,7 +23,8 @@ import {
   Plus,
   Trash2,
   RefreshCw,
-  Loader2
+  Loader2,
+  Database
 } from 'lucide-react';
 import { AppSettings, GoogleCalendarAccount, Itinerary, OperationalBooking } from '@/types';
 import { 
@@ -38,7 +39,8 @@ import {
   getItineraries, 
   saveItinerary, 
   getOperationalBookings, 
-  saveOperationalBooking 
+  saveOperationalBooking,
+  syncFromCloudDatabase
 } from '@/lib/storage';
 
 interface SettingsManagerProps {
@@ -89,6 +91,35 @@ export default function SettingsManager({
   const [pendingAccessToken, setPendingAccessToken] = useState('');
   // Stores the Google email (decoded from token hint or entered by user)
   const [pendingEmail, setPendingEmail] = useState('');
+
+  // ── Database persistence state ───────────────────────────────────────────────
+  const [dbStatus, setDbStatus] = useState<{ provider: string; isCloud: boolean } | null>(null);
+  const [isDbSyncing, setIsDbSyncing] = useState(false);
+  const [dbSyncSuccess, setDbSyncSuccess] = useState(false);
+
+  React.useEffect(() => {
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(data => {
+        if (data?.provider) {
+          setDbStatus({ provider: data.provider, isCloud: !!data.isCloud });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleManualDbSync = async () => {
+    setIsDbSyncing(true);
+    try {
+      await syncFromCloudDatabase();
+      setDbSyncSuccess(true);
+      setTimeout(() => setDbSyncSuccess(false), 3000);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsDbSyncing(false);
+    }
+  };
 
   // ── Sync All Existing Itineraries & Reminders State ─────────────────────────
   const [isSyncingAll, setIsSyncingAll] = useState(false);
@@ -825,6 +856,81 @@ export default function SettingsManager({
               </button>
             </div>
           )}
+        </div>
+
+        {/* ── Persistent Cloud Database Section ────────────────────────────── */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+                <Database className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <span>Persistent Cloud Database</span>
+                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                    dbStatus?.isCloud 
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                      : 'bg-amber-100 text-amber-800 border border-amber-300'
+                  }`}>
+                    {dbStatus?.provider || 'Detecting Database...'}
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Destinations, custom places, hotel mappings, and image URLs are stored persistently in cloud storage and preserved across code redeployments.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                disabled={isDbSyncing}
+                onClick={handleManualDbSync}
+                className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 transition"
+              >
+                {isDbSyncing ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-800" />
+                    <span>Syncing DB...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 text-slate-700" />
+                    <span>Sync Now</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {dbSyncSuccess && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Catalogs, hotels, and destinations successfully synced with persistent cloud database.</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+              <span className="font-semibold text-slate-700 block">Vercel Postgres / Neon</span>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Connect via <code className="bg-slate-200/80 px-1 py-0.5 rounded text-[10px]">POSTGRES_URL</code> or <code className="bg-slate-200/80 px-1 py-0.5 rounded text-[10px]">DATABASE_URL</code> in Vercel environment variables.
+              </p>
+            </div>
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+              <span className="font-semibold text-slate-700 block">Vercel KV / Upstash Redis</span>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Connect via <code className="bg-slate-200/80 px-1 py-0.5 rounded text-[10px]">KV_REST_API_URL</code> and <code className="bg-slate-200/80 px-1 py-0.5 rounded text-[10px]">KV_REST_API_TOKEN</code>.
+              </p>
+            </div>
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+              <span className="font-semibold text-slate-700 block">Supabase</span>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Connect via <code className="bg-slate-200/80 px-1 py-0.5 rounded text-[10px]">SUPABASE_URL</code> and <code className="bg-slate-200/80 px-1 py-0.5 rounded text-[10px]">SUPABASE_SERVICE_ROLE_KEY</code>.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-end pt-4">

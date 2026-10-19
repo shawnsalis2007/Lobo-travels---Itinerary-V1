@@ -124,14 +124,12 @@ function refreshAllCaches(): void {
     // Auto-merge newly loaded hotels catalog
     const storedHotels = getStorageItem<Hotel[]>(STORAGE_KEYS.HOTELS, []);
     const hotelMap = new Map<string, Hotel>();
-    // 1. Initial canonical hotels always present
+    // 1. Initial canonical hotels present as baseline
     INITIAL_HOTELS.forEach(h => hotelMap.set(h.id.toLowerCase(), h));
-    // 2. Preserve custom hotels added by the user
+    // 2. User edits and custom hotels take precedence
     if (Array.isArray(storedHotels)) {
       storedHotels.forEach(h => {
-        if (!hotelMap.has(h.id.toLowerCase())) {
-          hotelMap.set(h.id.toLowerCase(), h);
-        }
+        hotelMap.set(h.id.toLowerCase(), h);
       });
     }
     hotelsCache = Array.from(hotelMap.values());
@@ -142,9 +140,9 @@ function refreshAllCaches(): void {
     // Auto-merge newly loaded destinations catalog
     const storedDests = getStorageItem<Destination[]>(STORAGE_KEYS.DESTINATIONS, []);
     const destMap = new Map<string, Destination>();
-    // 1. Initial canonical destinations always have authentic verified photos
+    // 1. Initial canonical destinations as baseline
     INITIAL_DESTINATIONS.forEach(d => destMap.set(d.id.toLowerCase(), d));
-    // 2. Only preserve custom destinations added by the user (ignoring legacy combined dalhousie-mcleodganj)
+    // 2. User edits and custom destinations take precedence
     if (Array.isArray(storedDests)) {
       storedDests.forEach(d => {
         const lowerName = (d.name || '').toLowerCase();
@@ -152,9 +150,7 @@ function refreshAllCaches(): void {
         if ((lowerName.includes('dalhousie') && lowerName.includes('mcleodganj')) || lowerId === 'dalhousie-mcleodganj') {
           return; // Remove obsolete combined entry
         }
-        if (!destMap.has(d.id.toLowerCase())) {
-          destMap.set(d.id.toLowerCase(), d);
-        }
+        destMap.set(d.id.toLowerCase(), d);
       });
     }
     destinationsCache = Array.from(destMap.values());
@@ -165,18 +161,15 @@ function refreshAllCaches(): void {
     // Auto-merge newly loaded attractions catalog
     const storedAtts = getStorageItem<Attraction[]>(STORAGE_KEYS.ATTRACTIONS, []);
     const attMap = new Map<string, Attraction>();
-    // 1. Initial canonical attractions always have authentic verified photos
+    // 1. Initial canonical attractions as baseline
     INITIAL_ATTRACTIONS.forEach(a => {
       const overrideImg = getAttractionImage(a.name, a.image) || getAttractionImage(a.id, a.image);
-      attMap.set(a.id.toLowerCase(), { ...a, image: overrideImg });
+      attMap.set(a.id.toLowerCase(), { ...a, image: overrideImg || a.image });
     });
-    // 2. Only preserve custom attractions added by the user, applying overrides if applicable
+    // 2. User edits and custom attractions take precedence
     if (Array.isArray(storedAtts)) {
       storedAtts.forEach(a => {
-        if (!attMap.has(a.id.toLowerCase())) {
-          const overrideImg = getAttractionImage(a.name, a.image) || getAttractionImage(a.id, a.image);
-          attMap.set(a.id.toLowerCase(), { ...a, image: overrideImg });
-        }
+        attMap.set(a.id.toLowerCase(), a);
       });
     }
     attractionsCache = Array.from(attMap.values());
@@ -327,6 +320,13 @@ export function getSettings(): AppSettings {
 export function saveSettings(settings: AppSettings): void {
   const sanitized = sanitizeSettings(settings);
   setStorageItem(STORAGE_KEYS.SETTINGS, sanitized);
+  if (typeof window !== 'undefined') {
+    fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sanitized)
+    }).catch(err => console.error('[Storage] Error persisting settings to cloud DB:', err));
+  }
 }
 
 // Vehicles
@@ -345,7 +345,7 @@ export function getDestinations(): Destination[] {
 
 export function saveDestination(destination: Destination): void {
   const current = getDestinations();
-  const index = current.findIndex(d => d.id === destination.id);
+  const index = current.findIndex(d => d.id.toLowerCase() === destination.id.toLowerCase());
   let updated: Destination[];
   if (index >= 0) {
     updated = [...current];
@@ -354,11 +354,23 @@ export function saveDestination(destination: Destination): void {
     updated = [destination, ...current];
   }
   setStorageItem(STORAGE_KEYS.DESTINATIONS, updated);
+  if (typeof window !== 'undefined') {
+    fetch('/api/destinations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'destination', data: destination })
+    }).catch(err => console.error('[Storage] Error persisting destination to cloud DB:', err));
+  }
 }
 
 export function deleteDestination(id: string): void {
   const current = getDestinations();
-  setStorageItem(STORAGE_KEYS.DESTINATIONS, current.filter(d => d.id !== id));
+  setStorageItem(STORAGE_KEYS.DESTINATIONS, current.filter(d => d.id.toLowerCase() !== id.toLowerCase()));
+  if (typeof window !== 'undefined') {
+    fetch(`/api/destinations?id=${encodeURIComponent(id)}&type=destination`, {
+      method: 'DELETE'
+    }).catch(err => console.error('[Storage] Error deleting destination in cloud DB:', err));
+  }
 }
 
 // Attractions
@@ -368,7 +380,7 @@ export function getAttractions(): Attraction[] {
 
 export function saveAttraction(attraction: Attraction): void {
   const current = getAttractions();
-  const index = current.findIndex(a => a.id === attraction.id);
+  const index = current.findIndex(a => a.id.toLowerCase() === attraction.id.toLowerCase());
   let updated: Attraction[];
   if (index >= 0) {
     updated = [...current];
@@ -377,11 +389,23 @@ export function saveAttraction(attraction: Attraction): void {
     updated = [attraction, ...current];
   }
   setStorageItem(STORAGE_KEYS.ATTRACTIONS, updated);
+  if (typeof window !== 'undefined') {
+    fetch('/api/destinations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'attraction', data: attraction })
+    }).catch(err => console.error('[Storage] Error persisting attraction to cloud DB:', err));
+  }
 }
 
 export function deleteAttraction(id: string): void {
   const current = getAttractions();
-  setStorageItem(STORAGE_KEYS.ATTRACTIONS, current.filter(a => a.id !== id));
+  setStorageItem(STORAGE_KEYS.ATTRACTIONS, current.filter(a => a.id.toLowerCase() !== id.toLowerCase()));
+  if (typeof window !== 'undefined') {
+    fetch(`/api/destinations?id=${encodeURIComponent(id)}&type=attraction`, {
+      method: 'DELETE'
+    }).catch(err => console.error('[Storage] Error deleting attraction in cloud DB:', err));
+  }
 }
 
 // Hotels
@@ -391,7 +415,7 @@ export function getHotels(): Hotel[] {
 
 export function saveHotel(hotel: Hotel): void {
   const current = getHotels();
-  const index = current.findIndex(h => h.id === hotel.id);
+  const index = current.findIndex(h => h.id.toLowerCase() === hotel.id.toLowerCase());
   let updated: Hotel[];
   if (index >= 0) {
     updated = [...current];
@@ -400,11 +424,80 @@ export function saveHotel(hotel: Hotel): void {
     updated = [hotel, ...current];
   }
   setStorageItem(STORAGE_KEYS.HOTELS, updated);
+  if (typeof window !== 'undefined') {
+    fetch('/api/hotels', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(hotel)
+    }).catch(err => console.error('[Storage] Error persisting hotel to cloud DB:', err));
+  }
 }
 
 export function deleteHotel(id: string): void {
   const current = getHotels();
-  setStorageItem(STORAGE_KEYS.HOTELS, current.filter(h => h.id !== id));
+  setStorageItem(STORAGE_KEYS.HOTELS, current.filter(h => h.id.toLowerCase() !== id.toLowerCase()));
+  if (typeof window !== 'undefined') {
+    fetch(`/api/hotels?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    }).catch(err => console.error('[Storage] Error deleting hotel in cloud DB:', err));
+  }
+}
+
+/**
+ * Asynchronously synchronizes catalogs and settings from the database API routes.
+ * Updates local cache and localStorage, and dispatches storage update events.
+ */
+export async function syncFromCloudDatabase(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  try {
+    const [destRes, hotelsRes, settingsRes] = await Promise.all([
+      fetch('/api/destinations', { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
+      fetch('/api/hotels', { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
+      fetch('/api/settings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null)
+    ]);
+
+    let hasUpdates = false;
+
+    if (destRes?.success) {
+      if (Array.isArray(destRes.destinations) && destRes.destinations.length > 0) {
+        destinationsCache = destRes.destinations;
+        localStorage.setItem(STORAGE_KEYS.DESTINATIONS, JSON.stringify(destRes.destinations));
+        hasUpdates = true;
+      }
+      if (Array.isArray(destRes.attractions) && destRes.attractions.length > 0) {
+        attractionsCache = destRes.attractions;
+        localStorage.setItem(STORAGE_KEYS.ATTRACTIONS, JSON.stringify(destRes.attractions));
+        hasUpdates = true;
+      }
+    }
+
+    if (hotelsRes?.success && Array.isArray(hotelsRes.hotels) && hotelsRes.hotels.length > 0) {
+      hotelsCache = hotelsRes.hotels;
+      localStorage.setItem(STORAGE_KEYS.HOTELS, JSON.stringify(hotelsRes.hotels));
+      hasUpdates = true;
+    }
+
+    if (settingsRes?.success && settingsRes.settings) {
+      settingsCache = sanitizeSettings(settingsRes.settings);
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settingsCache));
+      hasUpdates = true;
+    }
+
+    if (hasUpdates) {
+      window.dispatchEvent(new Event('lobo_storage_updated'));
+    }
+    return true;
+  } catch (err) {
+    console.warn('[Storage] Cloud sync error:', err);
+    return false;
+  }
+}
+
+// Trigger background cloud sync on app start
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    syncFromCloudDatabase().catch(() => {});
+  }, 100);
 }
 
 // Reference Number Generator

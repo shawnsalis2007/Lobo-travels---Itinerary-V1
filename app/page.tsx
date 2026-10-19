@@ -46,7 +46,8 @@ import {
   resetAllToDefaults,
   getItineraryById,
   useOperationalBookings,
-  saveOperationalBooking
+  saveOperationalBooking,
+  syncFromCloudDatabase
 } from '@/lib/storage';
 
 export default function Home() {
@@ -54,6 +55,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
+    // Initial sync from persistent cloud database API routes
+    syncFromCloudDatabase().catch(() => {});
+
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
