@@ -153,6 +153,20 @@ function refreshAllCaches(): void {
         destMap.set(d.id.toLowerCase(), d);
       });
     }
+    // Ensure Kempty Falls destination is updated with the canonical Dreamstime photo
+    const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
+    const kemptyD = destMap.get('kempty-falls');
+    if (kemptyD) {
+      kemptyD.heroImage = kemptyFallsUrl;
+      kemptyD.gallery = [kemptyFallsUrl];
+    } else {
+      const canonicalKempty = INITIAL_DESTINATIONS.find(d => d.id === 'kempty-falls');
+      if (canonicalKempty) destMap.set('kempty-falls', canonicalKempty);
+    }
+    const mussoorieD = destMap.get('mussoorie');
+    if (mussoorieD && (!mussoorieD.gallery || mussoorieD.gallery.length === 0)) {
+      mussoorieD.gallery = [kemptyFallsUrl];
+    }
     destinationsCache = Array.from(destMap.values());
     try {
       localStorage.setItem(STORAGE_KEYS.DESTINATIONS, JSON.stringify(destinationsCache));
@@ -172,6 +186,13 @@ function refreshAllCaches(): void {
         attMap.set(a.id.toLowerCase(), a);
       });
     }
+    // 3. Re-apply canonical attraction overrides so image corrections (like Kempty Falls) always take effect
+    attMap.forEach((att, key) => {
+      const overrideImg = getAttractionImage(att.name, att.image) || getAttractionImage(att.id, att.image);
+      if (overrideImg && overrideImg !== att.image) {
+        attMap.set(key, { ...att, image: overrideImg });
+      }
+    });
     attractionsCache = Array.from(attMap.values());
     try {
       localStorage.setItem(STORAGE_KEYS.ATTRACTIONS, JSON.stringify(attractionsCache));
@@ -459,12 +480,28 @@ export async function syncFromCloudDatabase(): Promise<boolean> {
     let hasUpdates = false;
 
     if (destRes?.success) {
+      const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
       if (Array.isArray(destRes.destinations) && destRes.destinations.length > 0) {
+        destRes.destinations.forEach((d: Destination) => {
+          if (d.id === 'kempty-falls' || (d.name && d.name.toLowerCase() === 'kempty falls')) {
+            d.heroImage = kemptyFallsUrl;
+            d.gallery = [kemptyFallsUrl];
+          } else if (d.id === 'mussoorie') {
+            if (!d.gallery || d.gallery.length === 0) {
+              d.gallery = [kemptyFallsUrl];
+            }
+          }
+        });
         destinationsCache = destRes.destinations;
         localStorage.setItem(STORAGE_KEYS.DESTINATIONS, JSON.stringify(destRes.destinations));
         hasUpdates = true;
       }
       if (Array.isArray(destRes.attractions) && destRes.attractions.length > 0) {
+        destRes.attractions.forEach((a: Attraction) => {
+          if (a.id === 'mussoorie-kempty-falls' || a.id === 'kempty-falls' || (a.name && a.name.toLowerCase() === 'kempty falls') || (a.name && a.name.toLowerCase() === 'kempty falls cascades')) {
+            a.image = kemptyFallsUrl;
+          }
+        });
         attractionsCache = destRes.attractions;
         localStorage.setItem(STORAGE_KEYS.ATTRACTIONS, JSON.stringify(destRes.attractions));
         hasUpdates = true;

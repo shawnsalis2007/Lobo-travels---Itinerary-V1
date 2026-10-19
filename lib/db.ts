@@ -77,9 +77,29 @@ function readLocalStore(): LocalStoreData {
       const raw = fs.readFileSync(LOCAL_DATA_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
+        const dests: Destination[] = Array.isArray(parsed.destinations) ? parsed.destinations : INITIAL_DESTINATIONS;
+        const atts: Attraction[] = Array.isArray(parsed.attractions) ? parsed.attractions : getSeededAttractions();
+        const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
+        const kIdx = dests.findIndex(d => d.id === 'kempty-falls' || (d.name && d.name.toLowerCase() === 'kempty falls'));
+        if (kIdx >= 0) {
+          dests[kIdx].heroImage = kemptyFallsUrl;
+          dests[kIdx].gallery = [kemptyFallsUrl];
+        } else {
+          const canonical = INITIAL_DESTINATIONS.find(d => d.id === 'kempty-falls');
+          if (canonical) dests.push(canonical);
+        }
+        const mIdx = dests.findIndex(d => d.id === 'mussoorie');
+        if (mIdx >= 0 && (!dests[mIdx].gallery || dests[mIdx].gallery.length === 0)) {
+          dests[mIdx].gallery = [kemptyFallsUrl];
+        }
+        atts.forEach(a => {
+          if (a.id === 'mussoorie-kempty-falls' || a.id === 'kempty-falls' || (a.name && a.name.toLowerCase() === 'kempty falls')) {
+            a.image = kemptyFallsUrl;
+          }
+        });
         return {
-          destinations: Array.isArray(parsed.destinations) ? parsed.destinations : INITIAL_DESTINATIONS,
-          attractions: Array.isArray(parsed.attractions) ? parsed.attractions : getSeededAttractions(),
+          destinations: dests,
+          attractions: atts,
           hotels: Array.isArray(parsed.hotels) ? parsed.hotels : INITIAL_HOTELS,
           settings: parsed.settings ? { ...DEFAULT_SETTINGS, ...parsed.settings } : DEFAULT_SETTINGS
         };
@@ -372,6 +392,127 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       `;
     }
 
+    // Ensure Kempty Falls destination and attraction have the canonical Dreamstime photo in Neon Postgres
+    const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
+    const kemptyDest = INITIAL_DESTINATIONS.find(d => d.id === 'kempty-falls') || {
+      id: 'kempty-falls',
+      name: 'Kempty Falls',
+      state: 'Uttarakhand',
+      country: 'India',
+      shortDescription: 'Famous tiered mountain waterfall and premier tourist destination near Mussoorie.',
+      detailedDescription: 'Iconic tourist landmark developed in the 1830s cascading down 40 feet into a refreshing natural mountain pool, surrounded by high Himalayan cliffs and lush Garhwal valleys.',
+      recommendedDuration: '1 Day',
+      heroImage: kemptyFallsUrl,
+      gallery: [kemptyFallsUrl]
+    };
+
+    try {
+      const kemptyJson = JSON.stringify(kemptyDest);
+      const kemptyGalleryJson = JSON.stringify([kemptyFallsUrl]);
+
+      // 1. Insert or update kempty-falls directly in destinations table
+      await sql`
+        INSERT INTO destinations (id, name, state, country, short_description, detailed_description, recommended_duration, hero_image, gallery, data, updated_at)
+        VALUES (
+          'kempty-falls',
+          ${kemptyDest.name},
+          ${kemptyDest.state || 'Uttarakhand'},
+          ${kemptyDest.country || 'India'},
+          ${kemptyDest.shortDescription || ''},
+          ${kemptyDest.detailedDescription || ''},
+          ${kemptyDest.recommendedDuration || '1 Day'},
+          ${kemptyFallsUrl},
+          ${kemptyGalleryJson},
+          ${kemptyJson},
+          NOW()
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          state = EXCLUDED.state,
+          country = EXCLUDED.country,
+          short_description = EXCLUDED.short_description,
+          detailed_description = EXCLUDED.detailed_description,
+          recommended_duration = EXCLUDED.recommended_duration,
+          hero_image = ${kemptyFallsUrl},
+          gallery = ${kemptyGalleryJson},
+          data = ${kemptyJson},
+          updated_at = NOW();
+      `;
+
+      // 2. Also update any existing destination record where id or name matches Kempty Falls
+      await sql`
+        UPDATE destinations
+        SET 
+          hero_image = ${kemptyFallsUrl},
+          gallery = ${kemptyGalleryJson},
+          data = jsonb_set(
+            jsonb_set(data, '{heroImage}', to_jsonb(${kemptyFallsUrl}::text)),
+            '{gallery}',
+            ${kemptyGalleryJson}::jsonb
+          ),
+          updated_at = NOW()
+        WHERE id = 'kempty-falls' OR lower(name) = 'kempty falls';
+      `;
+
+      // 3. Update Mussoorie gallery in destinations table to include Kempty Falls photo
+      await sql`
+        UPDATE destinations
+        SET 
+          gallery = ${kemptyGalleryJson},
+          data = jsonb_set(data, '{gallery}', ${kemptyGalleryJson}::jsonb),
+          updated_at = NOW()
+        WHERE id = 'mussoorie';
+      `;
+
+      // 4. Update attractions table for Kempty Falls
+      const kemptyAtt = getSeededAttractions().find(a => a.id === 'mussoorie-kempty-falls') || {
+        id: 'mussoorie-kempty-falls',
+        destinationId: 'mussoorie',
+        destinationName: 'Mussoorie',
+        name: 'Kempty Falls Cascades',
+        shortDescription: 'Famous tiered mountain waterfall and premier tourist destination near Mussoorie.',
+        detailedDescription: 'Cascades down 40 feet into a refreshing natural mountain pool, developed in the 1830s by British officer John Mekinnan.',
+        duration: '2 Hours',
+        category: 'Waterfall',
+        unesco: false,
+        image: kemptyFallsUrl
+      };
+      const kemptyAttJson = JSON.stringify(kemptyAtt);
+
+      await sql`
+        INSERT INTO attractions (id, destination_id, destination_name, name, short_description, detailed_description, duration, category, unesco, image, data, updated_at)
+        VALUES (
+          'mussoorie-kempty-falls',
+          'mussoorie',
+          'Mussoorie',
+          'Kempty Falls Cascades',
+          ${kemptyAtt.shortDescription || ''},
+          ${kemptyAtt.detailedDescription || ''},
+          ${kemptyAtt.duration || '2 Hours'},
+          ${kemptyAtt.category || 'Waterfall'},
+          false,
+          ${kemptyFallsUrl},
+          ${kemptyAttJson},
+          NOW()
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          image = ${kemptyFallsUrl},
+          data = jsonb_set(data, '{image}', to_jsonb(${kemptyFallsUrl}::text)),
+          updated_at = NOW();
+      `;
+
+      await sql`
+        UPDATE attractions
+        SET 
+          image = ${kemptyFallsUrl},
+          data = jsonb_set(data, '{image}', to_jsonb(${kemptyFallsUrl}::text)),
+          updated_at = NOW()
+        WHERE id IN ('mussoorie-kempty-falls', 'kempty-falls') OR lower(name) = 'kempty falls' OR lower(name) = 'kempty falls cascades';
+      `;
+    } catch (kemptyErr) {
+      console.warn('[Neon Postgres] Sync Kempty Falls Dreamstime photo warning:', kemptyErr);
+    }
+
     isPostgresInitialized = true;
   } catch (err) {
     console.error('[Neon Postgres] Schema initialization error:', err);
@@ -441,7 +582,19 @@ export async function getDbDestinations(): Promise<Destination[]> {
       if (sql) {
         const rows = await sql`SELECT data FROM destinations ORDER BY name ASC`;
         if (rows.length > 0) {
-          return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+          const list = rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+          const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
+          list.forEach((d: Destination) => {
+            if (d.id === 'kempty-falls' || (d.name && d.name.toLowerCase() === 'kempty falls')) {
+              d.heroImage = kemptyFallsUrl;
+              d.gallery = [kemptyFallsUrl];
+            } else if (d.id === 'mussoorie') {
+              if (!d.gallery || d.gallery.length === 0) {
+                d.gallery = [kemptyFallsUrl];
+              }
+            }
+          });
+          return list;
         }
       }
     } catch (err) {
@@ -603,7 +756,14 @@ export async function getDbAttractions(): Promise<Attraction[]> {
       if (sql) {
         const rows = await sql`SELECT data FROM attractions ORDER BY name ASC`;
         if (rows.length > 0) {
-          return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+          const list = rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+          const kemptyFallsUrl = 'https://thumbs.dreamstime.com/b/kempty-falls-mussoorie-hill-station-uttarakhand-india-kempty-falls-mussoorie-452062635.jpg';
+          list.forEach((a: Attraction) => {
+            if (a.id === 'mussoorie-kempty-falls' || a.id === 'kempty-falls' || (a.name && a.name.toLowerCase() === 'kempty falls') || (a.name && a.name.toLowerCase() === 'kempty falls cascades')) {
+              a.image = kemptyFallsUrl;
+            }
+          });
+          return list;
         }
       }
     } catch (err) {
