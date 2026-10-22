@@ -466,7 +466,7 @@ export default function Dashboard({
                           ? 'Dates unconfirmed'
                           : `${formatDateDMY(itn.startDate)} → ${formatDateDMY(itn.endDate)}`}
                       </span>
-                      <span className="block text-slate-500 truncate">{itn.vehicleModel || itn.vehicleDisplay}</span>
+                      <span className="block text-slate-500 truncate">{itn.vehicleDisplay || (itn.vehicleBrand === 'Vehicle Not Selected Yet' ? 'Vehicle Not Selected Yet' : `${itn.vehicleBrand} ${itn.vehicleModel || ''}`).trim()}</span>
                     </div>
                   </div>
 
@@ -577,7 +577,7 @@ export default function Dashboard({
                       </div>
                       <div className="flex items-center gap-1 text-[11px] text-slate-400 truncate max-w-[160px]" title={itn.vehicleDisplay}>
                         <Car className="w-3 h-3 text-slate-400" />
-                        <span>{itn.vehicleModel || itn.vehicleDisplay}</span>
+                        <span>{itn.vehicleDisplay || (itn.vehicleBrand === 'Vehicle Not Selected Yet' ? 'Vehicle Not Selected Yet' : `${itn.vehicleBrand} ${itn.vehicleModel || ''}`).trim()}</span>
                       </div>
                     </td>
 

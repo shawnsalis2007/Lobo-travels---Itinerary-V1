@@ -706,11 +706,24 @@ export default function ItineraryPreview({
                   <span className="text-[9px] uppercase tracking-wider text-slate-400 font-semibold block mb-0.5">
                     Vehicle Standard
                   </span>
-                  <div className="font-bold text-slate-900 truncate" title={itinerary.vehicleDisplay}>
-                    {itinerary.vehicleBrand === 'Vehicle Not Selected Yet'
-                      ? 'Vehicle Not Selected Yet'
-                      : `${itinerary.vehicleBrand} ${itinerary.vehicleModel}`}
-                  </div>
+                  {isInlineEditMode ? (
+                    <input
+                      type="text"
+                      value={itinerary.vehicleDisplay || ''}
+                      onChange={(e) => updateField('vehicleDisplay', e.target.value)}
+                      placeholder="Vehicle Standard"
+                      className="w-full text-xs font-bold text-slate-900 border-b border-amber-500 bg-amber-50 px-1 py-0.5"
+                    />
+                  ) : (
+                    <div
+                      className="font-bold text-slate-900 line-clamp-2 leading-snug"
+                      title={itinerary.vehicleDisplay || (itinerary.vehicleBrand === 'Vehicle Not Selected Yet' ? 'Vehicle Not Selected Yet' : `${itinerary.vehicleBrand} ${itinerary.vehicleModel}`)}
+                    >
+                      {itinerary.vehicleDisplay?.trim() || (itinerary.vehicleBrand === 'Vehicle Not Selected Yet'
+                        ? 'Vehicle Not Selected Yet'
+                        : `${itinerary.vehicleBrand} ${itinerary.vehicleModel}`)}
+                    </div>
+                  )}
                 </div>
               </div>
 

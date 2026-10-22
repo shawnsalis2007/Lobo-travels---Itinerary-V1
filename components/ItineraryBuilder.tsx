@@ -325,7 +325,7 @@ export default function ItineraryBuilder({
       arrivalDetails: {
         enabled: true,
         point: 'Airport',
-        flightOrTrainNumber: 'IndiGo 6E-204',
+        flightOrTrainNumber: '',
         arrivalTime: '09:30 AM',
         includeHotelCheckIn: true,
         checkInTiming: 'before_sightseeing'
@@ -466,11 +466,11 @@ export default function ItineraryBuilder({
         // Clean stale carrier numbers
         if (updatedArr.flightOrTrainNumber) {
           if (inboundTransportType === 'train' && /^(indigo|air\s*india|vistara|spicejet|akasa|zingbus|6e|ai|uk|sg|\b(6e|ai|uk|sg)[- ]?\d+)/i.test(updatedArr.flightOrTrainNumber)) {
-            updatedArr.flightOrTrainNumber = '12002';
+            updatedArr.flightOrTrainNumber = '';
           } else if (inboundTransportType === 'bus' && /^(indigo|air\s*india|vistara|spicejet|akasa|12002|20171|6e|ai|uk|sg)/i.test(updatedArr.flightOrTrainNumber)) {
-            updatedArr.flightOrTrainNumber = 'DL-01-A-1234';
+            updatedArr.flightOrTrainNumber = '';
           } else if (inboundTransportType === 'flight' && /^(zingbus|intrcity|12002|20171|dl-)/i.test(updatedArr.flightOrTrainNumber)) {
-            updatedArr.flightOrTrainNumber = '6E-204';
+            updatedArr.flightOrTrainNumber = '';
           }
         }
 
@@ -505,11 +505,11 @@ export default function ItineraryBuilder({
         // Clean stale carrier numbers
         if (updatedDep.flightOrTrainNumber) {
           if (outboundTransportType === 'train' && /^(indigo|air\s*india|vistara|spicejet|akasa|zingbus|6e|ai|uk|sg|\b(6e|ai|uk|sg)[- ]?\d+)/i.test(updatedDep.flightOrTrainNumber)) {
-            updatedDep.flightOrTrainNumber = '12002';
+            updatedDep.flightOrTrainNumber = '';
           } else if (outboundTransportType === 'bus' && /^(indigo|air\s*india|vistara|spicejet|akasa|12002|20171|6e|ai|uk|sg)/i.test(updatedDep.flightOrTrainNumber)) {
-            updatedDep.flightOrTrainNumber = 'DL-01-B-5678';
+            updatedDep.flightOrTrainNumber = '';
           } else if (outboundTransportType === 'flight' && /^(zingbus|intrcity|12002|20171|dl-)/i.test(updatedDep.flightOrTrainNumber)) {
-            updatedDep.flightOrTrainNumber = 'AI-402';
+            updatedDep.flightOrTrainNumber = '';
           }
         }
 
@@ -1261,11 +1261,11 @@ export default function ItineraryBuilder({
         }
         if (newArrival.flightOrTrainNumber) {
           if (newArrival.transitType === 'train' && /^(indigo|air\s*india|vistara|spicejet|akasa|zingbus|6e|ai|uk|sg|\b(6e|ai|uk|sg)[- ]?\d+)/i.test(newArrival.flightOrTrainNumber)) {
-            newArrival.flightOrTrainNumber = '12002';
+            newArrival.flightOrTrainNumber = '';
           } else if (newArrival.transitType === 'bus' && /^(indigo|air\s*india|vistara|spicejet|akasa|12002|20171|6e|ai|uk|sg)/i.test(newArrival.flightOrTrainNumber)) {
-            newArrival.flightOrTrainNumber = 'DL-01-A-1234';
+            newArrival.flightOrTrainNumber = '';
           } else if (newArrival.transitType === 'flight' && /^(zingbus|intrcity|12002|20171|dl-)/i.test(newArrival.flightOrTrainNumber)) {
-            newArrival.flightOrTrainNumber = '6E-204';
+            newArrival.flightOrTrainNumber = '';
           }
         }
       }
@@ -1323,11 +1323,11 @@ export default function ItineraryBuilder({
         }
         if (newDeparture.flightOrTrainNumber) {
           if (newDeparture.transitType === 'train' && /^(indigo|air\s*india|vistara|spicejet|akasa|zingbus|6e|ai|uk|sg|\b(6e|ai|uk|sg)[- ]?\d+)/i.test(newDeparture.flightOrTrainNumber)) {
-            newDeparture.flightOrTrainNumber = '12002';
+            newDeparture.flightOrTrainNumber = '';
           } else if (newDeparture.transitType === 'bus' && /^(indigo|air\s*india|vistara|spicejet|akasa|12002|20171|6e|ai|uk|sg)/i.test(newDeparture.flightOrTrainNumber)) {
-            newDeparture.flightOrTrainNumber = 'DL-01-B-5678';
+            newDeparture.flightOrTrainNumber = '';
           } else if (newDeparture.transitType === 'flight' && /^(zingbus|intrcity|12002|20171|dl-)/i.test(newDeparture.flightOrTrainNumber)) {
-            newDeparture.flightOrTrainNumber = 'AI-402';
+            newDeparture.flightOrTrainNumber = '';
           }
         }
       }
@@ -2555,6 +2555,8 @@ export default function ItineraryBuilder({
     // Ensure overnight stay text and hotel clearance according to business rules:
     // If departure is active on a day: disable/clear hotel & remove any overnight stay line
     // If departure is NOT active on a day: ensure "Overnight stay in [City Name]." is at the end
+    copy.vehicleDisplay = copy.vehicleDisplay?.trim() || (copy.vehicleBrand === 'Vehicle Not Selected Yet' ? 'Vehicle Not Selected Yet' : `${copy.vehicleBrand} ${copy.vehicleModel || ''}`.trim());
+
     copy.days = copy.days.map((d) => {
       const isDeparture = Boolean(d.departureDetails?.enabled);
       const updatedDay = { ...d };

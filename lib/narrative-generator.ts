@@ -33,13 +33,9 @@ export function formatArrivalLogisticsNarrative(arr: DayArrivalDetails, city: st
       const raw = arr.flightOrTrainNumber.trim();
       const isFlightOrBus = /^(indigo|air\s*india|vistara|spicejet|akasa|emirates|qatar|etihad|flydubai|zingbus|intrcity|6e-|ai-|uk-|sg-|\b(6e|ai|uk|sg|qp|g8|ix)[- ]?\d+)/i.test(raw);
       if (!isFlightOrBus) {
-        const cleanNum = raw.replace(/^(train|flight|bus)\s*/i, '').trim();
-        trainDetails = cleanNum ? ` (Train ${cleanNum})` : ` (${raw})`;
-      } else {
-        trainDetails = ' (Train 12002)';
+        const cleanNum = raw.replace(/^(train|flight|bus)\s*/i, '').replace(/^[()\[\]\s]+|[()\[\]\s]+$/g, '').trim();
+        trainDetails = cleanNum ? ` (Train ${cleanNum})` : '';
       }
-    } else {
-      trainDetails = ' (Train 12002)';
     }
     return `• Upon arrival at ${stationName}${trainDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
   }
@@ -59,13 +55,9 @@ export function formatArrivalLogisticsNarrative(arr: DayArrivalDetails, city: st
       const raw = arr.flightOrTrainNumber.trim();
       const isFlightOrTrain = /^(indigo|air\s*india|vistara|spicejet|akasa|emirates|qatar|etihad|flydubai|shatabdi|vande\s*bharat|rajdhani|6e-|ai-|uk-|sg-|12\d{3}|20\d{3}|\b(6e|ai|uk|sg|qp|g8|ix)[- ]?\d+)/i.test(raw);
       if (!isFlightOrTrain) {
-        const cleanNum = raw.replace(/^(bus|flight|train)\s*/i, '').trim();
-        busDetails = cleanNum ? ` (Bus ${cleanNum})` : ` (${raw})`;
-      } else {
-        busDetails = ' (Bus DL-01-A-1234)';
+        const cleanNum = raw.replace(/^(bus|flight|train)\s*/i, '').replace(/^[()\[\]\s]+|[()\[\]\s]+$/g, '').trim();
+        busDetails = cleanNum ? ` (Bus ${cleanNum})` : '';
       }
-    } else {
-      busDetails = ' (Bus DL-01-A-1234)';
     }
     return `• Upon arrival at ${busLocation}${busDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
   }
@@ -83,13 +75,9 @@ export function formatArrivalLogisticsNarrative(arr: DayArrivalDetails, city: st
     const raw = arr.flightOrTrainNumber.trim();
     const isTrainOrBus = /^(12\d{3}|20\d{3}|DL-|intrcity|zingbus|shatabdi|vande\s*bharat|rajdhani)/i.test(raw);
     if (!isTrainOrBus) {
-      const cleanNum = raw.replace(/^(flight|train|bus)\s*/i, '').trim();
-      flightDetails = cleanNum ? ` (Flight ${cleanNum})` : ` (${raw})`;
-    } else {
-      flightDetails = ' (Flight 6E-204)';
+      const cleanNum = raw.replace(/^(flight|train|bus)\s*/i, '').replace(/^[()\[\]\s]+|[()\[\]\s]+$/g, '').trim();
+      flightDetails = cleanNum ? ` (Flight ${cleanNum})` : '';
     }
-  } else {
-    flightDetails = ' (Flight 6E-204)';
   }
   return `• Upon arrival at ${airportName}${flightDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
 }
@@ -136,13 +124,9 @@ export function formatDepartureLogisticsNarrative(
       const raw = dep.flightOrTrainNumber.trim();
       const isFlightOrBus = /^(indigo|air\s*india|vistara|spicejet|akasa|emirates|qatar|etihad|flydubai|zingbus|intrcity|6e-|ai-|uk-|sg-|\b(6e|ai|uk|sg|qp|g8|ix)[- ]?\d+)/i.test(raw);
       if (!isFlightOrBus) {
-        const cleanNum = raw.replace(/^(train|flight|bus)\s*/i, '').trim();
-        trainDetails = cleanNum ? ` (Train ${cleanNum})` : ` (${raw})`;
-      } else {
-        trainDetails = ' (Train 12002)';
+        const cleanNum = raw.replace(/^(train|flight|bus)\s*/i, '').replace(/^[()\[\]\s]+|[()\[\]\s]+$/g, '').trim();
+        trainDetails = cleanNum ? ` (Train ${cleanNum})` : '';
       }
-    } else {
-      trainDetails = ' (Train 12002)';
     }
     return `${prefix} ${stationName}${trainDetails}${timeStr} for your departure / drop-off and onward journey home with ${memories}`;
   }
@@ -162,13 +146,9 @@ export function formatDepartureLogisticsNarrative(
       const raw = dep.flightOrTrainNumber.trim();
       const isFlightOrTrain = /^(indigo|air\s*india|vistara|spicejet|akasa|emirates|qatar|etihad|flydubai|shatabdi|vande\s*bharat|rajdhani|6e-|ai-|uk-|sg-|12\d{3}|20\d{3}|\b(6e|ai|uk|sg|qp|g8|ix)[- ]?\d+)/i.test(raw);
       if (!isFlightOrTrain) {
-        const cleanNum = raw.replace(/^(bus|flight|train)\s*/i, '').trim();
-        busDetails = cleanNum ? ` (Bus ${cleanNum})` : ` (${raw})`;
-      } else {
-        busDetails = ' (Bus DL-01-B-5678)';
+        const cleanNum = raw.replace(/^(bus|flight|train)\s*/i, '').replace(/^[()\[\]\s]+|[()\[\]\s]+$/g, '').trim();
+        busDetails = cleanNum ? ` (Bus ${cleanNum})` : '';
       }
-    } else {
-      busDetails = ' (Bus DL-01-B-5678)';
     }
     return `${prefix} ${busLocation}${busDetails}${timeStr} for your departure / drop-off and onward journey home with ${memories}`;
   }
@@ -186,13 +166,9 @@ export function formatDepartureLogisticsNarrative(
     const raw = dep.flightOrTrainNumber.trim();
     const isTrainOrBus = /^(12\d{3}|20\d{3}|DL-|intrcity|zingbus|shatabdi|vande\s*bharat|rajdhani)/i.test(raw);
     if (!isTrainOrBus) {
-      const cleanNum = raw.replace(/^(flight|train|bus)\s*/i, '').trim();
-      flightDetails = cleanNum ? ` (Flight ${cleanNum})` : ` (${raw})`;
-    } else {
-      flightDetails = ' (Flight AI-402)';
+      const cleanNum = raw.replace(/^(flight|train|bus)\s*/i, '').replace(/^[()\[\]\s]+|[()\[\]\s]+$/g, '').trim();
+      flightDetails = cleanNum ? ` (Flight ${cleanNum})` : '';
     }
-  } else {
-    flightDetails = ' (Flight AI-402)';
   }
   return `${prefix} ${airportName}${flightDetails}${timeStr} for your departure / drop-off and onward journey home with ${memories}`;
 }
