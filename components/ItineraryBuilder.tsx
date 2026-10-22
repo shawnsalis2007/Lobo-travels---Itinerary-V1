@@ -78,6 +78,7 @@ import { PRESET_ROUTES } from '@/lib/mock-data';
 import { INTERCITY_ROUTES } from '@/lib/catalog-data';
 import { saveAttraction as persistAttraction, saveDestination as persistDestination } from '@/lib/storage';
 import { SafeImage } from './SafeImage';
+import { formatDayDate, getDayDateISO } from '@/lib/utils';
 import { 
   generateAutoDayDescription, 
   ensureOvernightStayText, 
@@ -657,7 +658,11 @@ export default function ItineraryBuilder({
     setItinerary(prev => ({
       ...prev,
       datesNotConfirmed: checked,
-      ...duration
+      ...duration,
+      days: prev.days.map(d => ({
+        ...d,
+        date: (!checked && prev.startDate) ? getDayDateISO(prev.startDate, d.dayNumber) : undefined
+      }))
     }));
   };
 
@@ -666,7 +671,11 @@ export default function ItineraryBuilder({
     setItinerary(prev => ({
       ...prev,
       startDate: val,
-      ...duration
+      ...duration,
+      days: prev.days.map(d => ({
+        ...d,
+        date: (!prev.datesNotConfirmed && val) ? getDayDateISO(val, d.dayNumber) : d.date
+      }))
     }));
   };
 
@@ -2564,6 +2573,9 @@ export default function ItineraryBuilder({
         delete updatedDay.hotel;
         delete updatedDay.hotelTiers;
       }
+      if (!copy.datesNotConfirmed && copy.startDate) {
+        updatedDay.date = getDayDateISO(copy.startDate, d.dayNumber);
+      }
       updatedDay.description = ensureOvernightStayText(updatedDay.description, updatedDay);
       return updatedDay;
     });
@@ -3554,19 +3566,34 @@ export default function ItineraryBuilder({
                   <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     
                     {/* Day Card Header */}
-                    <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-lg bg-[#151521] text-amber-300 font-bold text-xs flex items-center justify-center">
-                          D{day.dayNumber}
-                        </span>
-                        <div>
+                    <div className="p-3.5 sm:p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        {/* Day Number Badge & Dynamic Date Pill */}
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <span className="px-2.5 py-1 rounded-lg bg-[#151521] text-amber-300 font-bold text-xs flex items-center justify-center whitespace-nowrap shadow-xs">
+                            Day {day.dayNumber}
+                          </span>
+                          {!itinerary.datesNotConfirmed && itinerary.startDate ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-100/70 border border-amber-300/70 text-amber-950 font-bold text-xs whitespace-nowrap shadow-2xs">
+                              <Calendar className="w-3.5 h-3.5 text-amber-700 flex-shrink-0" />
+                              <span>{formatDayDate(itinerary.startDate, day.dayNumber)}</span>
+                            </span>
+                          ) : itinerary.datesNotConfirmed ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-200/80 text-slate-600 font-semibold text-[11px] whitespace-nowrap">
+                              <Calendar className="w-3 h-3 text-slate-400" />
+                              <span>Date TBD</span>
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <input
                               type="text"
                               value={day.title || getDayMainHeading(day)}
                               onChange={(e) => handleUpdateDayField(dayIndex, 'title', e.target.value)}
                               placeholder={getDayMainHeading(day)}
-                              className="font-bold text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-amber-500 focus:outline-none"
+                              className="font-bold text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-amber-500 focus:outline-none w-full"
                             />
                           </div>
                           <div className="text-[11px] text-slate-500 font-medium mt-0.5">

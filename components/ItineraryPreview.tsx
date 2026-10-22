@@ -43,7 +43,7 @@ import confetti from 'canvas-confetti';
 import { exportElementToPdf } from '@/lib/pdf-export';
 import { getVoucherReferenceNumber } from '@/lib/storage';
 import { COMPREHENSIVE_ATTRACTIONS, COMPREHENSIVE_DESTINATIONS } from '@/lib/catalog-data';
-import { formatDateDMY } from '@/lib/utils';
+import { formatDateDMY, formatDayDate } from '@/lib/utils';
 import { ensureOvernightStayText, getRouteSubtitle, getDayMainHeading } from '@/lib/narrative-generator';
 import { Itinerary, AppSettings, ItineraryDay, Destination, Attraction, HotelStarTier, DayHotelTiers, TierPricingData, PricingTiers, DayHotelSelection } from '@/types';
 import { SafeImage } from './SafeImage';
@@ -876,12 +876,26 @@ export default function ItineraryPreview({
                     }}
                   >
                     {/* Day Card Header Bar */}
-                    <div className="day-card-header flex items-center justify-between border-b border-slate-100 pb-2.5">
-                      <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-lg bg-[#151521] text-amber-300 font-black text-xs flex items-center justify-center">
-                          D{day.dayNumber}
-                        </span>
-                        <div>
+                    <div className="day-card-header flex items-center justify-between border-b border-slate-100 pb-2.5 gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        {/* Day Number Badge & Dynamic Date Pill */}
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <span className="px-2.5 py-1 rounded-lg bg-[#151521] text-amber-300 font-black text-xs flex items-center justify-center whitespace-nowrap shadow-2xs">
+                            Day {day.dayNumber}
+                          </span>
+                          {!itinerary.datesNotConfirmed && itinerary.startDate ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-100/70 border border-amber-300/70 text-amber-950 font-bold text-[11px] whitespace-nowrap shadow-2xs">
+                              <Calendar className="w-3 h-3 text-amber-600 flex-shrink-0" />
+                              <span>{formatDayDate(itinerary.startDate, day.dayNumber)}</span>
+                            </span>
+                          ) : itinerary.datesNotConfirmed ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 font-semibold text-[10px] whitespace-nowrap">
+                              <span>Date TBD</span>
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
                           <h4 className="font-black text-sm text-slate-900 leading-tight">
                             {getDayMainHeading(day)}
                           </h4>
@@ -1312,7 +1326,12 @@ export default function ItineraryPreview({
                             return (
                               <tr key={day.id} className="hover:bg-slate-50/50">
                                 <td className="py-1.5 px-2.5 font-semibold text-slate-900 whitespace-nowrap">
-                                  Day {day.dayNumber}
+                                  <div>Day {day.dayNumber}</div>
+                                  {!itinerary.datesNotConfirmed && itinerary.startDate && (
+                                    <div className="text-[10px] text-slate-400 font-normal">
+                                      {formatDayDate(itinerary.startDate, day.dayNumber)}
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="py-1.5 px-2.5 whitespace-nowrap">{day.overnightLocation}</td>
                                 <td className={`py-1.5 px-2.5 ${itinerary.selectedHotelTier === '3_star' ? 'bg-amber-50/60 font-semibold' : ''}`}>
@@ -1355,8 +1374,13 @@ export default function ItineraryPreview({
                             const displayedHotel = (itinerary.hotelTiersEnabled && day.hotelTiers?.[activeTierKey]) ? day.hotelTiers[activeTierKey] : day.hotel;
                             return (
                               <tr key={day.id} className="hover:bg-slate-50/50">
-                                <td className="py-1.5 px-3 font-semibold text-slate-900">
-                                  Day {day.dayNumber}
+                                <td className="py-1.5 px-3 font-semibold text-slate-900 whitespace-nowrap">
+                                  <div>Day {day.dayNumber}</div>
+                                  {!itinerary.datesNotConfirmed && itinerary.startDate && (
+                                    <div className="text-[10px] text-slate-400 font-normal">
+                                      {formatDayDate(itinerary.startDate, day.dayNumber)}
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="py-1.5 px-3">{day.overnightLocation}</td>
                                 <td className="py-1.5 px-3 font-bold text-slate-900">
