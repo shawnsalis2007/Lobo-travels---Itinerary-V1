@@ -566,10 +566,11 @@ export function deleteHotel(id: string): void {
 export async function syncFromCloudDatabase(): Promise<boolean> {
   if (typeof window === 'undefined') return false;
   try {
-    const [destRes, hotelsRes, settingsRes] = await Promise.all([
+    const [destRes, hotelsRes, settingsRes, itinRes] = await Promise.all([
       fetch('/api/destinations', { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
       fetch('/api/hotels', { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
-      fetch('/api/settings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null)
+      fetch('/api/settings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
+      fetch('/api/itineraries', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null)
     ]);
 
     let hasUpdates = false;
@@ -698,12 +699,27 @@ export function saveItinerary(itinerary: Itinerary): Itinerary {
   }
 
   setStorageItem(STORAGE_KEYS.ITINERARIES, updated);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/itineraries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedRecord)
+    }).catch(e => console.warn('[Storage] Sync save to /api/itineraries failed:', e));
+  }
+
   return updatedRecord;
 }
 
 export function deleteItinerary(id: string): void {
   const current = getItineraries();
   setStorageItem(STORAGE_KEYS.ITINERARIES, current.filter(item => item.id !== id));
+
+  if (typeof window !== 'undefined') {
+    fetch(`/api/itineraries?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    }).catch(e => console.warn('[Storage] Sync delete to /api/itineraries failed:', e));
+  }
 }
 
 export function duplicateItinerary(sourceId: string): Itinerary | null {

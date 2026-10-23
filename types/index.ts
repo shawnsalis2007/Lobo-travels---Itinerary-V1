@@ -249,6 +249,7 @@ export interface CalendarEventRef {
 export interface Itinerary {
   id: string;
   referenceNumber: string;
+  voucherReference?: string;
   tourName: string;
   clientName: string;
   clientPhone: string;

@@ -1,9 +1,10 @@
-import { Destination, Attraction, Hotel, AppSettings } from '@/types';
+import { Destination, Attraction, Hotel, AppSettings, Itinerary } from '@/types';
 import { 
   DEFAULT_SETTINGS, 
   INITIAL_DESTINATIONS, 
   INITIAL_ATTRACTIONS, 
-  INITIAL_HOTELS 
+  INITIAL_HOTELS,
+  INITIAL_ITINERARIES
 } from './mock-data';
 import { getAttractionImage } from './catalog-data';
 import fs from 'fs';
@@ -63,6 +64,7 @@ interface LocalStoreData {
   attractions: Attraction[];
   hotels: Hotel[];
   settings: AppSettings;
+  itineraries?: Itinerary[];
 }
 
 const LOCAL_DATA_DIR = path.join(process.cwd(), '.data');
@@ -98,7 +100,8 @@ function readLocalStore(): LocalStoreData {
           destinations: dests,
           attractions: atts,
           hotels: Array.isArray(parsed.hotels) ? parsed.hotels : INITIAL_HOTELS,
-          settings: parsed.settings ? { ...DEFAULT_SETTINGS, ...parsed.settings } : DEFAULT_SETTINGS
+          settings: parsed.settings ? { ...DEFAULT_SETTINGS, ...parsed.settings } : DEFAULT_SETTINGS,
+          itineraries: Array.isArray(parsed.itineraries) ? parsed.itineraries : INITIAL_ITINERARIES
         };
       }
     } catch (err) {
@@ -109,7 +112,8 @@ function readLocalStore(): LocalStoreData {
     destinations: INITIAL_DESTINATIONS,
     attractions: getSeededAttractions(),
     hotels: INITIAL_HOTELS,
-    settings: DEFAULT_SETTINGS
+    settings: DEFAULT_SETTINGS,
+    itineraries: INITIAL_ITINERARIES
   };
 
   try {
@@ -231,6 +235,23 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
         data JSONB NOT NULL,
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
+    `;
+
+    // 5. Itineraries Table
+    await sql`
+      CREATE TABLE IF NOT EXISTS itineraries (
+        id TEXT PRIMARY KEY,
+        reference_number TEXT NOT NULL,
+        tour_name TEXT NOT NULL,
+        client_name TEXT,
+        start_date TEXT,
+        end_date TEXT,
+        total_cost NUMERIC DEFAULT 0,
+        data JSONB NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_itineraries_ref ON itineraries (reference_number);
     `;
 
     // Seed destinations if empty
@@ -359,6 +380,38 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
             gallery = EXCLUDED.gallery,
             partnership_status = EXCLUDED.partnership_status,
             contracted_rate = EXCLUDED.contracted_rate,
+            data = EXCLUDED.data,
+            updated_at = NOW();
+        `;
+      }
+    }
+
+    // Seed itineraries if empty
+    const itinCountRes = await sql`SELECT count(*)::int as cnt FROM itineraries`;
+    if (itinCountRes[0]?.cnt === 0 || forceSeed) {
+      console.log('[Neon Postgres] Seeding itineraries table with initial catalog...');
+      for (const itn of INITIAL_ITINERARIES) {
+        await sql`
+          INSERT INTO itineraries (id, reference_number, tour_name, client_name, start_date, end_date, total_cost, data, created_at, updated_at)
+          VALUES (
+            ${itn.id},
+            ${itn.referenceNumber},
+            ${itn.tourName},
+            ${itn.clientName || ''},
+            ${itn.startDate || ''},
+            ${itn.endDate || ''},
+            ${itn.totalCost || 0},
+            ${JSON.stringify(itn)},
+            NOW(),
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            reference_number = EXCLUDED.reference_number,
+            tour_name = EXCLUDED.tour_name,
+            client_name = EXCLUDED.client_name,
+            start_date = EXCLUDED.start_date,
+            end_date = EXCLUDED.end_date,
+            total_cost = EXCLUDED.total_cost,
             data = EXCLUDED.data,
             updated_at = NOW();
         `;
@@ -1242,4 +1295,184 @@ export async function seedNeonDatabase(force: boolean = false): Promise<{
     hotelsCount: h.length,
     settingsConfigured: !!s.companyName
   };
+}
+
+// ── CRUD OPERATIONS: ITINERARIES ───────────────────────────────────────────────
+export async function getDbItineraries(): Promise<Itinerary[]> {
+  const { provider } = getActiveDbProvider();
+
+  if (provider === 'postgres') {
+    try {
+      await ensurePostgresTables();
+      const sql = await getPostgresClient();
+      if (sql) {
+        const rows = await sql`SELECT data FROM itineraries ORDER BY updated_at DESC`;
+        if (rows.length > 0) {
+          return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+        }
+      }
+    } catch (err) {
+      console.error('[Neon Postgres] getDbItineraries error:', err);
+    }
+  } else if (provider === 'kv') {
+    const stored = await kvGet<Itinerary[]>('lobo:itineraries');
+    if (stored && Array.isArray(stored) && stored.length > 0) {
+      return stored;
+    }
+    await kvSet('lobo:itineraries', INITIAL_ITINERARIES);
+    return INITIAL_ITINERARIES;
+  } else if (provider === 'supabase') {
+    try {
+      const sb = await getSupabaseClient();
+      if (sb) {
+        const { data, error } = await sb.from('itineraries').select('data').order('updated_at', { ascending: false });
+        if (!error && data && data.length > 0) {
+          return data.map(d => typeof d.data === 'string' ? JSON.parse(d.data) : d.data);
+        }
+      }
+    } catch (err) {
+      console.error('[Supabase] getDbItineraries error:', err);
+    }
+  }
+
+  // Fallback: Local JSON Store
+  const local = readLocalStore();
+  return (local.itineraries && local.itineraries.length > 0) ? local.itineraries : INITIAL_ITINERARIES;
+}
+
+export async function getDbItineraryById(idOrRef: string): Promise<Itinerary | null> {
+  if (!idOrRef) return null;
+  const cleanId = idOrRef.trim();
+  const lower = cleanId.toLowerCase();
+  const refFromVoucher = lower.startsWith('ltv-') ? lower.replace(/^ltv-/i, 'lt-') : lower;
+
+  const { provider } = getActiveDbProvider();
+
+  if (provider === 'postgres') {
+    try {
+      await ensurePostgresTables();
+      const sql = await getPostgresClient();
+      if (sql) {
+        const rows = await sql`
+          SELECT data FROM itineraries 
+          WHERE lower(id) = ${lower} 
+             OR lower(reference_number) = ${lower} 
+             OR lower(reference_number) = ${refFromVoucher}
+          LIMIT 1
+        `;
+        if (rows.length > 0) {
+          const r = rows[0];
+          return typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+        }
+      }
+    } catch (err) {
+      console.error('[Neon Postgres] getDbItineraryById error:', err);
+    }
+  }
+
+  // Fallback to in-memory / local search
+  const all = await getDbItineraries();
+  const found = all.find(itn => 
+    itn.id?.toLowerCase() === lower ||
+    itn.referenceNumber?.toLowerCase() === lower ||
+    itn.referenceNumber?.toLowerCase() === refFromVoucher ||
+    itn.id?.toLowerCase() === refFromVoucher
+  );
+  return found || null;
+}
+
+export async function saveDbItinerary(itinerary: Itinerary): Promise<Itinerary> {
+  const { provider } = getActiveDbProvider();
+  const itnId = itinerary.id || ('itn-' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6));
+  const refNum = itinerary.referenceNumber || ('LT-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000));
+  const now = new Date().toISOString();
+
+  const sanitized: Itinerary = {
+    ...itinerary,
+    id: itnId,
+    referenceNumber: refNum,
+    createdAt: itinerary.createdAt || now,
+    updatedAt: now
+  };
+
+  if (provider === 'postgres') {
+    try {
+      await ensurePostgresTables();
+      const sql = await getPostgresClient();
+      if (sql) {
+        await sql`
+          INSERT INTO itineraries (id, reference_number, tour_name, client_name, start_date, end_date, total_cost, data, created_at, updated_at)
+          VALUES (
+            ${sanitized.id},
+            ${sanitized.referenceNumber},
+            ${sanitized.tourName || 'Custom Tour'},
+            ${sanitized.clientName || ''},
+            ${sanitized.startDate || ''},
+            ${sanitized.endDate || ''},
+            ${sanitized.totalCost || 0},
+            ${JSON.stringify(sanitized)},
+            ${sanitized.createdAt},
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            reference_number = EXCLUDED.reference_number,
+            tour_name = EXCLUDED.tour_name,
+            client_name = EXCLUDED.client_name,
+            start_date = EXCLUDED.start_date,
+            end_date = EXCLUDED.end_date,
+            total_cost = EXCLUDED.total_cost,
+            data = EXCLUDED.data,
+            updated_at = NOW();
+        `;
+      }
+    } catch (err) {
+      console.error('[Neon Postgres] saveDbItinerary error:', err);
+    }
+  } else if (provider === 'kv') {
+    const list = await getDbItineraries();
+    const idx = list.findIndex(i => i.id === sanitized.id || i.referenceNumber === sanitized.referenceNumber);
+    if (idx >= 0) list[idx] = sanitized;
+    else list.unshift(sanitized);
+    await kvSet('lobo:itineraries', list);
+  }
+
+  // Backup to local store
+  writeLocalStore(data => {
+    if (!data.itineraries) data.itineraries = [];
+    const idx = data.itineraries.findIndex(i => i.id === sanitized.id || i.referenceNumber === sanitized.referenceNumber);
+    if (idx >= 0) data.itineraries[idx] = sanitized;
+    else data.itineraries.unshift(sanitized);
+  });
+
+  return sanitized;
+}
+
+export async function deleteDbItinerary(idOrRef: string): Promise<boolean> {
+  const clean = idOrRef.trim().toLowerCase();
+  const { provider } = getActiveDbProvider();
+
+  if (provider === 'postgres') {
+    try {
+      await ensurePostgresTables();
+      const sql = await getPostgresClient();
+      if (sql) {
+        await sql`DELETE FROM itineraries WHERE lower(id) = ${clean} OR lower(reference_number) = ${clean}`;
+        return true;
+      }
+    } catch (err) {
+      console.error('[Neon Postgres] deleteDbItinerary error:', err);
+    }
+  } else if (provider === 'kv') {
+    const list = await getDbItineraries();
+    const filtered = list.filter(i => i.id.toLowerCase() !== clean && i.referenceNumber.toLowerCase() !== clean);
+    await kvSet('lobo:itineraries', filtered);
+  }
+
+  writeLocalStore(data => {
+    if (data.itineraries) {
+      data.itineraries = data.itineraries.filter(i => i.id.toLowerCase() !== clean && i.referenceNumber.toLowerCase() !== clean);
+    }
+  });
+
+  return true;
 }
