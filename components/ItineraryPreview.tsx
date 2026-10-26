@@ -18,7 +18,6 @@ import {
   Globe, 
   Clock, 
   Building2, 
-  Utensils, 
   ShieldCheck, 
   AlertCircle, 
   ZoomIn, 
@@ -45,7 +44,7 @@ import { getVoucherReferenceNumber } from '@/lib/storage';
 import { COMPREHENSIVE_ATTRACTIONS, COMPREHENSIVE_DESTINATIONS } from '@/lib/catalog-data';
 import { formatDateDMY, formatDayDate } from '@/lib/utils';
 import { ensureOvernightStayText, getRouteSubtitle, getDayMainHeading } from '@/lib/narrative-generator';
-import { Itinerary, AppSettings, ItineraryDay, Destination, Attraction, HotelStarTier, DayHotelTiers, TierPricingData, PricingTiers, DayHotelSelection } from '@/types';
+import { Itinerary, AppSettings, ItineraryDay, DayMealPlan, Destination, Attraction, HotelStarTier, DayHotelTiers, TierPricingData, PricingTiers, DayHotelSelection } from '@/types';
 import { SafeImage } from './SafeImage';
 
 interface ItineraryPreviewProps {
@@ -180,6 +179,20 @@ export default function ItineraryPreview({
         })}
       </div>
     );
+  };
+
+  // Helper to format meals included line (e.g. "Breakfast", "Breakfast and Dinner", or "NA")
+  const formatMealsIncluded = (meals?: DayMealPlan): string => {
+    if (!meals) return 'NA';
+    const list: string[] = [];
+    if (Boolean(meals.breakfast)) list.push('Breakfast');
+    if (Boolean(meals.lunch)) list.push('Lunch');
+    if (Boolean(meals.dinner)) list.push('Dinner');
+
+    if (list.length === 0) return 'NA';
+    if (list.length === 1) return list[0];
+    if (list.length === 2) return `${list[0]} and ${list[1]}`;
+    return `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`;
   };
 
   // Helper to retrieve authentic photos of key highlight sights and monuments for a day
@@ -909,14 +922,6 @@ export default function ItineraryPreview({
                           })()}
                         </div>
                       </div>
-
-                      {/* Meal badges */}
-                      <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500">
-                        <Utensils className="w-3 h-3 text-amber-600" />
-                        <span>
-                          {[day.meals.breakfast && 'B', day.meals.lunch && 'L', day.meals.dinner && 'D'].filter(Boolean).join(' • ') || 'At leisure'}
-                        </span>
-                      </div>
                     </div>
 
                     {/* Day 1 Arrival Banner if enabled */}
@@ -1120,6 +1125,12 @@ export default function ItineraryPreview({
                         {renderFormattedDescription(ensureOvernightStayText(day.description, day))}
                       </div>
                     ) : null}
+
+                    {/* Dedicated Meals Included Text Line */}
+                    <div className="text-xs text-slate-800 font-sans">
+                      <span className="font-bold text-slate-900">Meals Included:</span>{' '}
+                      <span className="font-medium text-slate-700">{formatMealsIncluded(day.meals)}</span>
+                    </div>
 
                     {/* Key Highlight Attractions & Monuments Photos Grid (Strictly Square 1:1 Images) */}
                     {(() => {
