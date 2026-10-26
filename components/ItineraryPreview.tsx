@@ -41,7 +41,7 @@ import {
 import confetti from 'canvas-confetti';
 import { exportElementToPdf } from '@/lib/pdf-export';
 import { getVoucherReferenceNumber } from '@/lib/storage';
-import { COMPREHENSIVE_ATTRACTIONS, COMPREHENSIVE_DESTINATIONS } from '@/lib/catalog-data';
+import { COMPREHENSIVE_ATTRACTIONS, COMPREHENSIVE_DESTINATIONS, getAttractionImage } from '@/lib/catalog-data';
 import { formatDateDMY, formatDayDate } from '@/lib/utils';
 import { ensureOvernightStayText, getRouteSubtitle, getDayMainHeading } from '@/lib/narrative-generator';
 import { Itinerary, AppSettings, ItineraryDay, DayMealPlan, Destination, Attraction, HotelStarTier, DayHotelTiers, TierPricingData, PricingTiers, DayHotelSelection } from '@/types';
@@ -222,24 +222,53 @@ export default function ItineraryPreview({
     const list: { id: string; name: string; image: string; unesco?: boolean }[] = [];
     const seenUrls = new Set<string>();
 
+    // Helper to find attraction by ID, exact name, partial match, or catalog lookup
+    const findAttraction = (idOrName: string): { id: string; name: string; image: string; unesco?: boolean } | null => {
+      const q = idOrName.toLowerCase().trim();
+      if (!q) return null;
+
+      // 1. Exact match on ID or Name
+      let att = activeAttractions.find(
+        a => a.id.toLowerCase() === q || a.name.toLowerCase() === q
+      );
+
+      // 2. StartsWith, Substring or Keyword inclusion match
+      if (!att) {
+        att = activeAttractions.find(
+          a => a.name.toLowerCase().startsWith(q) || q.startsWith(a.name.toLowerCase()) ||
+               a.name.toLowerCase().includes(q) || q.includes(a.name.toLowerCase())
+        );
+      }
+
+      // 3. Fallback to image from getAttractionImage or override map
+      const bestImage = (att && att.image) ? att.image : (getAttractionImage(att?.id || q) || getAttractionImage(att?.name || q) || getAttractionImage(idOrName));
+      if (bestImage) {
+        return {
+          id: att?.id || idOrName,
+          name: att?.name || idOrName,
+          image: bestImage,
+          unesco: att?.unesco
+        };
+      }
+      return null;
+    };
+
     // Match explicitly selected attraction IDs
     for (const id of attIds) {
-      const att = activeAttractions.find(
-        a => a.id.toLowerCase() === id.toLowerCase() || a.name.toLowerCase() === id.toLowerCase()
-      );
-      if (att && att.image && !seenUrls.has(att.image)) {
-        seenUrls.add(att.image);
-        list.push({ id: att.id, name: att.name, image: att.image, unesco: att.unesco });
+      const matched = findAttraction(id);
+      if (matched && matched.image && !seenUrls.has(matched.image)) {
+        seenUrls.add(matched.image);
+        list.push(matched);
       }
     }
 
     // Also match explicitly selected attraction names (if not already matched by ID)
     for (const name of explicitNames) {
-      if (list.some(item => item.name.toLowerCase() === name.toLowerCase())) continue;
-      const att = activeAttractions.find(a => a.name.toLowerCase() === name.toLowerCase());
-      if (att && att.image && !seenUrls.has(att.image)) {
-        seenUrls.add(att.image);
-        list.push({ id: att.id, name: att.name, image: att.image, unesco: att.unesco });
+      if (list.some(item => item.name.toLowerCase() === name.toLowerCase() || item.id.toLowerCase() === name.toLowerCase())) continue;
+      const matched = findAttraction(name);
+      if (matched && matched.image && !seenUrls.has(matched.image)) {
+        seenUrls.add(matched.image);
+        list.push(matched);
       }
     }
 

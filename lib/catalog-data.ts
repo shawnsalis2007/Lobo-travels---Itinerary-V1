@@ -1766,7 +1766,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Heritage Wood Temple',
     unesco: false,
-    image: 'https://media.istockphoto.com/id/1334792935/photo/hidimba-devi-or-hadimba-temple-manali.webp?a=1&b=1&s=612x612&w=0&k=20&c=r3fEFiD_DH2rJ_DuIbAP1Au9cpnxtRvsL-k6fF4KON8='
+    image: 'https://images.unsplash.com/photo-1655470062196-c37e923fc4c1?auto=format&fit=crop&w=1200&q=80'
   },
   {
     id: 'manali-rohtang-pass',
@@ -4881,10 +4881,13 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'atal tunnel & sissu waterfall': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg/1280px-Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg',
   'atal tunnel & sissu waterfall (lahaul valley)': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg/1280px-Atal_Tunnel_Entrance_%28South_Portal%29%2C_Manali.jpg',
 
-  'manali-hadimba-temple': 'https://media.istockphoto.com/id/1334792935/photo/hidimba-devi-or-hadimba-temple-manali.webp?a=1&b=1&s=612x612&w=0&k=20&c=r3fEFiD_DH2rJ_DuIbAP1Au9cpnxtRvsL-k6fF4KON8=',
-  'hadimba temple': 'https://media.istockphoto.com/id/1334792935/photo/hidimba-devi-or-hadimba-temple-manali.webp?a=1&b=1&s=612x612&w=0&k=20&c=r3fEFiD_DH2rJ_DuIbAP1Au9cpnxtRvsL-k6fF4KON8=',
-  'hadimba devi wooden temple': 'https://media.istockphoto.com/id/1334792935/photo/hidimba-devi-or-hadimba-temple-manali.webp?a=1&b=1&s=612x612&w=0&k=20&c=r3fEFiD_DH2rJ_DuIbAP1Au9cpnxtRvsL-k6fF4KON8=',
-  'hadimba devi wooden temple & dhungri van vihar': 'https://media.istockphoto.com/id/1334792935/photo/hidimba-devi-or-hadimba-temple-manali.webp?a=1&b=1&s=612x612&w=0&k=20&c=r3fEFiD_DH2rJ_DuIbAP1Au9cpnxtRvsL-k6fF4KON8=',
+  'manali-hadimba-temple': 'https://images.unsplash.com/photo-1655470062196-c37e923fc4c1?auto=format&fit=crop&w=1200&q=80',
+  'hadimba temple': 'https://images.unsplash.com/photo-1655470062196-c37e923fc4c1?auto=format&fit=crop&w=1200&q=80',
+  'hadimba devi temple': 'https://images.unsplash.com/photo-1655470062196-c37e923fc4c1?auto=format&fit=crop&w=1200&q=80',
+  'hadimba devi wooden temple': 'https://images.unsplash.com/photo-1655470062196-c37e923fc4c1?auto=format&fit=crop&w=1200&q=80',
+  'hadimba devi wooden temple & dhungri van vihar': 'https://images.unsplash.com/photo-1655470062196-c37e923fc4c1?auto=format&fit=crop&w=1200&q=80',
+  'hidimba temple': 'https://images.unsplash.com/photo-1655470062196-c37e923fc4c1?auto=format&fit=crop&w=1200&q=80',
+  'hidimba devi temple': 'https://images.unsplash.com/photo-1655470062196-c37e923fc4c1?auto=format&fit=crop&w=1200&q=80',
 
   'manali-rohtang-pass': 'https://hblimg.mmtcdn.com/content/hubble/img/manali/mmt/activities/m_rohtang-pass_l_400_640.jpg',
   'rohtang pass': 'https://hblimg.mmtcdn.com/content/hubble/img/manali/mmt/activities/m_rohtang-pass_l_400_640.jpg',

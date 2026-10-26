@@ -524,6 +524,21 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       console.warn('[Neon Postgres] Sync Kempty Falls attraction warning:', kemptyErr);
     }
 
+    try {
+      const hadimbaCleanUrl = 'https://images.unsplash.com/photo-1655470062196-c37e923fc4c1?auto=format&fit=crop&w=1200&q=80';
+      await sql`
+        UPDATE attractions
+        SET image = ${hadimbaCleanUrl},
+            data = jsonb_set(data, '{image}', to_jsonb(${hadimbaCleanUrl}::text)),
+            updated_at = NOW()
+        WHERE id = 'manali-hadimba-temple' 
+           OR LOWER(name) LIKE '%hadimba%' 
+           OR LOWER(name) LIKE '%hidimba%';
+      `;
+    } catch (hadimbaErr) {
+      console.warn('[Neon Postgres] Sync Hadimba Temple attraction image warning:', hadimbaErr);
+    }
+
     isPostgresInitialized = true;
   } catch (err) {
     console.error('[Neon Postgres] Schema initialization error:', err);
