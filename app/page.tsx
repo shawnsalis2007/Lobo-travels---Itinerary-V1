@@ -362,6 +362,7 @@ export default function Home() {
         {/* PREVIEW TAB */}
         {activeTab === 'preview' && selectedItinerary && (
           <ItineraryPreview
+            key={selectedItinerary.id + '-' + (selectedItinerary.updatedAt || '')}
             itinerary={selectedItinerary}
             settings={settings}
             destinations={destinations}

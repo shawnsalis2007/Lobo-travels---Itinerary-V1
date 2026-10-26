@@ -2561,6 +2561,23 @@ export default function ItineraryBuilder({
       copy.coverImage = smartImg || DEFAULT_TAJ_MAHAL;
     }
 
+    // Ensure inclusions and exclusions are clean arrays of non-empty strings
+    if (Array.isArray(copy.exclusions)) {
+      copy.exclusions = copy.exclusions.map(s => String(s || '').trim()).filter(Boolean);
+    } else if (typeof copy.exclusions === 'string') {
+      copy.exclusions = (copy.exclusions as string).split('\n').map(s => s.trim()).filter(Boolean);
+    } else {
+      copy.exclusions = [...(settings?.defaultExclusions || [])];
+    }
+
+    if (Array.isArray(copy.inclusions)) {
+      copy.inclusions = copy.inclusions.map(s => String(s || '').trim()).filter(Boolean);
+    } else if (typeof copy.inclusions === 'string') {
+      copy.inclusions = (copy.inclusions as string).split('\n').map(s => s.trim()).filter(Boolean);
+    } else {
+      copy.inclusions = [...(settings?.defaultInclusions || [])];
+    }
+
     // Ensure overnight stay text and hotel clearance according to business rules:
     // If departure is active on a day: disable/clear hotel & remove any overnight stay line
     // If departure is NOT active on a day: ensure "Overnight stay in [City Name]." is at the end
@@ -6159,14 +6176,14 @@ export default function ItineraryBuilder({
                 Tour Inclusions
               </span>
               <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                {itinerary.inclusions.map((item, idx) => (
+                {(Array.isArray(itinerary.inclusions) ? itinerary.inclusions : []).map((item, idx) => (
                   <div key={idx} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 text-xs">
                     <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                     <input
                       type="text"
                       value={item}
                       onChange={(e) => {
-                        const copy = [...itinerary.inclusions];
+                        const copy = [...(Array.isArray(itinerary.inclusions) ? itinerary.inclusions : [])];
                         copy[idx] = e.target.value;
                         setItinerary(prev => ({ ...prev, inclusions: copy }));
                       }}
@@ -6175,7 +6192,7 @@ export default function ItineraryBuilder({
                     <button
                       type="button"
                       onClick={() => {
-                        const copy = itinerary.inclusions.filter((_, i) => i !== idx);
+                        const copy = (Array.isArray(itinerary.inclusions) ? itinerary.inclusions : []).filter((_, i) => i !== idx);
                         setItinerary(prev => ({ ...prev, inclusions: copy }));
                       }}
                       className="text-slate-300 hover:text-rose-600"
@@ -6187,7 +6204,7 @@ export default function ItineraryBuilder({
               </div>
               <button
                 type="button"
-                onClick={() => setItinerary(prev => ({ ...prev, inclusions: [...prev.inclusions, 'New inclusion'] }))}
+                onClick={() => setItinerary(prev => ({ ...prev, inclusions: [...(Array.isArray(prev.inclusions) ? prev.inclusions : []), 'New inclusion'] }))}
                 className="text-xs font-bold text-amber-600 hover:underline"
               >
                 + Add Another Inclusion
@@ -6200,14 +6217,14 @@ export default function ItineraryBuilder({
                 Tour Exclusions
               </span>
               <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                {itinerary.exclusions.map((item, idx) => (
+                {(Array.isArray(itinerary.exclusions) ? itinerary.exclusions : []).map((item, idx) => (
                   <div key={idx} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 text-xs">
                     <X className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
                     <input
                       type="text"
                       value={item}
                       onChange={(e) => {
-                        const copy = [...itinerary.exclusions];
+                        const copy = [...(Array.isArray(itinerary.exclusions) ? itinerary.exclusions : [])];
                         copy[idx] = e.target.value;
                         setItinerary(prev => ({ ...prev, exclusions: copy }));
                       }}
@@ -6216,7 +6233,7 @@ export default function ItineraryBuilder({
                     <button
                       type="button"
                       onClick={() => {
-                        const copy = itinerary.exclusions.filter((_, i) => i !== idx);
+                        const copy = (Array.isArray(itinerary.exclusions) ? itinerary.exclusions : []).filter((_, i) => i !== idx);
                         setItinerary(prev => ({ ...prev, exclusions: copy }));
                       }}
                       className="text-slate-300 hover:text-rose-600"
@@ -6228,7 +6245,7 @@ export default function ItineraryBuilder({
               </div>
               <button
                 type="button"
-                onClick={() => setItinerary(prev => ({ ...prev, exclusions: [...prev.exclusions, 'New exclusion'] }))}
+                onClick={() => setItinerary(prev => ({ ...prev, exclusions: [...(Array.isArray(prev.exclusions) ? prev.exclusions : []), 'New exclusion'] }))}
                 className="text-xs font-bold text-amber-600 hover:underline"
               >
                 + Add Another Exclusion

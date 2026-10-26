@@ -552,12 +552,18 @@ export default function TravelVoucherView({
                     Services Included Under Voucher
                   </span>
                   <ul className="space-y-1 text-slate-600 text-[10px]">
-                    {itinerary.inclusions.slice(0, 7).map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-1">
-                        <span className="text-emerald-600 font-bold">✓</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
+                    {(() => {
+                      const list = Array.isArray(itinerary.inclusions)
+                        ? itinerary.inclusions
+                        : (typeof itinerary.inclusions === 'string' ? (itinerary.inclusions as string).split('\n') : []);
+                      const filtered = list.map(s => String(s || '').trim()).filter(Boolean);
+                      return filtered.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-1">
+                          <span className="text-emerald-600 font-bold">✓</span>
+                          <span>{item}</span>
+                        </li>
+                      ));
+                    })()}
                   </ul>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
@@ -565,12 +571,18 @@ export default function TravelVoucherView({
                     Services Excluded
                   </span>
                   <ul className="space-y-1 text-slate-600 text-[10px]">
-                    {itinerary.exclusions.slice(0, 6).map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-1">
-                        <span className="text-rose-500 font-bold">✕</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
+                    {(() => {
+                      const list = Array.isArray(itinerary.exclusions)
+                        ? itinerary.exclusions
+                        : (typeof itinerary.exclusions === 'string' ? (itinerary.exclusions as string).split('\n') : []);
+                      const filtered = list.map(s => String(s || '').trim()).filter(Boolean);
+                      return filtered.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-1">
+                          <span className="text-rose-500 font-bold">✕</span>
+                          <span>{item}</span>
+                        </li>
+                      ));
+                    })()}
                   </ul>
                 </div>
               </div>

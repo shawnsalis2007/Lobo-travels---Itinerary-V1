@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Download, 
   Printer, 
@@ -73,6 +73,10 @@ export default function ItineraryPreview({
   onBack
 }: ItineraryPreviewProps) {
   const [itinerary, setItinerary] = useState<Itinerary>(initialItinerary);
+
+  useEffect(() => {
+    setItinerary(initialItinerary);
+  }, [initialItinerary]);
   const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [isExporting, setIsExporting] = useState<boolean>(false);
@@ -1593,28 +1597,66 @@ export default function ItineraryPreview({
                   <span className="font-bold text-slate-900 block text-[11px] uppercase tracking-wider">
                     Tour Inclusions
                   </span>
-                  <ul className="space-y-1 text-slate-700 text-[11px]">
-                    {itinerary.inclusions.slice(0, 8).map((inc, i) => (
-                      <li key={i} className="flex items-start gap-1.5">
-                        <span className="text-emerald-600 font-bold">✓</span>
-                        <span>{inc}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {isInlineEditMode ? (
+                    <textarea
+                      rows={Math.max(4, (itinerary.inclusions?.length || 0) + 1)}
+                      value={Array.isArray(itinerary.inclusions) ? itinerary.inclusions.join('\n') : (itinerary.inclusions || '')}
+                      onChange={(e) => updateField('inclusions', e.target.value.split('\n'))}
+                      placeholder="One inclusion per line..."
+                      className="w-full text-[11px] p-2 bg-white border border-amber-300 rounded leading-relaxed text-slate-800 focus:outline-none"
+                    />
+                  ) : (
+                    <ul className="space-y-1 text-slate-700 text-[11px]">
+                      {(() => {
+                        const items = Array.isArray(itinerary.inclusions)
+                          ? itinerary.inclusions
+                          : (typeof itinerary.inclusions === 'string' ? (itinerary.inclusions as string).split('\n') : []);
+                        const filtered = items.map(s => String(s || '').trim()).filter(Boolean);
+                        if (filtered.length === 0) {
+                          return <li className="text-slate-400 italic">No specific inclusions listed</li>;
+                        }
+                        return filtered.map((inc, i) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="text-emerald-600 font-bold">✓</span>
+                            <span>{inc}</span>
+                          </li>
+                        ));
+                      })()}
+                    </ul>
+                  )}
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
                   <span className="font-bold text-slate-900 block text-[11px] uppercase tracking-wider">
                     Tour Exclusions
                   </span>
-                  <ul className="space-y-1 text-slate-700 text-[11px]">
-                    {itinerary.exclusions.slice(0, 7).map((exc, i) => (
-                      <li key={i} className="flex items-start gap-1.5">
-                        <span className="text-rose-500 font-bold">✕</span>
-                        <span>{exc}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {isInlineEditMode ? (
+                    <textarea
+                      rows={Math.max(4, (itinerary.exclusions?.length || 0) + 1)}
+                      value={Array.isArray(itinerary.exclusions) ? itinerary.exclusions.join('\n') : (itinerary.exclusions || '')}
+                      onChange={(e) => updateField('exclusions', e.target.value.split('\n'))}
+                      placeholder="One exclusion per line..."
+                      className="w-full text-[11px] p-2 bg-white border border-amber-300 rounded leading-relaxed text-slate-800 focus:outline-none"
+                    />
+                  ) : (
+                    <ul className="space-y-1 text-slate-700 text-[11px]">
+                      {(() => {
+                        const items = Array.isArray(itinerary.exclusions)
+                          ? itinerary.exclusions
+                          : (typeof itinerary.exclusions === 'string' ? (itinerary.exclusions as string).split('\n') : []);
+                        const filtered = items.map(s => String(s || '').trim()).filter(Boolean);
+                        if (filtered.length === 0) {
+                          return <li className="text-slate-400 italic">No specific exclusions listed</li>;
+                        }
+                        return filtered.map((exc, i) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="text-rose-500 font-bold">✕</span>
+                            <span>{exc}</span>
+                          </li>
+                        ));
+                      })()}
+                    </ul>
+                  )}
                 </div>
               </div>
 
