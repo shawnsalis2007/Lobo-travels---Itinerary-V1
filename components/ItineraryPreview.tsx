@@ -184,69 +184,51 @@ export default function ItineraryPreview({
 
   // Helper to retrieve authentic photos of key highlight sights and monuments for a day
   const getDayPhotos = React.useCallback((day: ItineraryDay) => {
-    const isLastDay = day.dayNumber === itinerary.days.length;
-    const hasSightseeing = Boolean(
-      (day.attractionIds && day.attractionIds.length > 0) ||
-      (day.attractionNames && day.attractionNames.length > 0)
-    );
+    // 1. Gather all explicitly selected attraction IDs (including multi-city circuits)
+    const attIds: string[] = [...(day.attractionIds || [])];
+    if (day.isMultiCity && day.cities) {
+      day.cities.forEach(c => {
+        if (c.attractionIds && c.attractionIds.length > 0) {
+          attIds.push(...c.attractionIds);
+        }
+      });
+    }
 
-    // Final Day with no sightseeing activities: strictly return empty array (do not render empty section or placeholder)
-    if (isLastDay && !hasSightseeing) {
+    const explicitNames: string[] = Array.isArray(day.attractionNames) ? day.attractionNames : [];
+
+    // Strictly check if ANY attractions are explicitly selected for this day
+    const hasExplicitAttractions = attIds.length > 0 || explicitNames.length > 0;
+    if (!hasExplicitAttractions) {
       return [];
     }
 
     const list: { id: string; name: string; image: string; unesco?: boolean }[] = [];
     const seenUrls = new Set<string>();
 
-    // 1. Check day attractionIds (including multi-city circuits)
-    const attIds: string[] = [...(day.attractionIds || [])];
-    if (day.isMultiCity && day.cities) {
-      day.cities.forEach(c => {
-        if (c.attractionIds) attIds.push(...c.attractionIds);
-      });
-    }
-
+    // Match explicitly selected attraction IDs
     for (const id of attIds) {
-      const att = activeAttractions.find(a => a.id === id || a.name.toLowerCase() === id.toLowerCase());
+      const att = activeAttractions.find(
+        a => a.id.toLowerCase() === id.toLowerCase() || a.name.toLowerCase() === id.toLowerCase()
+      );
       if (att && att.image && !seenUrls.has(att.image)) {
         seenUrls.add(att.image);
         list.push({ id: att.id, name: att.name, image: att.image, unesco: att.unesco });
       }
     }
 
-    // 2. Only if no attractions were found, check if day images match registered attractions (no generic highlights)
-    if (list.length === 0 && day.images && day.images.length > 0) {
-      for (const img of day.images) {
-        if (img && !seenUrls.has(img)) {
-          const match = activeAttractions.find(a => a.image === img);
-          if (match) {
-            seenUrls.add(img);
-            list.push({
-              id: match.id,
-              name: match.name,
-              image: img,
-              unesco: match.unesco
-            });
-          }
-        }
+    // Also match explicitly selected attraction names (if not already matched by ID)
+    for (const name of explicitNames) {
+      if (list.some(item => item.name.toLowerCase() === name.toLowerCase())) continue;
+      const att = activeAttractions.find(a => a.name.toLowerCase() === name.toLowerCase());
+      if (att && att.image && !seenUrls.has(att.image)) {
+        seenUrls.add(att.image);
+        list.push({ id: att.id, name: att.name, image: att.image, unesco: att.unesco });
       }
     }
 
-    // 3. Fallback to destination attractions ONLY if list is completely empty AND NOT the final day with no sightseeing
-    if (list.length === 0 && day.destination && (!isLastDay || hasSightseeing)) {
-      const destAtts = activeAttractions.filter(
-        a => a.destinationName.toLowerCase() === day.destination.toLowerCase() && a.image
-      );
-      for (const att of destAtts.slice(0, 2)) {
-        if (!seenUrls.has(att.image)) {
-          seenUrls.add(att.image);
-          list.push({ id: att.id, name: att.name, image: att.image, unesco: att.unesco });
-        }
-      }
-    }
-
-    return list.slice(0, 4); // Up to 4 authentic highlight photos per day card
-  }, [activeAttractions, itinerary.days.length]);
+    // Display ONLY explicitly selected attraction items (up to 4)
+    return list.slice(0, 4);
+  }, [activeAttractions]);
 
   // Main hero cover image for Page 1 of the itinerary proposal
   const smartCoverImage = React.useMemo(() => {
@@ -1555,7 +1537,7 @@ export default function ItineraryPreview({
                       <div className="flex items-center justify-between py-1 border-b border-slate-100">
                         <span className="text-slate-600 flex items-center gap-1.5">
                           <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                          <span><strong>Accommodation Rate:</strong> Hotel Stays ({itinerary.nights} Nights) & Confirmed Meal Plan</span>
+                          <span><strong>Accommodation Rate:</strong> Hotel Stays & Confirmed Meal Plan</span>
                         </span>
                         <span className="font-bold text-slate-900 whitespace-nowrap ml-2">
                           {itinerary.currencySymbol}{(itinerary.accommodationRate || 0).toLocaleString('en-IN')}
