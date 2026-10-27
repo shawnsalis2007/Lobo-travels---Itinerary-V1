@@ -63,6 +63,30 @@ CREATE TABLE IF NOT EXISTS users (
 );
 CREATE INDEX IF NOT EXISTS idx_users_brand_email ON users(brand_id, email);
 
+-- Seed / Upsert Default Super Admin User (vlobo99@outlook.com / venson7359)
+INSERT INTO users (id, brand_id, email, password_hash, full_name, role, permissions, is_active, must_change_password, failed_login_attempts)
+VALUES (
+  'user-superadmin-01',
+  'brand-lobo-travels',
+  'vlobo99@outlook.com',
+  '$2b$10$PzsHXOJkyKbIwJF2rgAO9eUiqz4vcj4YfWOdAIQoAljbbrxHk/K9C',
+  'Venson Lobo (Super Admin)',
+  'super_admin',
+  '{"canCreateItinerary": true, "canEditItinerary": true, "canDeleteItinerary": true, "canManageFleet": true, "canManageDrivers": true, "canManageBookings": true, "canManageDestinations": true, "canManageHotels": true, "canViewReports": true, "canManageSettings": true, "canManageUsers": true}'::jsonb,
+  true,
+  false,
+  0
+)
+ON CONFLICT (id) DO UPDATE SET
+  email = EXCLUDED.email,
+  password_hash = EXCLUDED.password_hash,
+  full_name = EXCLUDED.full_name,
+  role = 'super_admin',
+  is_active = true,
+  failed_login_attempts = 0,
+  locked_until = NULL,
+  updated_at = NOW();
+
 -- 3. SESSIONS TABLE
 CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY,

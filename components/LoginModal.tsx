@@ -249,11 +249,11 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
               <div className="grid grid-cols-2 gap-2 text-[11px]">
                 <button
                   type="button"
-                  onClick={() => fillQuickCredential('superadmin@lobotravels.com', 'Lobo@Super2026!')}
+                  onClick={() => fillQuickCredential('vlobo99@outlook.com', 'venson7359')}
                   className="p-2 text-left rounded bg-[#26214F]/40 hover:bg-[#26214F] border border-purple-500/30 transition text-purple-300"
                 >
                   <span className="font-bold block text-white">Super Admin</span>
-                  superadmin@lobotravels.com
+                  vlobo99@outlook.com
                 </button>
                 <button
                   type="button"

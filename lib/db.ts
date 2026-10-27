@@ -140,17 +140,17 @@ const PRE_MIGRATION_BACKUP_FILE = path.join(LOCAL_DATA_DIR, 'backup_pre_migratio
 
 // Default initial user seed hashes (pre-generated with bcrypt 10 rounds)
 // Passwords:
-// superadmin@lobotravels.com -> Lobo@Super2026!
-// admin@lobotravels.com      -> Lobo@Admin2026!
-// staff@lobotravels.com      -> Lobo@Staff2026!
-// viewer@lobotravels.com     -> Lobo@Viewer2026!
+// vlobo99@outlook.com   -> venson7359
+// admin@lobotravels.com -> Lobo@Admin2026!
+// staff@lobotravels.com -> Lobo@Staff2026!
+// viewer@lobotravels.com -> Lobo@Viewer2026!
 const SEED_USERS: User[] = [
   {
     id: 'user-superadmin-01',
     brandId: DEFAULT_BRAND_ID,
-    email: 'superadmin@lobotravels.com',
-    passwordHash: '$2b$10$6Sj6qOVXW8j138UPwZalquzz5L6Vyo/sInBqMvI/feCV6x4ve3C3a',
-    fullName: 'Lobo Super Admin',
+    email: 'vlobo99@outlook.com',
+    passwordHash: '$2b$10$PzsHXOJkyKbIwJF2rgAO9eUiqz4vcj4YfWOdAIQoAljbbrxHk/K9C',
+    fullName: 'Venson Lobo (Super Admin)',
     role: 'super_admin',
     permissions: { ...DEFAULT_PERMISSIONS, canManageUsers: true, canManageSettings: true, canDeleteItinerary: true },
     isActive: true,
@@ -465,8 +465,8 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
-      CREATE INDEX IF NOT EXISTS idx_users_brand_email ON users(brand_id, email);
     `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_users_brand_email ON users(brand_id, email);`;
 
     // 3. Sessions Table
     await sql`
@@ -477,9 +477,9 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
         expires_at TIMESTAMPTZ NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
-      CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
-      CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
     `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);`;
 
     // 4. Reference Number Atomic Counters Table
     await sql`
@@ -651,8 +651,8 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
-      CREATE INDEX IF NOT EXISTS idx_fleet_brand ON fleet(brand_id);
     `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_fleet_brand ON fleet(brand_id);`;
 
     // 11. Drivers Table
     await sql`
@@ -671,8 +671,8 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
-      CREATE INDEX IF NOT EXISTS idx_drivers_brand ON drivers(brand_id);
     `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_drivers_brand ON drivers(brand_id);`;
 
     // 12. Operational Bookings Table
     await sql`
@@ -689,8 +689,8 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
-      CREATE INDEX IF NOT EXISTS idx_bookings_brand ON operational_bookings(brand_id);
     `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_bookings_brand ON operational_bookings(brand_id);`;
 
     // 13. Activity Logs Table
     await sql`
@@ -705,9 +705,9 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
         details JSONB DEFAULT '{}'::jsonb,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
-      CREATE INDEX IF NOT EXISTS idx_activity_logs_brand ON activity_logs(brand_id, created_at DESC);
-      CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON activity_logs(action);
     `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_activity_logs_brand ON activity_logs(brand_id, created_at DESC);`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON activity_logs(action);`;
 
     // Seed destinations if empty
     const destCountRes = await sql`SELECT count(*)::int as cnt FROM destinations`;
@@ -888,6 +888,36 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
         `;
       }
     }
+
+    // Always guarantee Super Admin vlobo99@outlook.com is present with updated credentials
+    const superAdmin = SEED_USERS[0];
+    await sql`
+      INSERT INTO users (id, brand_id, email, password_hash, full_name, role, permissions, is_active, must_change_password, failed_login_attempts, created_at, updated_at)
+      VALUES (
+        'user-superadmin-01',
+        ${DEFAULT_BRAND_ID},
+        ${superAdmin.email},
+        ${superAdmin.passwordHash},
+        ${superAdmin.fullName},
+        'super_admin',
+        ${JSON.stringify(superAdmin.permissions)},
+        true,
+        false,
+        0,
+        NOW(),
+        NOW()
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        email = EXCLUDED.email,
+        password_hash = EXCLUDED.password_hash,
+        full_name = EXCLUDED.full_name,
+        role = 'super_admin',
+        permissions = EXCLUDED.permissions,
+        is_active = true,
+        failed_login_attempts = 0,
+        locked_until = NULL,
+        updated_at = NOW();
+    `;
 
     // Cleanup Kempty Falls duplicate if needed
     await sql`DELETE FROM destinations WHERE lower(id) = 'kempty-falls' OR lower(name) = 'kempty falls';`;
