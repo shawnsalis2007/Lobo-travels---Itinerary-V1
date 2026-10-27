@@ -13,10 +13,15 @@ import FleetManager from '@/components/FleetManager';
 import DriversManager from '@/components/DriversManager';
 import ReportsDashboard from '@/components/ReportsDashboard';
 import RemindersScheduling from '@/components/RemindersScheduling';
+import BrandsManager from '@/components/BrandsManager';
+import UsersManager from '@/components/UsersManager';
+import LoginModal from '@/components/LoginModal';
 
 import {
   Itinerary,
-  Hotel
+  Hotel,
+  User,
+  Brand
 } from '@/types';
 
 import {
@@ -54,17 +59,76 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // ── Authentication & Multi-Brand State ──
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentBrand, setCurrentBrand] = useState<Brand | null>(null);
+  const [isViewingAs, setIsViewingAs] = useState(false);
+  const [viewingAsBrand, setViewingAsBrand] = useState<Brand | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
   useEffect(() => {
     // Initial sync from persistent cloud database API routes
     syncFromCloudDatabase().catch(() => {});
 
+    // Check user session
+    fetch('/api/auth/me')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.authenticated && data.user) {
+          setCurrentUser(data.user);
+          setCurrentBrand(data.brand);
+          setIsViewingAs(!!data.isViewingAs);
+          setViewingAsBrand(data.viewingAsBrand || null);
+        }
+      })
+      .catch(() => {});
+
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
-    if (tabParam && ['dashboard', 'itineraries', 'hotels', 'destinations', 'reminders', 'reports', 'fleet', 'drivers', 'settings'].includes(tabParam)) {
+    if (tabParam && ['dashboard', 'itineraries', 'hotels', 'destinations', 'reminders', 'reports', 'fleet', 'drivers', 'settings', 'brands', 'users'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, []);
+
+  const handleLoginSuccess = (user: User, brand: Brand) => {
+    setCurrentUser(user);
+    setCurrentBrand(brand);
+    setIsLoginModalOpen(false);
+    syncFromCloudDatabase().catch(() => {});
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (_) {}
+    setCurrentUser(null);
+    setIsViewingAs(false);
+    setViewingAsBrand(null);
+    syncFromCloudDatabase().catch(() => {});
+  };
+
+  const handleViewAsBrand = async (brandId: string) => {
+    try {
+      const res = await fetch('/api/brands/view-as', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brandId })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setIsViewingAs(data.isViewingAs);
+        setViewingAsBrand(data.brand);
+        await syncFromCloudDatabase();
+      }
+    } catch (e) {
+      alert('Failed to switch brand view');
+    }
+  };
+
+  const handleExitViewingAs = async () => {
+    await handleViewAsBrand('brand-lobo-travels');
+  };
 
   // Synchronized stores with SSR snapshot hydration safety
   const itineraries = useItineraries();
@@ -298,6 +362,13 @@ export default function Home() {
         onSearch={setSearchQuery}
         searchQuery={searchQuery}
         onNewItinerary={handleNewItinerary}
+        currentUser={currentUser}
+        currentBrand={currentBrand}
+        isViewingAs={isViewingAs}
+        viewingAsBrand={viewingAsBrand}
+        onExitViewingAs={handleExitViewingAs}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
+        onLogout={handleLogout}
       />
 
       {/* Main Container */}
@@ -479,7 +550,30 @@ export default function Home() {
           />
         )}
 
+        {/* BRANDS TAB (Super Admin) */}
+        {activeTab === 'brands' && (
+          <BrandsManager
+            currentBrandId={viewingAsBrand?.id || currentBrand?.id || 'brand-lobo-travels'}
+            onViewAsBrand={handleViewAsBrand}
+          />
+        )}
+
+        {/* USERS TAB (Super Admin / Brand Admin) */}
+        {activeTab === 'users' && (
+          <UsersManager
+            currentUser={currentUser}
+            currentBrandId={viewingAsBrand?.id || currentBrand?.id || 'brand-lobo-travels'}
+          />
+        )}
+
       </main>
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
 
       {/* Persistent Quiet App Footer */}
       <footer className="no-print bg-[#151521] text-slate-400 py-6 border-t border-[#26214F] text-xs">

@@ -559,22 +559,61 @@ export function deleteHotel(id: string): void {
   }
 }
 
+export type SyncState = 'synced' | 'syncing' | 'offline' | 'error';
+
+let currentSyncState: SyncState = 'synced';
+let lastSyncTimestamp: string = new Date().toISOString();
+let syncListeners: (() => void)[] = [];
+
+export function getSyncStatus(): { state: SyncState; lastSync: string } {
+  return { state: currentSyncState, lastSync: lastSyncTimestamp };
+}
+
+export function useSyncStatus(): { state: SyncState; lastSync: string } {
+  return useSyncExternalStore(
+    (cb) => {
+      syncListeners.push(cb);
+      return () => {
+        syncListeners = syncListeners.filter(l => l !== cb);
+      };
+    },
+    () => ({ state: currentSyncState, lastSync: lastSyncTimestamp }),
+    () => ({ state: 'synced', lastSync: '' })
+  );
+}
+
+function notifySyncStatus(state: SyncState) {
+  currentSyncState = state;
+  if (state === 'synced') {
+    lastSyncTimestamp = new Date().toISOString();
+  }
+  syncListeners.forEach(cb => cb());
+}
+
 /**
- * Asynchronously synchronizes catalogs and settings from the database API routes.
+ * Asynchronously synchronizes catalogs, itineraries, fleet, drivers, bookings, and settings
+ * from the database API routes.
  * Updates local cache and localStorage, and dispatches storage update events.
+ * Also checks if the local browser has unsynced itineraries (e.g. from local testing) and uploads them.
  */
 export async function syncFromCloudDatabase(): Promise<boolean> {
   if (typeof window === 'undefined') return false;
+  notifySyncStatus('syncing');
+
   try {
-    const [destRes, hotelsRes, settingsRes, itinRes] = await Promise.all([
-      fetch('/api/destinations', { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
-      fetch('/api/hotels', { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
-      fetch('/api/settings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
-      fetch('/api/itineraries', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null)
+    const [destRes, hotelsRes, settingsRes, itinRes, fleetRes, driversRes, bookingsRes] = await Promise.all([
+      fetch('/api/destinations', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/hotels', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/settings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/itineraries', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/fleet', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/drivers', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/bookings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null)
     ]);
 
     let hasUpdates = false;
 
+    // 1. Sync Destinations & Attractions
     if (destRes?.success) {
       const deletedDests = getDeletedDestinations();
       const deletedAtts = getDeletedAttractions();
@@ -623,46 +662,130 @@ export async function syncFromCloudDatabase(): Promise<boolean> {
       }
     }
 
+    // 2. Sync Hotels
     if (hotelsRes?.success && Array.isArray(hotelsRes.hotels) && hotelsRes.hotels.length > 0) {
       hotelsCache = hotelsRes.hotels;
       localStorage.setItem(STORAGE_KEYS.HOTELS, JSON.stringify(hotelsRes.hotels));
       hasUpdates = true;
     }
 
+    // 3. Sync Settings
     if (settingsRes?.success && settingsRes.settings) {
       settingsCache = sanitizeSettings(settingsRes.settings);
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settingsCache));
       hasUpdates = true;
     }
 
+    // 4. Sync Itineraries & Auto-Migrate Local Browser Itineraries
+    if (itinRes?.success && Array.isArray(itinRes.itineraries)) {
+      const serverItins: Itinerary[] = itinRes.itineraries;
+      const localItins = getStorageItem<Itinerary[]>(STORAGE_KEYS.ITINERARIES, []);
+
+      // Check if local browser has custom itineraries not yet present on server
+      const serverRefMap = new Set(serverItins.map(i => (i.referenceNumber || '').toLowerCase()));
+      const missingOnServer = localItins.filter(i => {
+        const ref = (i.referenceNumber || '').toLowerCase();
+        // Ignore dummy seeds LT-2026-0001 and LT-2026-0002 if server has other real items
+        if ((ref === 'lt-2026-0001' || ref === 'lt-2026-0002') && serverItins.length > 2) return false;
+        return ref && !serverRefMap.has(ref);
+      });
+
+      if (missingOnServer.length > 0) {
+        // Automatically sync missing local browser itineraries to the cloud database
+        console.log(`[Storage] Auto-syncing ${missingOnServer.length} local browser itineraries to cloud database...`);
+        fetch('/api/import/browser', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itineraries: missingOnServer })
+        }).catch(e => console.warn('[Storage] Auto-import of browser data error:', e));
+
+        // Merge locally so user doesn't lose anything
+        const merged = [...serverItins];
+        for (const m of missingOnServer) {
+          if (!merged.some(item => item.id === m.id || item.referenceNumber === m.referenceNumber)) {
+            merged.push(m);
+          }
+        }
+        itinerariesCache = merged;
+        localStorage.setItem(STORAGE_KEYS.ITINERARIES, JSON.stringify(merged));
+        hasUpdates = true;
+      } else {
+        itinerariesCache = serverItins;
+        localStorage.setItem(STORAGE_KEYS.ITINERARIES, JSON.stringify(serverItins));
+        hasUpdates = true;
+      }
+    }
+
+    // 5. Sync Fleet
+    if (fleetRes?.success && Array.isArray(fleetRes.fleet)) {
+      fleetCache = fleetRes.fleet;
+      localStorage.setItem(STORAGE_KEYS.FLEET, JSON.stringify(fleetRes.fleet));
+      hasUpdates = true;
+    }
+
+    // 6. Sync Drivers
+    if (driversRes?.success && Array.isArray(driversRes.drivers)) {
+      driversCache = driversRes.drivers;
+      localStorage.setItem(STORAGE_KEYS.DRIVERS, JSON.stringify(driversRes.drivers));
+      hasUpdates = true;
+    }
+
+    // 7. Sync Bookings
+    if (bookingsRes?.success && Array.isArray(bookingsRes.bookings)) {
+      bookingsCache = bookingsRes.bookings;
+      localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(bookingsRes.bookings));
+      hasUpdates = true;
+    }
+
     if (hasUpdates) {
       window.dispatchEvent(new Event('lobo_storage_updated'));
     }
+
+    notifySyncStatus('synced');
     return true;
   } catch (err) {
     console.warn('[Storage] Cloud sync error:', err);
+    notifySyncStatus('offline');
     return false;
   }
 }
 
-// Trigger background cloud sync on app start
+// Background Cloud Sync & Periodic 12-Second Polling
 if (typeof window !== 'undefined') {
   setTimeout(() => {
     syncFromCloudDatabase().catch(() => {});
   }, 100);
+
+  // Poll every 12 seconds for cross-device updates
+  setInterval(() => {
+    syncFromCloudDatabase().catch(() => {});
+  }, 12000);
 }
 
 // Reference Number Generator
 export function getNextReferenceNumber(): string {
   const settings = getSettings();
   const prefix = settings.referencePrefix || 'LT-2026-';
-  const defaultSeq = Math.max(251, settings.nextReferenceSequence || 251);
+  const defaultSeq = Math.max(280, settings.nextReferenceSequence || 280);
   let currentSeq = getStorageItem<number>(STORAGE_KEYS.NEXT_REF, defaultSeq);
-  if (typeof currentSeq !== 'number' || currentSeq < 251) {
-    currentSeq = 251;
+  if (typeof currentSeq !== 'number' || currentSeq < 280) {
+    currentSeq = 280;
   }
   const formatted = `${prefix}${String(currentSeq).padStart(4, '0')}`;
   setStorageItem(STORAGE_KEYS.NEXT_REF, currentSeq + 1);
+
+  // Also query atomic cloud counter in background
+  if (typeof window !== 'undefined') {
+    fetch('/api/reference-number')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.sequenceNumber && data.sequenceNumber > currentSeq) {
+          setStorageItem(STORAGE_KEYS.NEXT_REF, data.sequenceNumber + 1);
+        }
+      })
+      .catch(() => {});
+  }
+
   return formatted;
 }
 
@@ -679,13 +802,63 @@ export function getItineraryById(id: string): Itinerary | undefined {
   return all.find(item => item.id === id || item.referenceNumber.toLowerCase() === id.toLowerCase());
 }
 
+export async function saveItineraryAsync(
+  itinerary: Itinerary,
+  expectedVersion?: number
+): Promise<{ success: boolean; itinerary?: Itinerary; conflict?: boolean; currentItinerary?: Itinerary; error?: string }> {
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch('/api/itineraries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: itinerary, expectedVersion })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.status === 409 || data.conflict) {
+      notifySyncStatus('error');
+      return {
+        success: false,
+        conflict: true,
+        currentItinerary: data.currentItinerary,
+        error: data.error || 'Conflict detected: this itinerary was modified on another device.'
+      };
+    }
+
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to save itinerary to database' };
+    }
+
+    const savedRecord = data.itinerary as Itinerary;
+    const current = getItineraries();
+    const index = current.findIndex(item => item.id === savedRecord.id);
+    let updated: Itinerary[];
+    if (index >= 0) {
+      updated = [...current];
+      updated[index] = savedRecord;
+    } else {
+      updated = [savedRecord, ...current];
+    }
+    setStorageItem(STORAGE_KEYS.ITINERARIES, updated);
+    notifySyncStatus('synced');
+    return { success: true, itinerary: savedRecord };
+  } catch (err: any) {
+    console.warn('[Storage] saveItineraryAsync fallback to local:', err);
+    notifySyncStatus('offline');
+    const fallback = saveItinerary(itinerary);
+    return { success: true, itinerary: fallback };
+  }
+}
+
 export function saveItinerary(itinerary: Itinerary): Itinerary {
   const current = getItineraries();
   const index = current.findIndex(item => item.id === itinerary.id);
   const now = new Date().toISOString();
   let updated: Itinerary[];
 
-  const updatedRecord = {
+  const updatedRecord: Itinerary = {
     ...itinerary,
     updatedAt: now,
   };
@@ -704,11 +877,45 @@ export function saveItinerary(itinerary: Itinerary): Itinerary {
     fetch('/api/itineraries', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedRecord)
-    }).catch(e => console.warn('[Storage] Sync save to /api/itineraries failed:', e));
+      body: JSON.stringify({ data: updatedRecord, expectedVersion: itinerary.version })
+    })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (data?.itinerary) {
+        const cur = getItineraries();
+        const idx = cur.findIndex(i => i.id === data.itinerary.id);
+        if (idx >= 0) {
+          cur[idx] = data.itinerary;
+          setStorageItem(STORAGE_KEYS.ITINERARIES, cur);
+        }
+      }
+    })
+    .catch(e => console.warn('[Storage] Sync save to /api/itineraries failed:', e));
   }
 
   return updatedRecord;
+}
+
+export async function deleteItineraryAsync(
+  id: string,
+  hardDelete: boolean = false
+): Promise<{ success: boolean; isProtected?: boolean; error?: string }> {
+  try {
+    const res = await fetch(`/api/itineraries?id=${encodeURIComponent(id)}&hardDelete=${hardDelete}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      return { success: false, isProtected: data.isProtected, error: data.error || 'Failed to delete itinerary' };
+    }
+
+    const current = getItineraries();
+    setStorageItem(STORAGE_KEYS.ITINERARIES, current.filter(item => item.id !== id));
+    return { success: true };
+  } catch (e: any) {
+    deleteItinerary(id);
+    return { success: true };
+  }
 }
 
 export function deleteItinerary(id: string): void {
@@ -719,6 +926,75 @@ export function deleteItinerary(id: string): void {
     fetch(`/api/itineraries?id=${encodeURIComponent(id)}`, {
       method: 'DELETE'
     }).catch(e => console.warn('[Storage] Sync delete to /api/itineraries failed:', e));
+  }
+}
+
+export async function restoreItinerary(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/itineraries/${encodeURIComponent(id)}/restore`, { method: 'POST' });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success && data.itinerary) {
+      const current = getItineraries();
+      const idx = current.findIndex(i => i.id === id);
+      if (idx >= 0) current[idx] = data.itinerary;
+      else current.unshift(data.itinerary);
+      setStorageItem(STORAGE_KEYS.ITINERARIES, current);
+      return true;
+    }
+  } catch (e) {
+    console.error('Error restoring itinerary:', e);
+  }
+  return false;
+}
+
+export async function toggleProtectItinerary(id: string, isProtected: boolean): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/itineraries/${encodeURIComponent(id)}/protect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isProtected })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      const current = getItineraries();
+      const idx = current.findIndex(i => i.id === id);
+      if (idx >= 0) {
+        current[idx] = { ...current[idx], isProtected };
+        setStorageItem(STORAGE_KEYS.ITINERARIES, current);
+      }
+      return true;
+    }
+  } catch (e) {
+    console.error('Error toggling protect:', e);
+  }
+  return false;
+}
+
+export async function importBrowserDataNow(): Promise<{ success: boolean; stats?: any; error?: string }> {
+  if (typeof window === 'undefined') return { success: false, error: 'Browser environment only' };
+  try {
+    const payload = {
+      itineraries: getItineraries(),
+      fleet: getFleet(),
+      drivers: getDrivers(),
+      bookings: getOperationalBookings(),
+      settings: getSettings()
+    };
+
+    const res = await fetch('/api/import/browser', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.success) {
+      await syncFromCloudDatabase();
+      return { success: true, stats: data.stats };
+    }
+    return { success: false, error: data.error || 'Failed to import browser data' };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Network error during import' };
   }
 }
 
@@ -793,6 +1069,14 @@ export function saveFleetVehicle(vehicle: FleetVehicle): void {
     updated = [vehicle, ...current];
   }
   setStorageItem(STORAGE_KEYS.FLEET, updated);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/fleet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(vehicle)
+    }).catch(e => console.warn('[Storage] Sync save to /api/fleet failed:', e));
+  }
 }
 
 export function deleteFleetVehicle(id: string): void {
@@ -803,6 +1087,12 @@ export function deleteFleetVehicle(id: string): void {
   }
   const current = getFleet();
   setStorageItem(STORAGE_KEYS.FLEET, current.filter(v => v.id !== id));
+
+  if (typeof window !== 'undefined') {
+    fetch(`/api/fleet?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    }).catch(e => console.warn('[Storage] Sync delete to /api/fleet failed:', e));
+  }
 }
 
 // ===================== ADD-ON MODULE: DRIVERS =====================
@@ -833,6 +1123,14 @@ export function saveDriver(driver: Driver): void {
     updated = [driver, ...current];
   }
   setStorageItem(STORAGE_KEYS.DRIVERS, updated);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/drivers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(driver)
+    }).catch(e => console.warn('[Storage] Sync save to /api/drivers failed:', e));
+  }
 }
 
 export function deleteDriver(id: string): void {
@@ -843,6 +1141,12 @@ export function deleteDriver(id: string): void {
   }
   const current = getDrivers();
   setStorageItem(STORAGE_KEYS.DRIVERS, current.filter(d => d.id !== id));
+
+  if (typeof window !== 'undefined') {
+    fetch(`/api/drivers?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    }).catch(e => console.warn('[Storage] Sync delete to /api/drivers failed:', e));
+  }
 }
 
 // ===================== ADD-ON MODULE: OPERATIONAL BOOKINGS =====================
@@ -883,11 +1187,25 @@ export function saveOperationalBooking(booking: OperationalBooking): void {
     updated = [updatedRecord, ...current];
   }
   setStorageItem(STORAGE_KEYS.BOOKINGS, updated);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedRecord)
+    }).catch(e => console.warn('[Storage] Sync save to /api/bookings failed:', e));
+  }
 }
 
 export function deleteOperationalBooking(id: string): void {
   const current = getOperationalBookings();
   setStorageItem(STORAGE_KEYS.BOOKINGS, current.filter(b => b.id !== id));
+
+  if (typeof window !== 'undefined') {
+    fetch(`/api/bookings?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    }).catch(e => console.warn('[Storage] Sync delete to /api/bookings failed:', e));
+  }
 }
 
 // ===================== HELPERS =====================

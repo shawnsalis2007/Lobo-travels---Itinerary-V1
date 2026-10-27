@@ -40,7 +40,8 @@ import {
   saveItinerary, 
   getOperationalBookings, 
   saveOperationalBooking,
-  syncFromCloudDatabase
+  syncFromCloudDatabase,
+  importBrowserDataNow
 } from '@/lib/storage';
 
 interface SettingsManagerProps {
@@ -118,6 +119,57 @@ export default function SettingsManager({
       console.error(e);
     } finally {
       setIsDbSyncing(false);
+    }
+  };
+
+  // ── Browser Import & Backup State ───────────────────────────────────────────
+  const [isImportingBrowser, setIsImportingBrowser] = useState(false);
+  const [browserImportMsg, setBrowserImportMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isImportingBackup, setIsImportingBackup] = useState(false);
+
+  const handleImportBrowserData = async () => {
+    setIsImportingBrowser(true);
+    setBrowserImportMsg(null);
+    try {
+      const res = await importBrowserDataNow();
+      if (res.success && res.stats) {
+        setBrowserImportMsg({
+          type: 'success',
+          text: `Success: Imported ${res.stats.importedItineraries} itineraries (protected trips secured), ${res.stats.importedFleet} fleet vehicles, and ${res.stats.importedDrivers} drivers into cloud Postgres.`
+        });
+      } else {
+        setBrowserImportMsg({ type: 'error', text: res.error || 'Failed to import browser data' });
+      }
+    } catch (e: any) {
+      setBrowserImportMsg({ type: 'error', text: e?.message || 'Error importing browser data' });
+    } finally {
+      setIsImportingBrowser(false);
+    }
+  };
+
+  const handleBackupUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsImportingBackup(true);
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const res = await fetch('/api/import/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parsed)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        alert(`Backup imported successfully! Imported ${data.stats?.importedItineraries || 0} itineraries.`);
+        await syncFromCloudDatabase();
+      } else {
+        alert(data.error || 'Failed to import backup JSON');
+      }
+    } catch (err: any) {
+      alert('Error parsing backup file: ' + err.message);
+    } finally {
+      setIsImportingBackup(false);
     }
   };
 
@@ -929,6 +981,58 @@ export default function SettingsManager({
               <p className="text-[11px] text-slate-500 leading-relaxed">
                 Connect via <code className="bg-slate-200/80 px-1 py-0.5 rounded text-[10px]">SUPABASE_URL</code> and <code className="bg-slate-200/80 px-1 py-0.5 rounded text-[10px]">SUPABASE_SERVICE_ROLE_KEY</code>.
               </p>
+            </div>
+          </div>
+
+          {/* Database Backup & Import Tools */}
+          <div className="p-4 bg-slate-50/80 border border-slate-200 rounded-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-slate-900 block">Cross-Device Migration & Cloud Backup</span>
+                <p className="text-[11px] text-slate-500">
+                  Import local browser test trips into cloud Postgres, or export and restore a full system backup JSON.
+                </p>
+              </div>
+            </div>
+
+            {browserImportMsg && (
+              <div className={`p-3 rounded-lg text-xs flex items-center gap-2 ${
+                browserImportMsg.type === 'success' 
+                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' 
+                  : 'bg-rose-100 text-rose-900 border border-rose-300'
+              }`}>
+                <span>{browserImportMsg.text}</span>
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <button
+                type="button"
+                disabled={isImportingBrowser}
+                onClick={handleImportBrowserData}
+                className="px-4 py-2 text-xs font-bold bg-[#151521] hover:bg-[#26214F] text-white rounded-lg shadow-sm transition disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isImportingBrowser ? 'Importing Browser Data...' : 'Import from this Browser'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.open('/api/export', '_blank')}
+                className="px-4 py-2 text-xs font-bold bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-lg shadow-sm transition flex items-center gap-1.5"
+              >
+                <span>Export Full Backup (.json)</span>
+              </button>
+
+              <label className="px-4 py-2 text-xs font-bold bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                <span>{isImportingBackup ? 'Restoring Backup...' : 'Import lobo-backup.json'}</span>
+                <input
+                  type="file"
+                  accept=".json"
+                  disabled={isImportingBackup}
+                  onChange={handleBackupUpload}
+                  className="hidden"
+                />
+              </label>
             </div>
           </div>
         </div>

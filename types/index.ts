@@ -298,6 +298,14 @@ export interface Itinerary {
   calendarEventIds?: CalendarEventRef[];
   createdAt: string;
   updatedAt: string;
+  brandId?: string;
+  sequenceNumber?: number;
+  version?: number;
+  isProtected?: boolean;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface Destination {
@@ -310,6 +318,13 @@ export interface Destination {
   recommendedDuration: string;
   heroImage: string;
   gallery: string[];
+  brandId?: string;
+  source?: 'lobo_preloaded' | 'custom';
+  originalDestinationId?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface Attraction {
@@ -326,6 +341,13 @@ export interface Attraction {
   notes?: string;
   state?: string;
   country?: string;
+  brandId?: string;
+  source?: 'lobo_preloaded' | 'custom';
+  originalAttractionId?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface Hotel {
@@ -351,6 +373,11 @@ export interface Hotel {
   contractedRate?: string;
   contactPerson?: string;
   googlePlaceId?: string;
+  brandId?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface VehicleOption {
@@ -380,21 +407,38 @@ export interface Driver {
   licenseNumber?: string;
   defaultVehicleId?: string;
   status: 'active' | 'inactive';
+  isActive?: boolean;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  brandId?: string;
+  createdBy?: string;
+  updatedBy?: string;
   createdAt: string;
 }
 
 export interface FleetVehicle {
   id: string;
   plateNumber: string;     // unique, required
+  registrationNumber?: string; // alias
   brand: string;           // from Vehicle Catalogue
   model: string;           // from Vehicle Catalogue
+  modelName?: string;      // alias
   seats?: number;
+  capacity?: number;       // alias
   type?: string;
+  category?: string;       // alias
+  fuelType?: string;
   colour?: string;
   year?: number;
   photo?: string;
   defaultDriverId?: string;
   status: 'active' | 'maintenance' | 'inactive';
+  isActive?: boolean;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  brandId?: string;
+  createdBy?: string;
+  updatedBy?: string;
   rcExpiry?: string;        // YYYY-MM-DD
   insuranceExpiry?: string; // YYYY-MM-DD
   pucExpiry?: string;       // YYYY-MM-DD
@@ -458,6 +502,11 @@ export interface OperationalBooking {
   status: OperationalBookingStatus;
   createdAt: string;
   updatedAt: string;
+  brandId?: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface AppSettings {
@@ -477,4 +526,145 @@ export interface AppSettings {
   brandColorSecondary: string;
   brandColorAccent: string;
   connectedCalendars?: GoogleCalendarAccount[];
+}
+
+
+// =========================================================================
+// MULTI-BRAND & WHITE-LABEL TYPES
+// =========================================================================
+
+export interface Brand {
+  id: string;
+  name: string;
+  slug: string;
+  code: string;
+  logoUrl?: string;
+  brandColorPrimary?: string;
+  brandColorSecondary?: string;
+  brandColorAccent?: string;
+  brochureColors?: {
+    headerBg?: string;
+    headerText?: string;
+    accentPill?: string;
+  };
+  contactInfo?: {
+    phones?: string[];
+    email?: string;
+    address?: string;
+    website?: string;
+    footerText?: string;
+  };
+  referencePrefix?: string;
+  maxUsers: number;
+  userCount?: number;
+  itineraryCount?: number;
+  status: 'active' | 'suspended' | 'pending';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// =========================================================================
+// AUTH, ROLES & PERMISSIONS TYPES
+// =========================================================================
+
+export type UserRole = 'super_admin' | 'brand_admin' | 'operator' | 'viewer' | 'staff';
+
+export interface UserPermissions {
+  canCreateItinerary?: boolean;
+  canEditItinerary?: boolean;
+  canDeleteItinerary?: boolean;
+  canManageFleet?: boolean;
+  canManageDrivers?: boolean;
+  canManageBookings?: boolean;
+  canManageDestinations?: boolean;
+  canManageHotels?: boolean;
+  canViewReports?: boolean;
+  canManageSettings?: boolean;
+  canManageUsers?: boolean;
+  itineraries_view?: boolean;
+  itineraries_create?: boolean;
+  itineraries_edit?: boolean;
+  itineraries_delete?: boolean;
+  itineraries_restore?: boolean;
+  status_change?: boolean;
+  voucher_issue?: boolean;
+  destinations_manage?: boolean;
+  hotels_manage?: boolean;
+  fleet_manage?: boolean;
+  drivers_manage?: boolean;
+  reports_export?: boolean;
+  reminders_manage?: boolean;
+  activity_log_view?: boolean;
+  users_manage?: boolean;
+  settings_edit?: boolean;
+}
+
+export const DEFAULT_PERMISSIONS: UserPermissions = {
+  canCreateItinerary: true,
+  canEditItinerary: true,
+  canDeleteItinerary: false,
+  canManageFleet: true,
+  canManageDrivers: true,
+  canManageBookings: true,
+  canManageDestinations: true,
+  canManageHotels: true,
+  canViewReports: true,
+  canManageSettings: false,
+  canManageUsers: false,
+  itineraries_view: true,
+  itineraries_create: true,
+  itineraries_edit: true,
+  itineraries_delete: false,
+  itineraries_restore: false,
+  status_change: true,
+  voucher_issue: true,
+  destinations_manage: true,
+  hotels_manage: true,
+  fleet_manage: true,
+  drivers_manage: true,
+  reports_export: true,
+  reminders_manage: true,
+  activity_log_view: false,
+  users_manage: false,
+  settings_edit: false
+};
+
+export interface User {
+  id: string;
+  brandId: string;
+  brandName?: string;
+  email: string;
+  passwordHash?: string;
+  fullName: string;
+  role: UserRole;
+  permissions: UserPermissions;
+  failedLoginAttempts: number;
+  lockedUntil?: string | null;
+  mustChangePassword?: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SessionInfo {
+  token: string;
+  user: User;
+  brand: Brand;
+  viewingAsBrand?: Brand | null;
+}
+
+// =========================================================================
+// ACTIVITY AUDIT LOG
+// =========================================================================
+
+export interface ActivityLog {
+  id: string;
+  brandId: string;
+  userId?: string;
+  userEmail?: string;
+  action: string;
+  entityType: string;
+  entityId?: string;
+  details?: Record<string, any>;
+  createdAt: string;
 }

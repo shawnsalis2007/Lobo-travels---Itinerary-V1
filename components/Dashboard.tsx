@@ -63,27 +63,68 @@ export default function Dashboard({
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [showRecycleBin, setShowRecycleBin] = useState<boolean>(false);
+  const [deletedItineraries, setDeletedItineraries] = useState<Itinerary[]>([]);
+  const [protectedWarningRef, setProtectedWarningRef] = useState<string | null>(null);
+
+  const fetchRecycleBin = async () => {
+    try {
+      const res = await fetch('/api/itineraries?includeDeleted=true', { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data.itineraries)) {
+        setDeletedItineraries(data.itineraries.filter((i: Itinerary) => i.isDeleted));
+      }
+    } catch (_) {}
+  };
+
+  const handleRestoreItinerary = async (id: string) => {
+    try {
+      const res = await fetch(`/api/itineraries/${encodeURIComponent(id)}/restore`, { method: 'POST' });
+      if (res.ok) {
+        fetchRecycleBin();
+        if (typeof window !== 'undefined') {
+          window.location.reload();
+        }
+      }
+    } catch (e) {
+      alert('Failed to restore itinerary');
+    }
+  };
+
+  const handlePermanentDelete = async (id: string) => {
+    if (!confirm('Permanently delete this itinerary from database? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`/api/itineraries?id=${encodeURIComponent(id)}&hardDelete=true`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchRecycleBin();
+      }
+    } catch (e) {
+      alert('Failed to permanently delete itinerary');
+    }
+  };
 
   // Statistics calculation
-  const totalCount = itineraries.length;
-  const draftCount = itineraries.filter(i => i.status === 'Draft').length;
-  const sentOrGenCount = itineraries.filter(i => i.status === 'Generated' || i.status === 'Sent').length;
-  const confirmedCount = itineraries.filter(i => i.status === 'Confirmed').length;
-  const cancelledCount = itineraries.filter(i => i.status === 'Cancelled').length;
+  const activeItineraries = itineraries.filter(i => !i.isDeleted);
+  const totalCount = activeItineraries.length;
+  const draftCount = activeItineraries.filter(i => i.status === 'Draft').length;
+  const sentOrGenCount = activeItineraries.filter(i => i.status === 'Generated' || i.status === 'Sent').length;
+  const confirmedCount = activeItineraries.filter(i => i.status === 'Confirmed').length;
+  const cancelledCount = activeItineraries.filter(i => i.status === 'Cancelled').length;
 
-  const totalTourValue = itineraries
+  const totalTourValue = activeItineraries
     .filter(i => i.status !== 'Cancelled')
     .reduce((sum, item) => sum + (item.totalCost || 0), 0);
 
   // Filtered list
-  const filteredItineraries = itineraries.filter(item => {
-    const matchesStatus = statusFilter === 'all' || item.status.toLowerCase() === statusFilter.toLowerCase();
+  const currentList = showRecycleBin ? deletedItineraries : activeItineraries;
+  const filteredItineraries = currentList.filter(item => {
+    const matchesStatus = showRecycleBin || statusFilter === 'all' || item.status.toLowerCase() === statusFilter.toLowerCase();
     const cleanSearch = searchTerm.toLowerCase().trim();
     const matchesSearch = !cleanSearch ||
-      item.referenceNumber.toLowerCase().includes(cleanSearch) ||
-      item.clientName.toLowerCase().includes(cleanSearch) ||
-      item.tourName.toLowerCase().includes(cleanSearch) ||
-      item.clientPhone.toLowerCase().includes(cleanSearch);
+      (item.referenceNumber || '').toLowerCase().includes(cleanSearch) ||
+      (item.clientName || '').toLowerCase().includes(cleanSearch) ||
+      (item.tourName || '').toLowerCase().includes(cleanSearch) ||
+      (item.clientPhone || '').toLowerCase().includes(cleanSearch);
 
     return matchesStatus && matchesSearch;
   });
@@ -347,9 +388,34 @@ export default function Dashboard({
         {/* Table Header & Filter Bar */}
         <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-base font-bold text-slate-900">Recent Tour Itineraries</h2>
+            <div className="flex items-center gap-3 mb-1">
+              <h2 className="text-base font-bold text-slate-900">
+                {showRecycleBin ? 'Recycle Bin (Deleted Itineraries)' : 'Recent Tour Itineraries'}
+              </h2>
+              <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setShowRecycleBin(false)}
+                  className={`px-2.5 py-1 rounded-md font-medium transition ${!showRecycleBin ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+                >
+                  Active ({totalCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowRecycleBin(true);
+                    fetchRecycleBin();
+                  }}
+                  className={`px-2.5 py-1 rounded-md font-medium transition ${showRecycleBin ? 'bg-white text-rose-600 shadow-xs font-semibold' : 'text-slate-600 hover:text-slate-900'}`}
+                >
+                  Recycle Bin ({deletedItineraries.length || 0})
+                </button>
+              </div>
+            </div>
             <p className="text-xs text-slate-500">
-              Manage client records, print brochures, and issue operational travel vouchers.
+              {showRecycleBin
+                ? 'Soft-deleted itineraries can be safely restored or permanently purged by an administrator.'
+                : 'Manage client records, print brochures, and issue operational travel vouchers.'}
             </p>
           </div>
 
@@ -428,16 +494,29 @@ export default function Dashboard({
                 <div key={itn.id} className="p-4 space-y-2.5">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-1.5 mb-1">
                         <button
                           onClick={() => onViewItinerary(itn.id)}
                           className="font-mono font-bold text-sm text-slate-900 hover:text-indigo-600 hover:underline"
                         >
                           {itn.referenceNumber}
                         </button>
+                        {itn.sequenceNumber && (
+                          <span className="font-mono text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">
+                            #{itn.sequenceNumber}
+                          </span>
+                        )}
+                        {itn.isProtected && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                            🔒 Protected
+                          </span>
+                        )}
                         {getStatusBadge(itn.status)}
                       </div>
                       <h4 className="font-semibold text-sm text-slate-800 line-clamp-1">{itn.tourName}</h4>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Created: {itn.createdBy || 'system'} • Updated: {itn.updatedBy || 'system'}
+                      </p>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-bold text-sm text-slate-900">
@@ -471,37 +550,67 @@ export default function Dashboard({
                   </div>
 
                   {/* Mobile Action Buttons */}
-                  <div className="flex items-center justify-between pt-1 gap-2">
-                    <button
-                      onClick={() => onViewItinerary(itn.id)}
-                      className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs flex items-center justify-center gap-1 active:scale-95 transition"
-                    >
-                      <Eye className="w-3.5 h-3.5" /> View
-                    </button>
-                    <button
-                      onClick={() => onEditItinerary(itn.id)}
-                      className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs flex items-center justify-center gap-1 active:scale-95 transition"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" /> Edit
-                    </button>
-                    <button
-                      onClick={() => onGenerateVoucher(itn.id)}
-                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition ${
-                        itn.status === 'Confirmed'
-                          ? 'bg-amber-500 text-slate-950 hover:bg-amber-400'
-                          : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
-                      }`}
-                    >
-                      <Ticket className="w-3.5 h-3.5" /> Voucher
-                    </button>
-                    <button
-                      onClick={() => onDuplicateItinerary(itn.id)}
-                      title="Duplicate"
-                      className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  {showRecycleBin ? (
+                    <div className="flex items-center justify-between pt-1 gap-2">
+                      <button
+                        onClick={() => handleRestoreItinerary(itn.id)}
+                        className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg text-xs flex items-center justify-center gap-1 active:scale-95 transition"
+                      >
+                        Restore Itinerary
+                      </button>
+                      <button
+                        onClick={() => handlePermanentDelete(itn.id)}
+                        className="py-1.5 px-3 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-lg text-xs active:scale-95 transition"
+                      >
+                        Purge
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between pt-1 gap-2">
+                      <button
+                        onClick={() => onViewItinerary(itn.id)}
+                        className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs flex items-center justify-center gap-1 active:scale-95 transition"
+                      >
+                        <Eye className="w-3.5 h-3.5" /> View
+                      </button>
+                      <button
+                        onClick={() => onEditItinerary(itn.id)}
+                        className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs flex items-center justify-center gap-1 active:scale-95 transition"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" /> Edit
+                      </button>
+                      <button
+                        onClick={() => onGenerateVoucher(itn.id)}
+                        className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition ${
+                          itn.status === 'Confirmed'
+                            ? 'bg-amber-500 text-slate-950 hover:bg-amber-400'
+                            : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                        }`}
+                      >
+                        <Ticket className="w-3.5 h-3.5" /> Voucher
+                      </button>
+                      <button
+                        onClick={() => onDuplicateItinerary(itn.id)}
+                        title="Duplicate"
+                        className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (itn.isProtected) {
+                            setProtectedWarningRef(itn.referenceNumber);
+                          } else {
+                            setDeleteConfirmId(itn.id);
+                          }
+                        }}
+                        title="Delete Record"
+                        className="p-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -527,12 +636,24 @@ export default function Dashboard({
                     
                     {/* Reference No */}
                     <td className="py-3 px-4 font-mono font-bold text-slate-900 whitespace-nowrap">
-                      <button 
-                        onClick={() => onViewItinerary(itn.id)}
-                        className="hover:text-indigo-600 hover:underline"
-                      >
-                        {itn.referenceNumber}
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button 
+                          onClick={() => onViewItinerary(itn.id)}
+                          className="hover:text-indigo-600 hover:underline"
+                        >
+                          {itn.referenceNumber}
+                        </button>
+                        {itn.sequenceNumber && (
+                          <span className="font-mono text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">
+                            #{itn.sequenceNumber}
+                          </span>
+                        )}
+                        {itn.isProtected && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                            🔒 Protected
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Tour Name */}
@@ -540,8 +661,8 @@ export default function Dashboard({
                       <div className="font-semibold text-slate-900 truncate" title={itn.tourName}>
                         {itn.tourName}
                       </div>
-                      <div className="text-[11px] text-slate-400">
-                        {itn.days?.length || 0} Days Itinerary
+                      <div className="text-[10px] text-slate-400">
+                        {itn.days?.length || 0}D • By: {itn.createdBy || 'system'}
                       </div>
                     </td>
 
@@ -600,67 +721,90 @@ export default function Dashboard({
 
                     {/* Action buttons */}
                     <td className="py-3 px-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1">
-                        
-                        {/* View / Preview */}
-                        <button
-                          onClick={() => onViewItinerary(itn.id)}
-                          title="View Itinerary"
-                          className="p-1.5 rounded-md hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
+                      {showRecycleBin ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleRestoreItinerary(itn.id)}
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-medium transition"
+                          >
+                            Restore
+                          </button>
+                          <button
+                            onClick={() => handlePermanentDelete(itn.id)}
+                            className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-medium transition"
+                          >
+                            Purge
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-end gap-1">
+                          
+                          {/* View / Preview */}
+                          <button
+                            onClick={() => onViewItinerary(itn.id)}
+                            title="View Itinerary"
+                            className="p-1.5 rounded-md hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
 
-                        {/* Edit */}
-                        <button
-                          onClick={() => onEditItinerary(itn.id)}
-                          title="Edit Itinerary"
-                          className="p-1.5 rounded-md hover:bg-slate-200 text-slate-600 hover:text-indigo-600 transition"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
+                          {/* Edit */}
+                          <button
+                            onClick={() => onEditItinerary(itn.id)}
+                            title="Edit Itinerary"
+                            className="p-1.5 rounded-md hover:bg-slate-200 text-slate-600 hover:text-indigo-600 transition"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
 
-                        {/* Duplicate */}
-                        <button
-                          onClick={() => onDuplicateItinerary(itn.id)}
-                          title="Duplicate Itinerary"
-                          className="p-1.5 rounded-md hover:bg-slate-200 text-slate-600 hover:text-blue-600 transition"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
+                          {/* Duplicate */}
+                          <button
+                            onClick={() => onDuplicateItinerary(itn.id)}
+                            title="Duplicate Itinerary"
+                            className="p-1.5 rounded-md hover:bg-slate-200 text-slate-600 hover:text-blue-600 transition"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
 
-                        {/* Export PDF */}
-                        <button
-                          onClick={() => onExportPdf(itn)}
-                          title="Export PDF Itinerary"
-                          className="p-1.5 rounded-md hover:bg-slate-200 text-slate-600 hover:text-emerald-600 transition"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                        </button>
+                          {/* Export PDF */}
+                          <button
+                            onClick={() => onExportPdf(itn)}
+                            title="Export PDF Itinerary"
+                            className="p-1.5 rounded-md hover:bg-slate-200 text-slate-600 hover:text-emerald-600 transition"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </button>
 
-                        {/* Travel Voucher (Active when confirmed, or can be generated) */}
-                        <button
-                          onClick={() => onGenerateVoucher(itn.id)}
-                          title={itn.status === 'Confirmed' ? "View Travel Voucher" : "Generate Travel Voucher"}
-                          className={`p-1.5 rounded-md transition ${
-                            itn.status === 'Confirmed'
-                              ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                              : 'hover:bg-slate-200 text-slate-600 hover:text-amber-700'
-                          }`}
-                        >
-                          <Ticket className="w-3.5 h-3.5" />
-                        </button>
+                          {/* Travel Voucher (Active when confirmed, or can be generated) */}
+                          <button
+                            onClick={() => onGenerateVoucher(itn.id)}
+                            title={itn.status === 'Confirmed' ? "View Travel Voucher" : "Generate Travel Voucher"}
+                            className={`p-1.5 rounded-md transition ${
+                              itn.status === 'Confirmed'
+                                ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                : 'hover:bg-slate-200 text-slate-600 hover:text-amber-700'
+                            }`}
+                          >
+                            <Ticket className="w-3.5 h-3.5" />
+                          </button>
 
-                        {/* Delete */}
-                        <button
-                          onClick={() => setDeleteConfirmId(itn.id)}
-                          title="Delete Record"
-                          className="p-1.5 rounded-md hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                          {/* Delete */}
+                          <button
+                            onClick={() => {
+                              if (itn.isProtected) {
+                                setProtectedWarningRef(itn.referenceNumber);
+                              } else {
+                                setDeleteConfirmId(itn.id);
+                              }
+                            }}
+                            title="Delete Record"
+                            className="p-1.5 rounded-md hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
 
-                      </div>
+                        </div>
+                      )}
                     </td>
 
                   </tr>
@@ -696,6 +840,31 @@ export default function Dashboard({
                 className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-700 text-white"
               >
                 Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Protected Itinerary Warning Modal */}
+      {protectedWarningRef && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-xl max-w-sm w-full p-5 shadow-2xl border border-amber-300">
+            <div className="flex items-center gap-2 text-amber-700 font-bold text-base mb-2">
+              <span className="text-xl">🔒</span> Protected Itinerary
+            </div>
+            <p className="text-xs text-slate-700 mb-4 leading-relaxed">
+              Itinerary <strong className="font-mono text-slate-900">{protectedWarningRef}</strong> is flagged as a protected master tour.
+            </p>
+            <p className="text-xs text-slate-500 mb-5 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              To prevent accidental deletion of critical client trips, this record cannot be deleted unless a Super Admin explicitly removes the protection lock.
+            </p>
+            <div className="flex items-center justify-end">
+              <button
+                onClick={() => setProtectedWarningRef(null)}
+                className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white hover:bg-slate-800"
+              >
+                Understood
               </button>
             </div>
           </div>
