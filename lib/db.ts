@@ -138,12 +138,8 @@ const LOCAL_DATA_DIR = path.join(process.cwd(), '.data');
 const LOCAL_DATA_FILE = path.join(LOCAL_DATA_DIR, 'lobo_persistent_store.json');
 const PRE_MIGRATION_BACKUP_FILE = path.join(LOCAL_DATA_DIR, 'backup_pre_migration.json');
 
-// Default initial user seed hashes (pre-generated with bcrypt 10 rounds)
-// Passwords:
-// vlobo99@outlook.com   -> venson7359
-// admin@lobotravels.com -> Lobo@Admin2026!
-// staff@lobotravels.com -> Lobo@Staff2026!
-// viewer@lobotravels.com -> Lobo@Viewer2026!
+// Default initial master Super Admin account (pre-generated with bcrypt 10 rounds)
+// Password: vlobo99@outlook.com -> venson7359
 const SEED_USERS: User[] = [
   {
     id: 'user-superadmin-01',
@@ -153,72 +149,6 @@ const SEED_USERS: User[] = [
     fullName: 'Venson Lobo (Super Admin)',
     role: 'super_admin',
     permissions: { ...DEFAULT_PERMISSIONS, canManageUsers: true, canManageSettings: true, canDeleteItinerary: true },
-    isActive: true,
-    mustChangePassword: false,
-    failedLoginAttempts: 0,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z'
-  },
-  {
-    id: 'user-admin-01',
-    brandId: DEFAULT_BRAND_ID,
-    email: 'admin@lobotravels.com',
-    passwordHash: '$2b$10$6BTJBZDqqg1WYQoSRqX.8Oz5LSaMwmyQz46LfFv/SRsgcNeV6B5Ra',
-    fullName: 'Lobo Brand Admin',
-    role: 'brand_admin',
-    permissions: { ...DEFAULT_PERMISSIONS, canManageUsers: true, canManageSettings: true, canDeleteItinerary: true },
-    isActive: true,
-    mustChangePassword: false,
-    failedLoginAttempts: 0,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z'
-  },
-  {
-    id: 'user-staff-01',
-    brandId: DEFAULT_BRAND_ID,
-    email: 'staff@lobotravels.com',
-    passwordHash: '$2b$10$TSV7vaBEkvAl71UUp.0rPuacxvztjTM0b.V6louO4Uvp4xOj1yg6C',
-    fullName: 'Lobo Operations',
-    role: 'operator',
-    permissions: {
-      canCreateItinerary: true,
-      canEditItinerary: true,
-      canDeleteItinerary: false,
-      canManageFleet: true,
-      canManageDrivers: true,
-      canManageBookings: true,
-      canManageDestinations: true,
-      canManageHotels: true,
-      canViewReports: true,
-      canManageSettings: false,
-      canManageUsers: false
-    },
-    isActive: true,
-    mustChangePassword: false,
-    failedLoginAttempts: 0,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z'
-  },
-  {
-    id: 'user-viewer-01',
-    brandId: DEFAULT_BRAND_ID,
-    email: 'viewer@lobotravels.com',
-    passwordHash: '$2b$10$qaCKyhHxR9hEYNSCLm27PeH.DZjy5SrBQqHKcH6vdu6HQ4tnR4UQO',
-    fullName: 'Lobo Viewer',
-    role: 'viewer',
-    permissions: {
-      canCreateItinerary: false,
-      canEditItinerary: false,
-      canDeleteItinerary: false,
-      canManageFleet: false,
-      canManageDrivers: false,
-      canManageBookings: false,
-      canManageDestinations: false,
-      canManageHotels: false,
-      canViewReports: true,
-      canManageSettings: false,
-      canManageUsers: false
-    },
     isActive: true,
     mustChangePassword: false,
     failedLoginAttempts: 0,
@@ -254,6 +184,14 @@ function readLocalStore(): LocalStoreData {
         }
       });
 
+      const rawUsers: User[] = Array.isArray(parsed.users) && parsed.users.length > 0 ? parsed.users : SEED_USERS;
+      const sanitizedUsers = rawUsers.filter((u: User) => 
+        !['superadmin@lobotravels.com', 'admin@lobotravels.com', 'staff@lobotravels.com', 'viewer@lobotravels.com'].includes((u.email || '').toLowerCase())
+      );
+      if (!sanitizedUsers.some((u: User) => (u.email || '').toLowerCase() === 'vlobo99@outlook.com')) {
+        sanitizedUsers.unshift(SEED_USERS[0]);
+      }
+
       return {
         destinations: dests,
         attractions: atts,
@@ -261,7 +199,7 @@ function readLocalStore(): LocalStoreData {
         settings: parsed.settings ? { ...DEFAULT_SETTINGS, ...parsed.settings } : DEFAULT_SETTINGS,
         itineraries: Array.isArray(parsed.itineraries) ? parsed.itineraries : INITIAL_ITINERARIES,
         brands: Array.isArray(parsed.brands) && parsed.brands.length > 0 ? parsed.brands : [DEFAULT_BRAND],
-        users: Array.isArray(parsed.users) && parsed.users.length > 0 ? parsed.users : SEED_USERS,
+        users: sanitizedUsers,
         sessions: Array.isArray(parsed.sessions) ? parsed.sessions : [],
         referenceCounters: Array.isArray(parsed.referenceCounters) ? parsed.referenceCounters : [{ brandId: DEFAULT_BRAND_ID, year: 2026, currentSequence: 280 }],
         fleet: Array.isArray(parsed.fleet) ? parsed.fleet : INITIAL_FLEET,
@@ -387,6 +325,109 @@ async function getPostgresClient() {
   if (!connectionString) return null;
   const { neon } = await import('@neondatabase/serverless');
   return neon(connectionString);
+}
+
+/**
+ * Safely parses and splits a multi-command SQL script into discrete statements.
+ * Correctly accounts for single quotes, double quotes, line comments (--),
+ * and block comments (/* * /) to prevent "cannot insert multiple commands into a prepared statement".
+ */
+export function splitSqlStatements(sqlScript: string): string[] {
+  if (!sqlScript || !sqlScript.trim()) return [];
+
+  const statements: string[] = [];
+  let current = '';
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+  let inLineComment = false;
+  let inBlockComment = false;
+
+  for (let i = 0; i < sqlScript.length; i++) {
+    const char = sqlScript[i];
+    const nextChar = sqlScript[i + 1] || '';
+
+    if (inLineComment) {
+      if (char === '\n') {
+        inLineComment = false;
+      }
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (char === '*' && nextChar === '/') {
+        inBlockComment = false;
+        i++;
+      }
+      continue;
+    }
+
+    if (!inSingleQuote && !inDoubleQuote) {
+      if (char === '-' && nextChar === '-') {
+        inLineComment = true;
+        i++;
+        continue;
+      }
+      if (char === '/' && nextChar === '*') {
+        inBlockComment = true;
+        i++;
+        continue;
+      }
+    }
+
+    if (char === "'" && !inDoubleQuote) {
+      if (inSingleQuote && nextChar === "'") {
+        current += "''";
+        i++;
+        continue;
+      }
+      inSingleQuote = !inSingleQuote;
+      current += char;
+      continue;
+    }
+
+    if (char === '"' && !inSingleQuote) {
+      inDoubleQuote = !inDoubleQuote;
+      current += char;
+      continue;
+    }
+
+    if (char === ';' && !inSingleQuote && !inDoubleQuote) {
+      const trimmed = current.trim();
+      if (trimmed.length > 0) {
+        statements.push(trimmed);
+      }
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  const trailing = current.trim();
+  if (trailing.length > 0) {
+    statements.push(trailing);
+  }
+
+  return statements.map(s => s.replace(/;+$/, '').trim()).filter(Boolean);
+}
+
+/**
+ * Executes a multi-statement SQL script using Neon's sql client by splitting
+ * queries by semicolon and executing each single command individually.
+ */
+export async function executeMultiStatementSql(sql: any, sqlScript: string): Promise<void> {
+  if (!sql || !sqlScript) return;
+  const statements = splitSqlStatements(sqlScript);
+  for (const statement of statements) {
+    if (!statement) continue;
+    if (typeof sql.unsafe === 'function') {
+      await sql.unsafe(statement);
+    } else if (typeof sql.query === 'function') {
+      await sql.query(statement);
+    } else {
+      await sql([statement] as any);
+    }
+  }
 }
 
 /**
@@ -860,10 +901,10 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       }
     }
 
-    // Seed users if empty
-    const userCountRes = await sql`SELECT count(*)::int as cnt FROM users`;
+    // Seed master Super Admin user if empty
+    const userCountRes = await sql`SELECT count(*)::int as cnt FROM users WHERE email = 'vlobo99@outlook.com'`;
     if (userCountRes[0]?.cnt === 0 || forceSeed) {
-      console.log('[Neon Postgres] Seeding initial administrative and operator users...');
+      console.log('[Neon Postgres] Seeding initial master Super Admin account...');
       for (const u of SEED_USERS) {
         await sql`
           INSERT INTO users (id, brand_id, email, password_hash, full_name, role, permissions, is_active, must_change_password, failed_login_attempts, created_at, updated_at)
@@ -884,7 +925,7 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
           ON CONFLICT (email) DO UPDATE SET
             role = EXCLUDED.role,
             full_name = EXCLUDED.full_name,
-            permissions = EXCLUDED.permissions;
+            permissions = EXCLUDED.permissions
         `;
       }
     }
@@ -916,11 +957,18 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
         is_active = true,
         failed_login_attempts = 0,
         locked_until = NULL,
-        updated_at = NOW();
+        updated_at = NOW()
+    `;
+
+    // Purge legacy test seed accounts from setup so Super Admin has full exclusive control
+    await sql`
+      DELETE FROM users 
+      WHERE email IN ('superadmin@lobotravels.com', 'admin@lobotravels.com', 'staff@lobotravels.com', 'viewer@lobotravels.com')
+        AND email != 'vlobo99@outlook.com'
     `;
 
     // Cleanup Kempty Falls duplicate if needed
-    await sql`DELETE FROM destinations WHERE lower(id) = 'kempty-falls' OR lower(name) = 'kempty falls';`;
+    await sql`DELETE FROM destinations WHERE lower(id) = 'kempty-falls' OR lower(name) = 'kempty falls'`;
 
     isPostgresInitialized = true;
     console.log('[Neon Postgres] Schema verification, multi-brand tables, and seeds ready.');
@@ -3103,7 +3151,7 @@ export async function getDbDatabaseStatus() {
           sql`SELECT count(*)::int as cnt FROM app_settings`,
           sql`SELECT count(*)::int as cnt FROM itineraries WHERE is_deleted = false`.catch(() => [{ cnt: 0 }]),
           sql`SELECT count(*)::int as cnt FROM brands`.catch(() => [{ cnt: 1 }]),
-          sql`SELECT count(*)::int as cnt FROM users`.catch(() => [{ cnt: 4 }]),
+          sql`SELECT count(*)::int as cnt FROM users`.catch(() => [{ cnt: 1 }]),
           sql`SELECT count(*)::int as cnt FROM fleet`.catch(() => [{ cnt: 0 }])
         ]);
 
@@ -3115,7 +3163,7 @@ export async function getDbDatabaseStatus() {
           hotelsCount: hRes[0]?.cnt || 0,
           itinerariesCount: iRes[0]?.cnt || 0,
           brandsCount: bRes[0]?.cnt || 1,
-          usersCount: uRes[0]?.cnt || 4,
+          usersCount: uRes[0]?.cnt || 1,
           fleetCount: fRes[0]?.cnt || 0,
           settingsConfigured: (sRes[0]?.cnt || 0) > 0
         };

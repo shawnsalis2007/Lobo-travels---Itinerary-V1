@@ -208,7 +208,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. staff@lobotravels.com"
+                  placeholder="e.g. vlobo99@outlook.com"
                   required
                   className="w-full pl-9 pr-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white placeholder-[#9899A1] focus:outline-none focus:ring-1 focus:ring-amber-400"
                 />
@@ -241,45 +241,24 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
               {loading ? 'Authenticating...' : 'Sign In'}
             </button>
 
-            {/* Quick Demo Credentials Preset Bar */}
+            {/* Master Super Admin Quick Fill */}
             <div className="pt-4 mt-4 border-t border-[#26214F]/70">
               <p className="text-[11px] font-semibold text-[#9899A1] uppercase tracking-wider text-center mb-2">
-                Quick Fill Test Role Accounts
+                Super Admin Quick Fill
               </p>
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => fillQuickCredential('vlobo99@outlook.com', 'venson7359')}
-                  className="p-2 text-left rounded bg-[#26214F]/40 hover:bg-[#26214F] border border-purple-500/30 transition text-purple-300"
-                >
-                  <span className="font-bold block text-white">Super Admin</span>
-                  vlobo99@outlook.com
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillQuickCredential('admin@lobotravels.com', 'Lobo@Admin2026!')}
-                  className="p-2 text-left rounded bg-[#26214F]/40 hover:bg-[#26214F] border border-blue-500/30 transition text-blue-300"
-                >
-                  <span className="font-bold block text-white">Brand Admin</span>
-                  admin@lobotravels.com
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillQuickCredential('staff@lobotravels.com', 'Lobo@Staff2026!')}
-                  className="p-2 text-left rounded bg-[#26214F]/40 hover:bg-[#26214F] border border-amber-500/30 transition text-amber-300"
-                >
-                  <span className="font-bold block text-white">Operator</span>
-                  staff@lobotravels.com
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillQuickCredential('viewer@lobotravels.com', 'Lobo@Viewer2026!')}
-                  className="p-2 text-left rounded bg-[#26214F]/40 hover:bg-[#26214F] border border-slate-600/30 transition text-slate-300"
-                >
-                  <span className="font-bold block text-white">Viewer</span>
-                  viewer@lobotravels.com
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => fillQuickCredential('vlobo99@outlook.com', 'venson7359')}
+                className="w-full p-2.5 text-left rounded-lg bg-[#26214F]/40 hover:bg-[#26214F] border border-amber-500/30 transition text-amber-300 flex items-center justify-between group"
+              >
+                <div>
+                  <span className="font-bold block text-white group-hover:text-amber-300 transition">Master Super Admin</span>
+                  <span className="text-[11px] text-slate-300 font-mono">vlobo99@outlook.com</span>
+                </div>
+                <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                  Quick Fill
+                </span>
+              </button>
             </div>
           </form>
         )}

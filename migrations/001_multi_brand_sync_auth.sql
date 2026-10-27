@@ -87,6 +87,11 @@ ON CONFLICT (id) DO UPDATE SET
   locked_until = NULL,
   updated_at = NOW();
 
+-- Purge legacy test seed accounts so Super Admin has exclusive master control
+DELETE FROM users 
+WHERE email IN ('superadmin@lobotravels.com', 'admin@lobotravels.com', 'staff@lobotravels.com', 'viewer@lobotravels.com')
+  AND email != 'vlobo99@outlook.com';
+
 -- 3. SESSIONS TABLE
 CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY,
