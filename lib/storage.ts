@@ -607,13 +607,13 @@ export async function syncFromCloudDatabase(): Promise<boolean> {
 
   try {
     const [destRes, hotelsRes, settingsRes, itinRes, fleetRes, driversRes, bookingsRes] = await Promise.all([
-      fetch('/api/destinations', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/hotels', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/settings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/itineraries', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/fleet', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/drivers', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/bookings', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null)
+      fetch('/api/destinations', { cache: 'no-store', credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/hotels', { cache: 'no-store', credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/settings', { cache: 'no-store', credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/itineraries', { cache: 'no-store', credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/fleet', { cache: 'no-store', credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/drivers', { cache: 'no-store', credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/bookings', { cache: 'no-store', credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null)
     ]);
 
     let hasUpdates = false;
@@ -1064,14 +1064,32 @@ export function getFleet(): FleetVehicle[] {
 }
 
 export function saveFleetVehicle(vehicle: FleetVehicle): void {
+  const modelName = vehicle.modelName || (vehicle.brand && vehicle.model ? `${vehicle.brand} ${vehicle.model}` : '') || vehicle.model || vehicle.brand || 'Toyota Innova Crysta';
+  const regNumber = vehicle.registrationNumber || vehicle.plateNumber || 'DL 1ZA 4072';
+  const capacity = Number(vehicle.capacity || vehicle.seats || 7);
+  const category = vehicle.category || vehicle.type || 'MUV';
+  const fuelType = vehicle.fuelType || 'Diesel';
+  const sanitizedVehicle: FleetVehicle = {
+    ...vehicle,
+    modelName,
+    registrationNumber: regNumber,
+    plateNumber: vehicle.plateNumber || regNumber,
+    capacity,
+    seats: vehicle.seats || capacity,
+    category,
+    type: vehicle.type || category,
+    fuelType,
+    isActive: vehicle.isActive !== false && vehicle.status !== 'inactive'
+  };
+
   const current = getFleet();
-  const index = current.findIndex(v => v.id === vehicle.id);
+  const index = current.findIndex(v => v.id === sanitizedVehicle.id);
   let updated: FleetVehicle[];
   if (index >= 0) {
     updated = [...current];
-    updated[index] = vehicle;
+    updated[index] = sanitizedVehicle;
   } else {
-    updated = [vehicle, ...current];
+    updated = [sanitizedVehicle, ...current];
   }
   setStorageItem(STORAGE_KEYS.FLEET, updated);
 
@@ -1079,7 +1097,8 @@ export function saveFleetVehicle(vehicle: FleetVehicle): void {
     fetch('/api/fleet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(vehicle)
+      credentials: 'include',
+      body: JSON.stringify(sanitizedVehicle)
     }).catch(e => console.warn('[Storage] Sync save to /api/fleet failed:', e));
   }
 }

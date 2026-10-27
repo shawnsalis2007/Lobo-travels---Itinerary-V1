@@ -698,6 +698,8 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
     await sql`ALTER TABLE fleet ALTER COLUMN category DROP NOT NULL`.catch(() => {});
     await sql`ALTER TABLE fleet ALTER COLUMN capacity DROP NOT NULL`.catch(() => {});
     await sql`ALTER TABLE fleet ALTER COLUMN fuel_type DROP NOT NULL`.catch(() => {});
+    await sql`UPDATE fleet SET model_name = 'Toyota Innova Crysta' WHERE model_name IS NULL`.catch(() => {});
+    await sql`UPDATE fleet SET registration_number = 'DL 1ZA 4072' WHERE registration_number IS NULL`.catch(() => {});
     await sql`CREATE INDEX IF NOT EXISTS idx_fleet_brand ON fleet(brand_id);`;
 
     // 11. Drivers Table
@@ -873,61 +875,58 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       }
     }
 
-    // Seed fleet if empty
-    const fleetCountRes = await sql`SELECT count(*)::int as cnt FROM fleet`;
-    if (fleetCountRes[0]?.cnt === 0 || forceSeed) {
-      console.log('[Neon Postgres] Seeding initial fleet vehicles...');
-      for (const v of INITIAL_FLEET) {
-        const modelName = v.modelName || (v.brand && v.model ? `${v.brand} ${v.model}` : '') || v.model || v.brand || (v as any).name || 'Toyota Innova Crysta';
-        const regNumber = v.registrationNumber || v.plateNumber || 'DL 1ZA ' + Math.floor(1000 + Math.random() * 9000);
-        const category = v.category || v.type || 'MUV';
-        const capacity = Number(v.capacity || v.seats || 7);
-        const fuelType = v.fuelType || 'Diesel';
-        const isActive = v.isActive !== false && v.status !== 'inactive';
+    // Ensure all 7 seed fleet vehicles are present and explicitly have model_name
+    console.log('[Neon Postgres] Ensuring 7 initial fleet vehicles are seeded...');
+    for (const v of INITIAL_FLEET) {
+      const modelName = v.modelName || (v.brand && v.model ? `${v.brand} ${v.model}` : '') || v.model || v.brand || 'Toyota Innova Crysta';
+      const regNumber = v.registrationNumber || v.plateNumber || 'DL 1ZA ' + Math.floor(1000 + Math.random() * 9000);
+      const category = v.category || v.type || 'MUV';
+      const capacity = Number(v.capacity || v.seats || 7);
+      const fuelType = v.fuelType || 'Diesel';
+      const isActive = v.isActive !== false && v.status !== 'inactive';
 
-        const fleetPayload: FleetVehicle = {
-          ...v,
-          brandId: DEFAULT_BRAND_ID,
-          modelName,
-          model: v.model || modelName,
-          brand: v.brand || modelName.split(' ')[0] || 'Toyota',
-          registrationNumber: regNumber,
-          plateNumber: v.plateNumber || regNumber,
-          category,
-          type: v.type || category,
-          capacity,
-          seats: v.seats || capacity,
-          fuelType,
-          isActive,
-          status: v.status || (isActive ? 'active' : 'inactive')
-        };
+      const fleetPayload: FleetVehicle = {
+        ...v,
+        brandId: DEFAULT_BRAND_ID,
+        modelName,
+        model: v.model || modelName,
+        brand: v.brand || modelName.split(' ')[0] || 'Toyota',
+        registrationNumber: regNumber,
+        plateNumber: v.plateNumber || regNumber,
+        category,
+        type: v.type || category,
+        capacity,
+        seats: v.seats || capacity,
+        fuelType,
+        isActive,
+        status: v.status || (isActive ? 'active' : 'inactive')
+      };
 
-        await sql`
-          INSERT INTO fleet (id, brand_id, model_name, registration_number, category, capacity, fuel_type, is_active, data, created_at, updated_at)
-          VALUES (
-            ${v.id},
-            ${DEFAULT_BRAND_ID},
-            ${modelName},
-            ${regNumber},
-            ${category},
-            ${capacity},
-            ${fuelType},
-            ${isActive},
-            ${JSON.stringify(fleetPayload)},
-            NOW(),
-            NOW()
-          )
-          ON CONFLICT (id) DO UPDATE SET
-            model_name = EXCLUDED.model_name,
-            registration_number = EXCLUDED.registration_number,
-            category = EXCLUDED.category,
-            capacity = EXCLUDED.capacity,
-            fuel_type = EXCLUDED.fuel_type,
-            is_active = EXCLUDED.is_active,
-            data = EXCLUDED.data,
-            updated_at = NOW()
-        `;
-      }
+      await sql`
+        INSERT INTO fleet (id, brand_id, model_name, registration_number, category, capacity, fuel_type, is_active, data, created_at, updated_at)
+        VALUES (
+          ${v.id},
+          ${DEFAULT_BRAND_ID},
+          ${modelName},
+          ${regNumber},
+          ${category},
+          ${capacity},
+          ${fuelType},
+          ${isActive},
+          ${JSON.stringify(fleetPayload)},
+          NOW(),
+          NOW()
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          model_name = EXCLUDED.model_name,
+          registration_number = EXCLUDED.registration_number,
+          category = EXCLUDED.category,
+          capacity = EXCLUDED.capacity,
+          fuel_type = EXCLUDED.fuel_type,
+          is_active = EXCLUDED.is_active,
+          data = EXCLUDED.data,
+          updated_at = NOW()
+      `;
     }
 
     // Seed drivers if empty
@@ -1007,6 +1006,19 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
             updated_at = NOW()
         `;
       }
+    }
+
+    // Seed initial app_settings if empty
+    const settingsCountRes = await sql`SELECT count(*)::int as cnt FROM app_settings WHERE brand_id = ${DEFAULT_BRAND_ID}`;
+    if (settingsCountRes[0]?.cnt === 0 || forceSeed) {
+      console.log('[Neon Postgres] Seeding initial app settings...');
+      await sql`
+        INSERT INTO app_settings (brand_id, data, updated_at)
+        VALUES (${DEFAULT_BRAND_ID}, ${JSON.stringify(DEFAULT_SETTINGS)}, NOW())
+        ON CONFLICT (brand_id) DO UPDATE SET
+          data = COALESCE(app_settings.data, EXCLUDED.data),
+          updated_at = NOW()
+      `;
     }
 
     // Seed master Super Admin user if empty
@@ -1836,7 +1848,7 @@ export async function getDbDestinations(brandId?: string): Promise<Destination[]
             ORDER BY name ASC
           `;
         }
-        if (rows.length > 0) {
+        if (rows) {
           const parsed = rows
             .map((r: any) => {
               try {
@@ -1845,8 +1857,8 @@ export async function getDbDestinations(brandId?: string): Promise<Destination[]
                 return null;
               }
             })
-            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
-          if (parsed.length > 0) return parsed;
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name));
+          return parsed;
         }
       }
     } catch (err) {
@@ -1990,7 +2002,7 @@ export async function getDbAttractions(brandId?: string): Promise<Attraction[]> 
             ORDER BY name ASC
           `;
         }
-        if (rows.length > 0) {
+        if (rows) {
           const parsed = rows
             .map((r: any) => {
               try {
@@ -1999,8 +2011,8 @@ export async function getDbAttractions(brandId?: string): Promise<Attraction[]> 
                 return null;
               }
             })
-            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
-          if (parsed.length > 0) return parsed;
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name));
+          return parsed;
         }
       }
     } catch (err) {
@@ -2116,7 +2128,7 @@ export async function getDbHotels(brandId?: string): Promise<Hotel[]> {
         } else {
           rows = await sql`SELECT data FROM hotels WHERE is_deleted = false ORDER BY name ASC`;
         }
-        if (rows.length > 0) {
+        if (rows) {
           const parsed = rows
             .map((r: any) => {
               try {
@@ -2125,8 +2137,8 @@ export async function getDbHotels(brandId?: string): Promise<Hotel[]> {
                 return null;
               }
             })
-            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
-          if (parsed.length > 0) return parsed;
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name));
+          return parsed;
         }
       }
     } catch (err) {
@@ -2254,9 +2266,16 @@ export async function getDbSettings(brandId?: string): Promise<AppSettings> {
       const sql = await getPostgresClient();
       if (sql) {
         const rows = await sql`SELECT data FROM app_settings WHERE brand_id = ${bId} LIMIT 1`;
-        if (rows.length > 0) {
+        if (rows && rows.length > 0) {
           const raw = typeof rows[0].data === 'string' ? JSON.parse(rows[0].data) : rows[0].data;
           return { ...DEFAULT_SETTINGS, ...raw };
+        } else {
+          await sql`
+            INSERT INTO app_settings (brand_id, data, updated_at)
+            VALUES (${bId}, ${JSON.stringify(DEFAULT_SETTINGS)}, NOW())
+            ON CONFLICT (brand_id) DO NOTHING;
+          `.catch(() => {});
+          return DEFAULT_SETTINGS;
         }
       }
     } catch (err) {
@@ -2353,7 +2372,7 @@ export async function getDbItineraries(brandId?: string, includeDeleted: boolean
             rows = await sql`SELECT data FROM itineraries WHERE is_deleted = false ORDER BY sequence_number DESC, updated_at DESC`;
           }
         }
-        if (rows.length > 0) {
+        if (rows) {
           const parsed = rows
             .map((r: any) => {
               try {
@@ -2362,8 +2381,8 @@ export async function getDbItineraries(brandId?: string, includeDeleted: boolean
                 return null;
               }
             })
-            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
-          if (parsed.length > 0) return parsed;
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.referenceNumber || item.tourName || item.name));
+          return parsed;
         }
       }
     } catch (err) {
@@ -2793,7 +2812,7 @@ export async function getDbFleet(brandId?: string): Promise<FleetVehicle[]> {
         } else {
           rows = await sql`SELECT data FROM fleet WHERE is_deleted = false ORDER BY model_name ASC`;
         }
-        if (rows.length > 0) {
+        if (rows) {
           const parsed = rows
             .map((r: any) => {
               try {
@@ -2802,8 +2821,8 @@ export async function getDbFleet(brandId?: string): Promise<FleetVehicle[]> {
                 return null;
               }
             })
-            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
-          if (parsed.length > 0) return parsed;
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.modelName || item.plateNumber || item.registrationNumber || item.model));
+          return parsed;
         }
       }
     } catch (err) {
@@ -2930,7 +2949,7 @@ export async function getDbDrivers(brandId?: string): Promise<Driver[]> {
         } else {
           rows = await sql`SELECT data FROM drivers WHERE is_deleted = false ORDER BY name ASC`;
         }
-        if (rows.length > 0) {
+        if (rows) {
           const parsed = rows
             .map((r: any) => {
               try {
@@ -2939,8 +2958,8 @@ export async function getDbDrivers(brandId?: string): Promise<Driver[]> {
                 return null;
               }
             })
-            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
-          if (parsed.length > 0) return parsed;
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.phone));
+          return parsed;
         }
       }
     } catch (err) {
@@ -3054,7 +3073,7 @@ export async function getDbBookings(brandId?: string): Promise<OperationalBookin
         } else {
           rows = await sql`SELECT data FROM operational_bookings WHERE is_deleted = false ORDER BY updated_at DESC`;
         }
-        if (rows.length > 0) {
+        if (rows) {
           const parsed = rows
             .map((r: any) => {
               try {
@@ -3063,8 +3082,8 @@ export async function getDbBookings(brandId?: string): Promise<OperationalBookin
                 return null;
               }
             })
-            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
-          if (parsed.length > 0) return parsed;
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.voucherNo || item.itineraryRef || item.tourPackageName));
+          return parsed;
         }
       }
     } catch (err) {

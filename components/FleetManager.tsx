@@ -172,7 +172,14 @@ export default function FleetManager({
       showToast('Please select a brand.');
       return;
     }
-    onSaveVehicle(editingVehicle);
+    const modelName = editingVehicle.modelName || (editingVehicle.model ? `${editingVehicle.brand} ${editingVehicle.model}` : editingVehicle.brand);
+    onSaveVehicle({
+      ...editingVehicle,
+      modelName,
+      registrationNumber: editingVehicle.registrationNumber || editingVehicle.plateNumber,
+      category: editingVehicle.category || editingVehicle.type || 'MUV',
+      capacity: Number(editingVehicle.capacity || editingVehicle.seats || 7)
+    });
     setIsFormOpen(false);
     setEditingVehicle(null);
   }

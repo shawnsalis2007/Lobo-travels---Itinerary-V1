@@ -193,6 +193,8 @@ ALTER TABLE fleet ALTER COLUMN registration_number DROP NOT NULL;
 ALTER TABLE fleet ALTER COLUMN category DROP NOT NULL;
 ALTER TABLE fleet ALTER COLUMN capacity DROP NOT NULL;
 ALTER TABLE fleet ALTER COLUMN fuel_type DROP NOT NULL;
+UPDATE fleet SET model_name = 'Toyota Innova Crysta' WHERE model_name IS NULL;
+UPDATE fleet SET registration_number = 'DL 1ZA 4072' WHERE registration_number IS NULL;
 CREATE INDEX IF NOT EXISTS idx_fleet_brand ON fleet(brand_id);
 
 -- 10. DRIVERS TABLE
