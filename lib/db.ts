@@ -678,21 +678,26 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       CREATE TABLE IF NOT EXISTS fleet (
         id TEXT PRIMARY KEY,
         brand_id TEXT NOT NULL DEFAULT 'brand-lobo-travels',
-        model_name TEXT NOT NULL,
-        registration_number TEXT NOT NULL,
-        category TEXT NOT NULL,
-        capacity INT NOT NULL,
-        fuel_type TEXT NOT NULL,
+        model_name TEXT DEFAULT 'Toyota Innova Crysta',
+        registration_number TEXT DEFAULT 'DL-FLEET',
+        category TEXT DEFAULT 'MUV',
+        capacity INT DEFAULT 7,
+        fuel_type TEXT DEFAULT 'Diesel',
         is_active BOOLEAN DEFAULT true,
         is_deleted BOOLEAN DEFAULT false,
         deleted_at TIMESTAMPTZ,
         created_by TEXT,
         updated_by TEXT,
-        data JSONB NOT NULL,
+        data JSONB NOT NULL DEFAULT '{}'::jsonb,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
     `;
+    await sql`ALTER TABLE fleet ALTER COLUMN model_name DROP NOT NULL`.catch(() => {});
+    await sql`ALTER TABLE fleet ALTER COLUMN registration_number DROP NOT NULL`.catch(() => {});
+    await sql`ALTER TABLE fleet ALTER COLUMN category DROP NOT NULL`.catch(() => {});
+    await sql`ALTER TABLE fleet ALTER COLUMN capacity DROP NOT NULL`.catch(() => {});
+    await sql`ALTER TABLE fleet ALTER COLUMN fuel_type DROP NOT NULL`.catch(() => {});
     await sql`CREATE INDEX IF NOT EXISTS idx_fleet_brand ON fleet(brand_id);`;
 
     // 11. Drivers Table
@@ -700,19 +705,22 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       CREATE TABLE IF NOT EXISTS drivers (
         id TEXT PRIMARY KEY,
         brand_id TEXT NOT NULL DEFAULT 'brand-lobo-travels',
-        name TEXT NOT NULL,
-        phone TEXT NOT NULL,
-        license_number TEXT NOT NULL,
+        name TEXT DEFAULT 'Driver',
+        phone TEXT DEFAULT '',
+        license_number TEXT DEFAULT '',
         is_active BOOLEAN DEFAULT true,
         is_deleted BOOLEAN DEFAULT false,
         deleted_at TIMESTAMPTZ,
         created_by TEXT,
         updated_by TEXT,
-        data JSONB NOT NULL,
+        data JSONB NOT NULL DEFAULT '{}'::jsonb,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
     `;
+    await sql`ALTER TABLE drivers ALTER COLUMN license_number DROP NOT NULL`.catch(() => {});
+    await sql`ALTER TABLE drivers ALTER COLUMN phone DROP NOT NULL`.catch(() => {});
+    await sql`ALTER TABLE drivers ALTER COLUMN name DROP NOT NULL`.catch(() => {});
     await sql`CREATE INDEX IF NOT EXISTS idx_drivers_brand ON drivers(brand_id);`;
 
     // 12. Operational Bookings Table
@@ -721,12 +729,12 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
         id TEXT PRIMARY KEY,
         brand_id TEXT NOT NULL DEFAULT 'brand-lobo-travels',
         itinerary_id TEXT,
-        status TEXT DEFAULT 'pending',
+        status TEXT DEFAULT 'scheduled',
         is_deleted BOOLEAN DEFAULT false,
         deleted_at TIMESTAMPTZ,
         created_by TEXT,
         updated_by TEXT,
-        data JSONB NOT NULL,
+        data JSONB NOT NULL DEFAULT '{}'::jsonb,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
@@ -868,11 +876,56 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
     // Seed fleet if empty
     const fleetCountRes = await sql`SELECT count(*)::int as cnt FROM fleet`;
     if (fleetCountRes[0]?.cnt === 0 || forceSeed) {
+      console.log('[Neon Postgres] Seeding initial fleet vehicles...');
       for (const v of INITIAL_FLEET) {
+        const modelName = v.modelName || (v.brand && v.model ? `${v.brand} ${v.model}` : '') || v.model || v.brand || (v as any).name || 'Toyota Innova Crysta';
+        const regNumber = v.registrationNumber || v.plateNumber || 'DL 1ZA ' + Math.floor(1000 + Math.random() * 9000);
+        const category = v.category || v.type || 'MUV';
+        const capacity = Number(v.capacity || v.seats || 7);
+        const fuelType = v.fuelType || 'Diesel';
+        const isActive = v.isActive !== false && v.status !== 'inactive';
+
+        const fleetPayload: FleetVehicle = {
+          ...v,
+          brandId: DEFAULT_BRAND_ID,
+          modelName,
+          model: v.model || modelName,
+          brand: v.brand || modelName.split(' ')[0] || 'Toyota',
+          registrationNumber: regNumber,
+          plateNumber: v.plateNumber || regNumber,
+          category,
+          type: v.type || category,
+          capacity,
+          seats: v.seats || capacity,
+          fuelType,
+          isActive,
+          status: v.status || (isActive ? 'active' : 'inactive')
+        };
+
         await sql`
           INSERT INTO fleet (id, brand_id, model_name, registration_number, category, capacity, fuel_type, is_active, data, created_at, updated_at)
-          VALUES (${v.id}, ${DEFAULT_BRAND_ID}, ${v.modelName}, ${v.registrationNumber}, ${v.category}, ${v.capacity}, ${v.fuelType}, ${v.isActive !== false}, ${JSON.stringify(v)}, NOW(), NOW())
-          ON CONFLICT (id) DO NOTHING;
+          VALUES (
+            ${v.id},
+            ${DEFAULT_BRAND_ID},
+            ${modelName},
+            ${regNumber},
+            ${category},
+            ${capacity},
+            ${fuelType},
+            ${isActive},
+            ${JSON.stringify(fleetPayload)},
+            NOW(),
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            model_name = EXCLUDED.model_name,
+            registration_number = EXCLUDED.registration_number,
+            category = EXCLUDED.category,
+            capacity = EXCLUDED.capacity,
+            fuel_type = EXCLUDED.fuel_type,
+            is_active = EXCLUDED.is_active,
+            data = EXCLUDED.data,
+            updated_at = NOW()
         `;
       }
     }
@@ -880,11 +933,43 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
     // Seed drivers if empty
     const driverCountRes = await sql`SELECT count(*)::int as cnt FROM drivers`;
     if (driverCountRes[0]?.cnt === 0 || forceSeed) {
+      console.log('[Neon Postgres] Seeding initial drivers...');
       for (const d of INITIAL_DRIVERS) {
+        const dName = d.name || 'Professional Chauffeur';
+        const dPhone = d.phone || '+91 9811240072';
+        const dLicense = d.licenseNumber || 'DL-042026' + Math.floor(100000 + Math.random() * 900000);
+        const dIsActive = d.isActive !== false && d.status !== 'inactive';
+
+        const driverPayload: Driver = {
+          ...d,
+          brandId: DEFAULT_BRAND_ID,
+          name: dName,
+          phone: dPhone,
+          licenseNumber: dLicense,
+          isActive: dIsActive,
+          status: d.status || (dIsActive ? 'active' : 'inactive')
+        };
+
         await sql`
           INSERT INTO drivers (id, brand_id, name, phone, license_number, is_active, data, created_at, updated_at)
-          VALUES (${d.id}, ${DEFAULT_BRAND_ID}, ${d.name}, ${d.phone}, ${d.licenseNumber}, ${d.isActive !== false}, ${JSON.stringify(d)}, NOW(), NOW())
-          ON CONFLICT (id) DO NOTHING;
+          VALUES (
+            ${d.id},
+            ${DEFAULT_BRAND_ID},
+            ${dName},
+            ${dPhone},
+            ${dLicense},
+            ${dIsActive},
+            ${JSON.stringify(driverPayload)},
+            NOW(),
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name,
+            phone = EXCLUDED.phone,
+            license_number = EXCLUDED.license_number,
+            is_active = EXCLUDED.is_active,
+            data = EXCLUDED.data,
+            updated_at = NOW()
         `;
       }
     }
@@ -892,11 +977,34 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
     // Seed bookings if empty
     const bookingCountRes = await sql`SELECT count(*)::int as cnt FROM operational_bookings`;
     if (bookingCountRes[0]?.cnt === 0 || forceSeed) {
+      console.log('[Neon Postgres] Seeding initial operational bookings...');
       for (const b of INITIAL_OPERATIONAL_BOOKINGS) {
+        const bStatus = b.status || 'scheduled';
+        const bItineraryId = b.itineraryId || null;
+
+        const bookingPayload: OperationalBooking = {
+          ...b,
+          brandId: DEFAULT_BRAND_ID,
+          status: bStatus,
+          itineraryId: bItineraryId || ''
+        };
+
         await sql`
           INSERT INTO operational_bookings (id, brand_id, itinerary_id, status, data, created_at, updated_at)
-          VALUES (${b.id}, ${DEFAULT_BRAND_ID}, ${b.itineraryId || null}, ${b.status || 'active'}, ${JSON.stringify(b)}, NOW(), NOW())
-          ON CONFLICT (id) DO NOTHING;
+          VALUES (
+            ${b.id},
+            ${DEFAULT_BRAND_ID},
+            ${bItineraryId},
+            ${bStatus},
+            ${JSON.stringify(bookingPayload)},
+            NOW(),
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            itinerary_id = EXCLUDED.itinerary_id,
+            status = EXCLUDED.status,
+            data = EXCLUDED.data,
+            updated_at = NOW()
         `;
       }
     }
@@ -2715,10 +2823,30 @@ export async function saveDbFleetVehicle(vehicle: FleetVehicle, actorUserId?: st
   const { provider } = getActiveDbProvider();
   const brandId = vehicle.brandId || DEFAULT_BRAND_ID;
   const id = vehicle.id || ('veh-' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6));
+
+  const modelName = vehicle.modelName || (vehicle.brand && vehicle.model ? `${vehicle.brand} ${vehicle.model}` : '') || vehicle.model || vehicle.brand || (vehicle as any).name || 'Toyota Innova Crysta';
+  const registrationNumber = vehicle.registrationNumber || vehicle.plateNumber || 'DL 1ZA ' + Math.floor(1000 + Math.random() * 9000);
+  const category = vehicle.category || vehicle.type || 'MUV';
+  const capacity = Number(vehicle.capacity || vehicle.seats || 7);
+  const fuelType = vehicle.fuelType || 'Diesel';
+  const isActive = vehicle.isActive !== false && vehicle.status !== 'inactive';
+
   const sanitized: FleetVehicle = {
     ...vehicle,
     id,
-    brandId
+    brandId,
+    modelName,
+    model: vehicle.model || modelName,
+    brand: vehicle.brand || modelName.split(' ')[0] || 'Toyota',
+    registrationNumber,
+    plateNumber: vehicle.plateNumber || registrationNumber,
+    category,
+    type: vehicle.type || category,
+    capacity,
+    seats: vehicle.seats || capacity,
+    fuelType,
+    isActive,
+    status: vehicle.status || (isActive ? 'active' : 'inactive')
   };
 
   if (provider === 'postgres') {
@@ -2731,12 +2859,12 @@ export async function saveDbFleetVehicle(vehicle: FleetVehicle, actorUserId?: st
           VALUES (
             ${sanitized.id},
             ${brandId},
-            ${sanitized.modelName},
-            ${sanitized.registrationNumber},
-            ${sanitized.category},
-            ${sanitized.capacity},
-            ${sanitized.fuelType},
-            ${sanitized.isActive !== false},
+            ${modelName},
+            ${registrationNumber},
+            ${category},
+            ${capacity},
+            ${fuelType},
+            ${isActive},
             ${JSON.stringify(sanitized)},
             NOW()
           )
@@ -2749,7 +2877,7 @@ export async function saveDbFleetVehicle(vehicle: FleetVehicle, actorUserId?: st
             fuel_type = EXCLUDED.fuel_type,
             is_active = EXCLUDED.is_active,
             data = EXCLUDED.data,
-            updated_at = NOW();
+            updated_at = NOW()
         `;
       }
     } catch (err) {
@@ -2832,10 +2960,21 @@ export async function saveDbDriver(driver: Driver, actorUserId?: string): Promis
   const { provider } = getActiveDbProvider();
   const brandId = driver.brandId || DEFAULT_BRAND_ID;
   const id = driver.id || ('drv-' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6));
+
+  const name = driver.name || 'Professional Chauffeur';
+  const phone = driver.phone || '+91 9811240072';
+  const licenseNumber = driver.licenseNumber || 'DL-042026' + Math.floor(100000 + Math.random() * 900000);
+  const isActive = driver.isActive !== false && driver.status !== 'inactive';
+
   const sanitized: Driver = {
     ...driver,
     id,
-    brandId
+    brandId,
+    name,
+    phone,
+    licenseNumber,
+    isActive,
+    status: driver.status || (isActive ? 'active' : 'inactive')
   };
 
   if (provider === 'postgres') {
@@ -2848,10 +2987,10 @@ export async function saveDbDriver(driver: Driver, actorUserId?: string): Promis
           VALUES (
             ${sanitized.id},
             ${brandId},
-            ${sanitized.name},
-            ${sanitized.phone},
-            ${sanitized.licenseNumber},
-            ${sanitized.isActive !== false},
+            ${name},
+            ${phone},
+            ${licenseNumber},
+            ${isActive},
             ${JSON.stringify(sanitized)},
             NOW()
           )
@@ -2862,7 +3001,7 @@ export async function saveDbDriver(driver: Driver, actorUserId?: string): Promis
             license_number = EXCLUDED.license_number,
             is_active = EXCLUDED.is_active,
             data = EXCLUDED.data,
-            updated_at = NOW();
+            updated_at = NOW()
         `;
       }
     } catch (err) {

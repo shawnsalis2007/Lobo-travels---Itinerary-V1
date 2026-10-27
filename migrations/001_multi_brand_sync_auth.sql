@@ -174,38 +174,46 @@ CREATE INDEX IF NOT EXISTS idx_hotels_deleted ON hotels(is_deleted);
 CREATE TABLE IF NOT EXISTS fleet (
   id TEXT PRIMARY KEY,
   brand_id TEXT NOT NULL DEFAULT 'brand-lobo-travels',
-  model_name TEXT NOT NULL,
-  registration_number TEXT NOT NULL,
-  category TEXT NOT NULL,
-  capacity INT NOT NULL,
-  fuel_type TEXT NOT NULL,
+  model_name TEXT DEFAULT 'Toyota Innova Crysta',
+  registration_number TEXT DEFAULT 'DL-FLEET',
+  category TEXT DEFAULT 'MUV',
+  capacity INT DEFAULT 7,
+  fuel_type TEXT DEFAULT 'Diesel',
   is_active BOOLEAN DEFAULT true,
   is_deleted BOOLEAN DEFAULT false,
   deleted_at TIMESTAMPTZ,
   created_by TEXT,
   updated_by TEXT,
-  data JSONB NOT NULL,
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+ALTER TABLE fleet ALTER COLUMN model_name DROP NOT NULL;
+ALTER TABLE fleet ALTER COLUMN registration_number DROP NOT NULL;
+ALTER TABLE fleet ALTER COLUMN category DROP NOT NULL;
+ALTER TABLE fleet ALTER COLUMN capacity DROP NOT NULL;
+ALTER TABLE fleet ALTER COLUMN fuel_type DROP NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_fleet_brand ON fleet(brand_id);
 
 -- 10. DRIVERS TABLE
 CREATE TABLE IF NOT EXISTS drivers (
   id TEXT PRIMARY KEY,
   brand_id TEXT NOT NULL DEFAULT 'brand-lobo-travels',
-  name TEXT NOT NULL,
-  phone TEXT NOT NULL,
-  license_number TEXT NOT NULL,
+  name TEXT DEFAULT 'Driver',
+  phone TEXT DEFAULT '',
+  license_number TEXT DEFAULT '',
   is_active BOOLEAN DEFAULT true,
   is_deleted BOOLEAN DEFAULT false,
   deleted_at TIMESTAMPTZ,
   created_by TEXT,
   updated_by TEXT,
-  data JSONB NOT NULL,
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+ALTER TABLE drivers ALTER COLUMN license_number DROP NOT NULL;
+ALTER TABLE drivers ALTER COLUMN phone DROP NOT NULL;
+ALTER TABLE drivers ALTER COLUMN name DROP NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_drivers_brand ON drivers(brand_id);
 
 -- 11. OPERATIONAL BOOKINGS (REMINDERS) TABLE
@@ -213,12 +221,12 @@ CREATE TABLE IF NOT EXISTS operational_bookings (
   id TEXT PRIMARY KEY,
   brand_id TEXT NOT NULL DEFAULT 'brand-lobo-travels',
   itinerary_id TEXT,
-  status TEXT DEFAULT 'pending',
+  status TEXT DEFAULT 'scheduled',
   is_deleted BOOLEAN DEFAULT false,
   deleted_at TIMESTAMPTZ,
   created_by TEXT,
   updated_by TEXT,
-  data JSONB NOT NULL,
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
