@@ -958,28 +958,31 @@ export async function getDbBrands(): Promise<Brand[]> {
       const sql = await getPostgresClient();
       if (sql) {
         const rows = await sql`SELECT * FROM brands ORDER BY name ASC`;
-        return rows.map((r: any) => {
-          const rawData = typeof r.data === 'string' ? JSON.parse(r.data) : (r.data || {});
-          return {
-            ...DEFAULT_BRAND,
-            ...rawData,
-            id: r.id,
-            name: r.name,
-            slug: r.slug,
-            code: r.code,
-            logoUrl: r.logo_url || rawData.logoUrl,
-            brandColorPrimary: r.brand_color_primary || rawData.brandColorPrimary,
-            brandColorSecondary: r.brand_color_secondary || rawData.brandColorSecondary,
-            brandColorAccent: r.brand_color_accent || rawData.brandColorAccent,
-            brochureColors: typeof r.brochure_colors === 'string' ? JSON.parse(r.brochure_colors) : (r.brochure_colors || rawData.brochureColors),
-            contactInfo: typeof r.contact_info === 'string' ? JSON.parse(r.contact_info) : (r.contact_info || rawData.contactInfo),
-            referencePrefix: r.reference_prefix || rawData.referencePrefix || 'LT-2026-',
-            maxUsers: r.max_users || rawData.maxUsers || 10,
-            status: r.status || rawData.status || 'active',
-            createdAt: r.created_at ? new Date(r.created_at).toISOString() : rawData.createdAt,
-            updatedAt: r.updated_at ? new Date(r.updated_at).toISOString() : rawData.updatedAt
-          };
-        });
+        if (rows && rows.length > 0) {
+          return rows.map((r: any) => {
+            const rawData = typeof r.data === 'string' ? JSON.parse(r.data) : (r.data || {});
+            return {
+              ...DEFAULT_BRAND,
+              ...rawData,
+              id: r.id,
+              name: r.name,
+              slug: r.slug,
+              code: r.code,
+              logoUrl: r.logo_url || rawData.logoUrl,
+              brandColorPrimary: r.brand_color_primary || rawData.brandColorPrimary,
+              brandColorSecondary: r.brand_color_secondary || rawData.brandColorSecondary,
+              brandColorAccent: r.brand_color_accent || rawData.brandColorAccent,
+              brochureColors: typeof r.brochure_colors === 'string' ? JSON.parse(r.brochure_colors) : (r.brochure_colors || rawData.brochureColors),
+              contactInfo: typeof r.contact_info === 'string' ? JSON.parse(r.contact_info) : (r.contact_info || rawData.contactInfo),
+              referencePrefix: r.reference_prefix || rawData.referencePrefix || 'LT-2026-',
+              maxUsers: r.max_users || rawData.maxUsers || 10,
+              status: r.status || rawData.status || 'active',
+              createdAt: r.created_at ? new Date(r.created_at).toISOString() : rawData.createdAt,
+              updatedAt: r.updated_at ? new Date(r.updated_at).toISOString() : rawData.updatedAt
+            };
+          });
+        }
+        return [DEFAULT_BRAND];
       }
     } catch (err) {
       console.error('[Neon Postgres] getDbBrands error:', err);
@@ -1258,21 +1261,24 @@ export async function getDbUsers(brandId?: string): Promise<User[]> {
         } else {
           rows = await sql`SELECT * FROM users ORDER BY full_name ASC`;
         }
-        return rows.map((r: any) => ({
-          id: r.id,
-          brandId: r.brand_id,
-          email: r.email,
-          passwordHash: r.password_hash,
-          fullName: r.full_name,
-          role: r.role,
-          permissions: typeof r.permissions === 'string' ? JSON.parse(r.permissions) : (r.permissions || {}),
-          failedLoginAttempts: r.failed_login_attempts || 0,
-          lockedUntil: r.locked_until ? new Date(r.locked_until).toISOString() : undefined,
-          mustChangePassword: r.must_change_password || false,
-          isActive: r.is_active !== false,
-          createdAt: r.created_at ? new Date(r.created_at).toISOString() : new Date().toISOString(),
-          updatedAt: r.updated_at ? new Date(r.updated_at).toISOString() : new Date().toISOString()
-        }));
+        if (rows && rows.length > 0) {
+          return rows.map((r: any) => ({
+            id: r.id,
+            brandId: r.brand_id,
+            email: r.email,
+            passwordHash: r.password_hash,
+            fullName: r.full_name || r.name || r.email.split('@')[0],
+            role: r.role,
+            permissions: typeof r.permissions === 'string' ? JSON.parse(r.permissions) : (r.permissions || {}),
+            failedLoginAttempts: r.failed_login_attempts || 0,
+            lockedUntil: r.locked_until ? new Date(r.locked_until).toISOString() : undefined,
+            mustChangePassword: r.must_change_password || false,
+            isActive: r.is_active !== false,
+            createdAt: r.created_at ? new Date(r.created_at).toISOString() : new Date().toISOString(),
+            updatedAt: r.updated_at ? new Date(r.updated_at).toISOString() : new Date().toISOString()
+          }));
+        }
+        return brandId ? SEED_USERS.filter(u => u.brandId === brandId) : SEED_USERS;
       }
     } catch (err) {
       console.error('[Neon Postgres] getDbUsers error:', err);
@@ -1645,7 +1651,16 @@ export async function getDbDestinations(brandId?: string): Promise<Destination[]
           `;
         }
         if (rows.length > 0) {
-          return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+          const parsed = rows
+            .map((r: any) => {
+              try {
+                return typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+              } catch (_) {
+                return null;
+              }
+            })
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
+          if (parsed.length > 0) return parsed;
         }
       }
     } catch (err) {
@@ -1790,7 +1805,16 @@ export async function getDbAttractions(brandId?: string): Promise<Attraction[]> 
           `;
         }
         if (rows.length > 0) {
-          return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+          const parsed = rows
+            .map((r: any) => {
+              try {
+                return typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+              } catch (_) {
+                return null;
+              }
+            })
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
+          if (parsed.length > 0) return parsed;
         }
       }
     } catch (err) {
@@ -1907,7 +1931,16 @@ export async function getDbHotels(brandId?: string): Promise<Hotel[]> {
           rows = await sql`SELECT data FROM hotels WHERE is_deleted = false ORDER BY name ASC`;
         }
         if (rows.length > 0) {
-          return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+          const parsed = rows
+            .map((r: any) => {
+              try {
+                return typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+              } catch (_) {
+                return null;
+              }
+            })
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
+          if (parsed.length > 0) return parsed;
         }
       }
     } catch (err) {
@@ -2135,7 +2168,16 @@ export async function getDbItineraries(brandId?: string, includeDeleted: boolean
           }
         }
         if (rows.length > 0) {
-          return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+          const parsed = rows
+            .map((r: any) => {
+              try {
+                return typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+              } catch (_) {
+                return null;
+              }
+            })
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
+          if (parsed.length > 0) return parsed;
         }
       }
     } catch (err) {
@@ -2566,7 +2608,16 @@ export async function getDbFleet(brandId?: string): Promise<FleetVehicle[]> {
           rows = await sql`SELECT data FROM fleet WHERE is_deleted = false ORDER BY model_name ASC`;
         }
         if (rows.length > 0) {
-          return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+          const parsed = rows
+            .map((r: any) => {
+              try {
+                return typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+              } catch (_) {
+                return null;
+              }
+            })
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
+          if (parsed.length > 0) return parsed;
         }
       }
     } catch (err) {
@@ -2674,7 +2725,16 @@ export async function getDbDrivers(brandId?: string): Promise<Driver[]> {
           rows = await sql`SELECT data FROM drivers WHERE is_deleted = false ORDER BY name ASC`;
         }
         if (rows.length > 0) {
-          return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+          const parsed = rows
+            .map((r: any) => {
+              try {
+                return typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+              } catch (_) {
+                return null;
+              }
+            })
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
+          if (parsed.length > 0) return parsed;
         }
       }
     } catch (err) {
@@ -2778,7 +2838,16 @@ export async function getDbBookings(brandId?: string): Promise<OperationalBookin
           rows = await sql`SELECT data FROM operational_bookings WHERE is_deleted = false ORDER BY updated_at DESC`;
         }
         if (rows.length > 0) {
-          return rows.map((r: any) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+          const parsed = rows
+            .map((r: any) => {
+              try {
+                return typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+              } catch (_) {
+                return null;
+              }
+            })
+            .filter((item: any) => item && typeof item === 'object' && (item.id || item.name || item.referenceNumber));
+          if (parsed.length > 0) return parsed;
         }
       }
     } catch (err) {

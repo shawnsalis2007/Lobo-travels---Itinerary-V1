@@ -181,7 +181,7 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
     }
   };
 
-  const getRoleBadge = (role: UserRole) => {
+  const getRoleBadge = (role?: UserRole | string) => {
     switch (role) {
       case 'super_admin':
         return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">Super Admin</span>;
@@ -192,6 +192,8 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
         return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">Operator</span>;
       case 'viewer':
         return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/20 text-slate-300 border border-slate-500/30">Viewer</span>;
+      default:
+        return null;
     }
   };
 
@@ -272,10 +274,10 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-purple-600 flex items-center justify-center font-bold text-white text-xs">
-                          {u.fullName.substring(0, 1).toUpperCase()}
+                          {(u.fullName || u.email || 'U').substring(0, 1).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-semibold text-white leading-tight">{u.fullName}</p>
+                          <p className="font-semibold text-white leading-tight">{u.fullName || u.email}</p>
                           <p className="text-[11px] text-[#9899A1] font-mono">{u.email}</p>
                         </div>
                       </div>

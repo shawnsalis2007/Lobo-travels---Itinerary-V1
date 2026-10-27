@@ -342,7 +342,7 @@ export function useItineraries(): Itinerary[] {
     subscribeStorage,
     () => {
       if (!isInitialized) refreshAllCaches();
-      return itinerariesCache || INITIAL_ITINERARIES;
+      return Array.isArray(itinerariesCache) ? itinerariesCache : INITIAL_ITINERARIES;
     },
     () => INITIAL_ITINERARIES
   );
@@ -353,7 +353,7 @@ export function useHotels(): Hotel[] {
     subscribeStorage,
     () => {
       if (!isInitialized) refreshAllCaches();
-      return hotelsCache || INITIAL_HOTELS;
+      return Array.isArray(hotelsCache) ? hotelsCache : INITIAL_HOTELS;
     },
     () => INITIAL_HOTELS
   );
@@ -364,7 +364,7 @@ export function useDestinations(): Destination[] {
     subscribeStorage,
     () => {
       if (!isInitialized) refreshAllCaches();
-      return destinationsCache || INITIAL_DESTINATIONS;
+      return Array.isArray(destinationsCache) ? destinationsCache : INITIAL_DESTINATIONS;
     },
     () => INITIAL_DESTINATIONS
   );
@@ -375,7 +375,7 @@ export function useAttractions(): Attraction[] {
     subscribeStorage,
     () => {
       if (!isInitialized) refreshAllCaches();
-      return attractionsCache || INITIAL_ATTRACTIONS;
+      return Array.isArray(attractionsCache) ? attractionsCache : INITIAL_ATTRACTIONS;
     },
     () => INITIAL_ATTRACTIONS
   );
@@ -386,7 +386,7 @@ export function useVehicles(): VehicleOption[] {
     subscribeStorage,
     () => {
       if (!isInitialized) refreshAllCaches();
-      return vehiclesCache || INITIAL_VEHICLES;
+      return Array.isArray(vehiclesCache) ? vehiclesCache : INITIAL_VEHICLES;
     },
     () => INITIAL_VEHICLES
   );
@@ -562,11 +562,13 @@ export function deleteHotel(id: string): void {
 export type SyncState = 'synced' | 'syncing' | 'offline' | 'error';
 
 let currentSyncState: SyncState = 'synced';
-let lastSyncTimestamp: string = new Date().toISOString();
+let lastSyncTimestamp: string = '';
+let syncStatusSnapshot: { state: SyncState; lastSync: string } = { state: currentSyncState, lastSync: lastSyncTimestamp };
+const serverSyncStatusSnapshot: { state: SyncState; lastSync: string } = { state: 'synced', lastSync: '' };
 let syncListeners: (() => void)[] = [];
 
 export function getSyncStatus(): { state: SyncState; lastSync: string } {
-  return { state: currentSyncState, lastSync: lastSyncTimestamp };
+  return syncStatusSnapshot;
 }
 
 export function useSyncStatus(): { state: SyncState; lastSync: string } {
@@ -577,8 +579,8 @@ export function useSyncStatus(): { state: SyncState; lastSync: string } {
         syncListeners = syncListeners.filter(l => l !== cb);
       };
     },
-    () => ({ state: currentSyncState, lastSync: lastSyncTimestamp }),
-    () => ({ state: 'synced', lastSync: '' })
+    () => syncStatusSnapshot,
+    () => serverSyncStatusSnapshot
   );
 }
 
@@ -587,7 +589,10 @@ function notifySyncStatus(state: SyncState) {
   if (state === 'synced') {
     lastSyncTimestamp = new Date().toISOString();
   }
-  syncListeners.forEach(cb => cb());
+  syncStatusSnapshot = { state: currentSyncState, lastSync: lastSyncTimestamp };
+  syncListeners.forEach(cb => {
+    try { cb(); } catch (_) {}
+  });
 }
 
 /**
@@ -1048,7 +1053,7 @@ export function useFleet(): FleetVehicle[] {
     subscribeStorage,
     () => {
       if (!isInitialized) refreshAllCaches();
-      return fleetCache || INITIAL_FLEET;
+      return Array.isArray(fleetCache) ? fleetCache : INITIAL_FLEET;
     },
     () => INITIAL_FLEET
   );
@@ -1102,7 +1107,7 @@ export function useDrivers(): Driver[] {
     subscribeStorage,
     () => {
       if (!isInitialized) refreshAllCaches();
-      return driversCache || INITIAL_DRIVERS;
+      return Array.isArray(driversCache) ? driversCache : INITIAL_DRIVERS;
     },
     () => INITIAL_DRIVERS
   );
@@ -1156,7 +1161,7 @@ export function useOperationalBookings(): OperationalBooking[] {
     subscribeStorage,
     () => {
       if (!isInitialized) refreshAllCaches();
-      return bookingsCache || INITIAL_OPERATIONAL_BOOKINGS;
+      return Array.isArray(bookingsCache) ? bookingsCache : INITIAL_OPERATIONAL_BOOKINGS;
     },
     () => INITIAL_OPERATIONAL_BOOKINGS
   );

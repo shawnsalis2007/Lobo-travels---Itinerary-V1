@@ -197,9 +197,9 @@ export default function BrandsManager({ currentBrandId, onViewAsBrand }: BrandsM
                       style={{ backgroundColor: b.brandColorPrimary || '#151521', border: `1px solid ${b.brandColorAccent || '#f59e0b'}` }}
                     >
                       {b.logoUrl ? (
-                        <img src={b.logoUrl} alt={b.name} className="w-full h-full object-contain p-1" />
+                        <img src={b.logoUrl} alt={b.name || 'Brand'} className="w-full h-full object-contain p-1" />
                       ) : (
-                        b.code || b.name.substring(0, 2).toUpperCase()
+                        (b.code || b.name || 'BR').substring(0, 2).toUpperCase()
                       )}
                     </div>
                     <div>

@@ -82,7 +82,7 @@ export default function Navbar({
     navItems.push({ id: 'users', label: 'Users', icon: Users });
   }
 
-  const getRoleBadge = (role: UserRole) => {
+  const getRoleBadge = (role?: UserRole | string) => {
     switch (role) {
       case 'super_admin':
         return <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Super Admin</span>;
@@ -93,6 +93,8 @@ export default function Navbar({
         return <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Operator</span>;
       case 'viewer':
         return <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-500/20 text-slate-300 border border-slate-500/30">Viewer</span>;
+      default:
+        return null;
     }
   };
 
@@ -224,11 +226,11 @@ export default function Navbar({
             {currentUser ? (
               <div className="hidden sm:flex items-center gap-2 bg-[#26214F]/50 border border-[#26214F] rounded-lg px-2.5 py-1">
                 <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-amber-500 to-purple-600 flex items-center justify-center font-bold text-[11px] text-white">
-                  {currentUser.fullName.substring(0, 1).toUpperCase()}
+                  {(currentUser.fullName || currentUser.email || 'U').substring(0, 1).toUpperCase()}
                 </div>
                 <div className="text-left">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium text-white truncate max-w-[100px]">{currentUser.fullName}</span>
+                    <span className="text-xs font-medium text-white truncate max-w-[100px]">{currentUser.fullName || currentUser.email || 'User'}</span>
                     {getRoleBadge(currentUser.role)}
                   </div>
                 </div>
@@ -296,11 +298,11 @@ export default function Navbar({
               <div className="p-2.5 rounded-lg bg-[#26214F]/60 flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-amber-500 text-slate-950 font-bold text-xs flex items-center justify-center">
-                    {currentUser.fullName.substring(0, 1).toUpperCase()}
+                    {(currentUser.fullName || currentUser.email || 'U').substring(0, 1).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-white">{currentUser.fullName}</p>
-                    <p className="text-[10px] text-slate-400">{currentUser.email}</p>
+                    <p className="text-xs font-semibold text-white">{currentUser.fullName || currentUser.email || 'User'}</p>
+                    <p className="text-[10px] text-slate-400">{currentUser.email || ''}</p>
                   </div>
                 </div>
                 {onLogout && (

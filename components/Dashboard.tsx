@@ -104,21 +104,24 @@ export default function Dashboard({
   };
 
   // Statistics calculation
-  const activeItineraries = itineraries.filter(i => !i.isDeleted);
+  const safeItineraries = Array.isArray(itineraries) ? itineraries.filter(Boolean) : [];
+  const activeItineraries = safeItineraries.filter(i => !i.isDeleted);
   const totalCount = activeItineraries.length;
-  const draftCount = activeItineraries.filter(i => i.status === 'Draft').length;
-  const sentOrGenCount = activeItineraries.filter(i => i.status === 'Generated' || i.status === 'Sent').length;
-  const confirmedCount = activeItineraries.filter(i => i.status === 'Confirmed').length;
-  const cancelledCount = activeItineraries.filter(i => i.status === 'Cancelled').length;
+  const draftCount = activeItineraries.filter(i => (i.status || '').toLowerCase() === 'draft').length;
+  const sentOrGenCount = activeItineraries.filter(i => (i.status || '').toLowerCase() === 'generated' || (i.status || '').toLowerCase() === 'sent').length;
+  const confirmedCount = activeItineraries.filter(i => (i.status || '').toLowerCase() === 'confirmed').length;
+  const cancelledCount = activeItineraries.filter(i => (i.status || '').toLowerCase() === 'cancelled').length;
 
   const totalTourValue = activeItineraries
-    .filter(i => i.status !== 'Cancelled')
+    .filter(i => (i.status || '').toLowerCase() !== 'cancelled')
     .reduce((sum, item) => sum + (item.totalCost || 0), 0);
 
   // Filtered list
-  const currentList = showRecycleBin ? deletedItineraries : activeItineraries;
+  const currentList = showRecycleBin ? (Array.isArray(deletedItineraries) ? deletedItineraries.filter(Boolean) : []) : activeItineraries;
   const filteredItineraries = currentList.filter(item => {
-    const matchesStatus = showRecycleBin || statusFilter === 'all' || item.status.toLowerCase() === statusFilter.toLowerCase();
+    if (!item) return false;
+    const itemStatus = (item.status || '').toLowerCase();
+    const matchesStatus = showRecycleBin || statusFilter === 'all' || itemStatus === statusFilter.toLowerCase();
     const cleanSearch = searchTerm.toLowerCase().trim();
     const matchesSearch = !cleanSearch ||
       (item.referenceNumber || '').toLowerCase().includes(cleanSearch) ||
@@ -129,7 +132,7 @@ export default function Dashboard({
     return matchesStatus && matchesSearch;
   });
 
-  const getStatusBadge = (status: BookingStatus) => {
+  const getStatusBadge = (status?: BookingStatus | string) => {
     switch (status) {
       case 'Confirmed':
         return (

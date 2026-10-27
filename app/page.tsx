@@ -339,15 +339,16 @@ export default function Home() {
   };
 
   // Global search filtering
-  const displayedItineraries = itineraries.filter(item => {
+  const displayedItineraries = (itineraries || []).filter(item => {
+    if (!item) return false;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
     return (
-      item.referenceNumber.toLowerCase().includes(q) ||
-      item.clientName.toLowerCase().includes(q) ||
-      item.tourName.toLowerCase().includes(q) ||
-      item.clientPhone.toLowerCase().includes(q) ||
-      item.status.toLowerCase().includes(q)
+      (item.referenceNumber || '').toLowerCase().includes(q) ||
+      (item.clientName || '').toLowerCase().includes(q) ||
+      (item.tourName || '').toLowerCase().includes(q) ||
+      (item.clientPhone || '').toLowerCase().includes(q) ||
+      (item.status || '').toLowerCase().includes(q)
     );
   });
 
