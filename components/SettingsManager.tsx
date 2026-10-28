@@ -322,7 +322,7 @@ export default function SettingsManager({
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
             <Settings className="w-5 h-5 text-slate-700" />
-            Lobo Travels Company Settings & Configuration
+            Lobo's Travel Wizard Company Settings & Configuration
           </h1>
           <p className="text-xs text-slate-500">
             Configure agency details, logo URL, reference number sequencing, and voucher statements.

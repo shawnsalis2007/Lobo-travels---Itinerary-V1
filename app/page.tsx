@@ -385,7 +385,7 @@ export default function Home() {
   });
 
   const effectiveBrand = viewingAsBrand || currentBrand;
-  const brandName = effectiveBrand?.name || settings?.companyName || 'LOBO TRAVELS';
+  const brandName = effectiveBrand?.name || settings?.companyName || "LOBO'S TRAVEL WIZARD";
 
   // 1. Loading screen while checking authentication session
   if (isAuthChecking) {
@@ -394,7 +394,7 @@ export default function Home() {
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-purple-600 p-3 shadow-2xl animate-pulse flex items-center justify-center mb-4 border border-amber-400/30">
           <Shield className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-xl font-bold tracking-tight text-white mb-2">Lobo Travels Tour Operations</h1>
+        <h1 className="text-xl font-bold tracking-tight text-white mb-2">Lobo's Travel Wizard Tour Operations</h1>
         <p className="text-xs text-[#9899A1] flex items-center gap-2">
           <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400" />
           Verifying session credentials...
@@ -410,10 +410,10 @@ export default function Home() {
         <header className="p-4 sm:p-6 border-b border-[#26214F] flex items-center justify-between max-w-7xl w-full mx-auto">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-white/10 p-1 flex items-center justify-center border border-white/10">
-              <img src="/logo.png" alt="Lobo Travels" className="h-full w-full object-contain" />
+              <img src="/logo.png" alt="Lobo's Travel Wizard" className="h-full w-full object-contain" />
             </div>
             <div>
-              <span className="text-lg font-bold text-white tracking-tight">LOBO TRAVELS</span>
+              <span className="text-lg font-bold text-white tracking-tight">LOBO'S TRAVEL WIZARD</span>
               <p className="text-[11px] text-[#9899A1]">Tour Operations & Multi-Brand Fleet Platform</p>
             </div>
           </div>
@@ -433,7 +433,7 @@ export default function Home() {
         </main>
 
         <footer className="p-4 text-center text-xs text-slate-500 border-t border-[#26214F]">
-          © {new Date().getFullYear()} Lobo Travels Tour Operations. Restricted access — authorized personnel only.
+          © {new Date().getFullYear()} Lobo's Travel Wizard Tour Operations. Restricted access — authorized personnel only.
         </footer>
       </div>
     );
@@ -608,8 +608,10 @@ export default function Home() {
             vehicles={vehicles}
             drivers={drivers}
             fleet={fleet}
+            settings={settings}
             onSaveVehicle={(v) => { saveFleetVehicle(v); }}
             onDeleteVehicle={handleDeleteFleetVehicle}
+            onSaveDriver={(d) => { saveDriver(d); }}
           />
         )}
 
@@ -618,8 +620,10 @@ export default function Home() {
           <DriversManager
             drivers={drivers}
             fleet={fleet}
+            settings={settings}
             onSaveDriver={(d) => { saveDriver(d); }}
             onDeleteDriver={handleDeleteDriver}
+            onSaveVehicle={(v) => { saveFleetVehicle(v); }}
           />
         )}
 

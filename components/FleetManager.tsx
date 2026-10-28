@@ -15,14 +15,18 @@ import {
   Shield,
   ChevronDown,
 } from 'lucide-react';
-import { FleetVehicle, VehicleOption, Driver } from '@/types';
+import { FleetVehicle, VehicleOption, Driver, AppSettings, OperationalBooking } from '@/types';
+import DirectBookingModal from './DirectBookingModal';
 
 interface FleetManagerProps {
   vehicles: VehicleOption[];   // Vehicle Catalogue for brand/model dropdowns
   drivers: Driver[];            // For default driver dropdown
   fleet: FleetVehicle[];
+  settings?: AppSettings;
   onSaveVehicle: (v: FleetVehicle) => void;
   onDeleteVehicle: (id: string) => void;
+  onSaveDriver?: (d: Driver) => void;
+  onBookingCreated?: (b: OperationalBooking) => void;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -100,11 +104,18 @@ export default function FleetManager({
   vehicles,
   drivers,
   fleet,
+  settings,
   onSaveVehicle,
   onDeleteVehicle,
+  onSaveDriver,
+  onBookingCreated,
 }: FleetManagerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | FleetVehicle['status']>('all');
+
+  // Direct Booking Modal
+  const [isDirectBookingOpen, setIsDirectBookingOpen] = useState(false);
+  const [bookingVehicleId, setBookingVehicleId] = useState<string | undefined>(undefined);
 
   // Form / modal state
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -233,19 +244,28 @@ export default function FleetManager({
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
             <Truck className="w-5 h-5 text-amber-500" />
-            Lobo Travels Fleet Management
+            Lobo's Travel Wizard Fleet Management
           </h1>
           <p className="text-xs text-slate-500">
             Own vehicle registry — track status, documents, and driver assignments.
           </p>
         </div>
-        <button
-          onClick={openAdd}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Add Vehicle
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setBookingVehicleId(undefined); setIsDirectBookingOpen(true); }}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#26214F] hover:bg-[#26214F]/80 text-amber-300 border border-amber-500/30 text-xs font-bold transition shadow-sm active:scale-95"
+          >
+            <Calendar className="w-4 h-4 text-amber-400" />
+            Direct Booking
+          </button>
+          <button
+            onClick={openAdd}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shadow-sm active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            Add Vehicle
+          </button>
+        </div>
       </div>
 
       {/* ── Summary Stats ── */}
@@ -331,6 +351,13 @@ export default function FleetManager({
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => { setBookingVehicleId(v.id); setIsDirectBookingOpen(true); }}
+                        className="p-1.5 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 active:scale-95 transition"
+                        title="Create Direct Booking for this Vehicle"
+                      >
+                        <Calendar className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => openEdit(v)}
                         className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 transition"
@@ -457,6 +484,13 @@ export default function FleetManager({
                       {/* Actions */}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => { setBookingVehicleId(v.id); setIsDirectBookingOpen(true); }}
+                            className="p-1 rounded text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition"
+                            title="Create Direct Booking for this Vehicle"
+                          >
+                            <Calendar className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={() => openEdit(v)}
                             className="p-1 rounded text-slate-500 hover:text-amber-600 hover:bg-slate-200 transition"
@@ -732,6 +766,21 @@ export default function FleetManager({
           </div>
         </div>
       )}
+      {/* Direct Standalone Booking Modal */}
+      <DirectBookingModal
+        isOpen={isDirectBookingOpen}
+        onClose={() => {
+          setIsDirectBookingOpen(false);
+          setBookingVehicleId(undefined);
+        }}
+        fleet={fleet}
+        drivers={drivers}
+        settings={settings}
+        initialVehicleId={bookingVehicleId}
+        onSaveVehicle={onSaveVehicle}
+        onSaveDriver={onSaveDriver}
+        onBookingCreated={onBookingCreated}
+      />
     </div>
   );
 }

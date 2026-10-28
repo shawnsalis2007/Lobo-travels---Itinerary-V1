@@ -12,7 +12,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
-    console.error('[Lobo Travels] Client runtime exception captured:', error);
+    console.error("[Lobo's Travel Wizard] Client runtime exception captured:", error);
   }, [error]);
 
   const handleResetCachesAndReload = () => {
@@ -44,7 +44,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
 
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#26214F] text-amber-300 text-xs font-semibold mb-2">
-            <Compass className="w-3.5 h-3.5" /> Lobo Travels Platform Recovery
+            <Compass className="w-3.5 h-3.5" /> Lobo's Travel Wizard Platform Recovery
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white">
             Application Recovery

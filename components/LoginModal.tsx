@@ -111,12 +111,6 @@ export default function LoginModal({ isOpen, canClose = true, onClose, onLoginSu
     }
   };
 
-  const fillQuickCredential = (quickEmail: string, quickPass: string) => {
-    setEmail(quickEmail);
-    setPassword(quickPass);
-    setError(null);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
       <div className="relative w-full max-w-md bg-[#151521] border border-[#26214F] text-white rounded-2xl shadow-2xl p-6 overflow-hidden">
@@ -212,7 +206,7 @@ export default function LoginModal({ isOpen, canClose = true, onClose, onLoginSu
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. vlobo99@outlook.com"
+                  placeholder="name@company.com"
                   required
                   className="w-full pl-9 pr-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white placeholder-[#9899A1] focus:outline-none focus:ring-1 focus:ring-amber-400"
                 />
@@ -244,26 +238,6 @@ export default function LoginModal({ isOpen, canClose = true, onClose, onLoginSu
               {loading && <RefreshCw className="w-4 h-4 animate-spin" />}
               {loading ? 'Authenticating...' : 'Sign In'}
             </button>
-
-            {/* Master Super Admin Quick Fill */}
-            <div className="pt-4 mt-4 border-t border-[#26214F]/70">
-              <p className="text-[11px] font-semibold text-[#9899A1] uppercase tracking-wider text-center mb-2">
-                Super Admin Quick Fill
-              </p>
-              <button
-                type="button"
-                onClick={() => fillQuickCredential('vlobo99@outlook.com', 'venson7359')}
-                className="w-full p-2.5 text-left rounded-lg bg-[#26214F]/40 hover:bg-[#26214F] border border-amber-500/30 transition text-amber-300 flex items-center justify-between group"
-              >
-                <div>
-                  <span className="font-bold block text-white group-hover:text-amber-300 transition">Master Super Admin</span>
-                  <span className="text-[11px] text-slate-300 font-mono">vlobo99@outlook.com</span>
-                </div>
-                <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                  Quick Fill
-                </span>
-              </button>
-            </div>
           </form>
         )}
       </div>

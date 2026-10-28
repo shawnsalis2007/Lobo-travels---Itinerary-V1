@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     const processedTours = new Set<string>();
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // 1. Sync Itineraries (The primary data source for the Lobo Travels Dashboard)
+    // 1. Sync Itineraries (The primary data source for the Lobo's Travel Wizard Dashboard)
     // ─────────────────────────────────────────────────────────────────────────────
     for (const itin of itineraries) {
       if (itin.status === 'Cancelled') {
@@ -192,7 +192,7 @@ export async function POST(req: NextRequest) {
         arrivalInfo ? `Arrival / Flight: ${arrivalInfo}` : '',
         totalCostFormatted ? `Total Package Value: ${totalCostFormatted}` : '',
         '',
-        'Synchronized via Lobo Travels Tour Operations Management'
+        "Synchronized via Lobo's Travel Wizard Tour Operations Management"
       ].filter(Boolean).join('\n');
 
       const eventPayload = {
@@ -318,7 +318,7 @@ export async function POST(req: NextRequest) {
         b.voucherNo ? `Voucher Ref: ${b.voucherNo}` : '',
         b.itineraryRef ? `Itinerary Ref: ${b.itineraryRef}` : '',
         '',
-        'Synchronized via Lobo Travels Tour Operations Management'
+        "Synchronized via Lobo's Travel Wizard Tour Operations Management"
       ].filter(Boolean).join('\n');
 
       const eventPayload = {

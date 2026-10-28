@@ -56,6 +56,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const body = await req.json().catch(() => ({}));
     const updated = await saveDbUser({
       ...targetUser,
+      brandId: (auth.user.role === 'super_admin' && body.brandId) ? body.brandId : targetUser.brandId,
       fullName: body.fullName !== undefined ? body.fullName : targetUser.fullName,
       role: body.role !== undefined ? body.role : targetUser.role,
       permissions: body.permissions !== undefined ? body.permissions : targetUser.permissions,

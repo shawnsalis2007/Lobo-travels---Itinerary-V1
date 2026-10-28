@@ -13,9 +13,11 @@ import {
   Trash2, 
   RefreshCw,
   Mail,
-  Check
+  Check,
+  Edit2,
+  Building
 } from 'lucide-react';
-import { User, UserRole, UserPermissions, DEFAULT_PERMISSIONS } from '@/types';
+import { User, UserRole, UserPermissions, DEFAULT_PERMISSIONS, Brand } from '@/types';
 
 interface UsersManagerProps {
   currentUser: User | null;
@@ -24,6 +26,7 @@ interface UsersManagerProps {
 
 export default function UsersManager({ currentUser, currentBrandId }: UsersManagerProps) {
   const [users, setUsers] = useState<User[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -36,14 +39,41 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
     fullName: string;
     password: string;
     role: UserRole;
+    brandId: string;
     permissions: UserPermissions;
   }>({
     email: '',
     fullName: '',
     password: 'Lobo@2026!',
     role: 'operator',
+    brandId: currentBrandId,
     permissions: DEFAULT_PERMISSIONS
   });
+
+  // Edit User Modal
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editingUser, setEditingUser] = useState<{
+    id: string;
+    email: string;
+    fullName: string;
+    role: UserRole;
+    brandId: string;
+    isActive: boolean;
+    permissions: UserPermissions;
+  } | null>(null);
+
+  const fetchBrands = async () => {
+    try {
+      const res = await fetch('/api/brands', { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data.brands)) {
+        setBrands(data.brands);
+      }
+    } catch (e) {
+      console.warn('Failed to fetch brands in UsersManager:', e);
+    }
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -63,7 +93,12 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
   };
 
   useEffect(() => {
+    fetchBrands();
+  }, []);
+
+  useEffect(() => {
     fetchUsers();
+    setNewUser(prev => ({ ...prev, brandId: currentBrandId }));
   }, [currentBrandId]);
 
   const handleAddUser = async (e: React.FormEvent) => {
@@ -74,12 +109,13 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
     setError(null);
 
     try {
+      const targetBrand = newUser.brandId || currentBrandId;
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...newUser,
-          brandId: currentBrandId
+          brandId: targetBrand
         })
       });
 
@@ -97,6 +133,7 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
         fullName: '',
         password: 'Lobo@2026!',
         role: 'operator',
+        brandId: currentBrandId,
         permissions: DEFAULT_PERMISSIONS
       });
       fetchUsers();
@@ -104,6 +141,57 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
       setError(err?.message || 'Error creating user');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openEditUser = (u: User) => {
+    setEditingUser({
+      id: u.id,
+      email: u.email,
+      fullName: u.fullName,
+      role: u.role,
+      brandId: u.brandId || currentBrandId,
+      isActive: u.isActive,
+      permissions: { ...DEFAULT_PERMISSIONS, ...(u.permissions || {}) }
+    });
+    setIsEditOpen(true);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    setEditSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/users/${encodeURIComponent(editingUser.id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: editingUser.fullName,
+          role: editingUser.role,
+          brandId: editingUser.brandId,
+          isActive: editingUser.isActive,
+          permissions: editingUser.permissions
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        setError(data.error || 'Failed to update user');
+        setEditSubmitting(false);
+        return;
+      }
+
+      setSuccessMsg(`User ${editingUser.email} updated successfully!`);
+      setIsEditOpen(false);
+      setEditingUser(null);
+      fetchUsers();
+    } catch (err: any) {
+      setError(err?.message || 'Error updating user');
+    } finally {
+      setEditSubmitting(false);
     }
   };
 
@@ -259,6 +347,7 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
             <thead className="bg-[#26214F]/60 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-[#26214F]">
               <tr>
                 <th className="py-3 px-4">User</th>
+                <th className="py-3 px-4">Brand</th>
                 <th className="py-3 px-4">Role</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Created</th>
@@ -268,6 +357,7 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
             <tbody className="divide-y divide-[#26214F]/40">
               {users.map((u) => {
                 const isLocked = u.lockedUntil && new Date(u.lockedUntil).getTime() > Date.now();
+                const userBrand = brands.find((b) => b.id === u.brandId);
 
                 return (
                   <tr key={u.id} className="hover:bg-white/[0.02] transition">
@@ -281,6 +371,13 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
                           <p className="text-[11px] text-[#9899A1] font-mono">{u.email}</p>
                         </div>
                       </div>
+                    </td>
+
+                    <td className="py-3.5 px-4">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-[#26214F]/60 text-slate-300 border border-[#26214F]">
+                        <Building className="w-3 h-3 text-amber-400" />
+                        {userBrand?.name || u.brandId || 'Default Brand'}
+                      </span>
                     </td>
 
                     <td className="py-3.5 px-4">
@@ -309,6 +406,14 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
 
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => openEditUser(u)}
+                          className="p-1.5 rounded bg-[#26214F] text-slate-300 hover:text-white transition"
+                          title="Edit user details and brand"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+
                         {isLocked && (
                           <button
                             onClick={() => handleToggleLock(u)}
@@ -387,12 +492,30 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
                 <input
                   type="email"
                   required
-                  placeholder="e.g. rahul@lobotravels.com"
+                  placeholder="e.g. rahul@travelwizard.com"
                   value={newUser.email}
                   onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                   className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
                 />
               </div>
+
+              {currentUser?.role === 'super_admin' && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Assign to Brand *</label>
+                  <select
+                    value={newUser.brandId || currentBrandId}
+                    onChange={(e) => setNewUser({ ...newUser, brandId: e.target.value })}
+                    className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  >
+                    {brands.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.code})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-[#9899A1] mt-1">Select the operational brand this user belongs to.</p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Role *</label>
@@ -482,6 +605,152 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
                 >
                   {submitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   {submitting ? 'Adding Member...' : 'Add Team Member'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Edit User Modal */}
+      {isEditOpen && editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-lg bg-[#151521] border border-[#26214F] text-white rounded-2xl shadow-2xl p-6 overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-amber-400" />
+                <h3 className="font-bold text-lg text-white">Edit Team Member</h3>
+              </div>
+              <button onClick={() => { setIsEditOpen(false); setEditingUser(null); }} className="text-[#9899A1] hover:text-white">✕</button>
+            </div>
+
+            <form onSubmit={handleUpdateUser} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editingUser.fullName}
+                  onChange={(e) => setEditingUser({ ...editingUser, fullName: e.target.value })}
+                  className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  disabled
+                  value={editingUser.email}
+                  className="w-full px-3 py-2 text-sm bg-[#26214F]/30 border border-[#26214F] rounded-lg text-slate-400 cursor-not-allowed"
+                />
+              </div>
+
+              {currentUser?.role === 'super_admin' && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Brand Assignment *</label>
+                  <select
+                    value={editingUser.brandId}
+                    onChange={(e) => setEditingUser({ ...editingUser, brandId: e.target.value })}
+                    className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  >
+                    {brands.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.code})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-[#9899A1] mt-1">Super Admin control: move user between brand tenants.</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Role *</label>
+                <select
+                  value={editingUser.role}
+                  onChange={(e) => {
+                    const r = e.target.value as UserRole;
+                    let p: UserPermissions = { ...editingUser.permissions };
+                    if (r === 'viewer') {
+                      p = { canCreateItinerary: false, canEditItinerary: false, canDeleteItinerary: false, canManageFleet: false, canManageDrivers: false, canManageBookings: false, canManageDestinations: false, canManageHotels: false, canViewReports: true };
+                    } else if (r === 'super_admin' || r === 'brand_admin') {
+                      p = { canCreateItinerary: true, canEditItinerary: true, canDeleteItinerary: true, canManageFleet: true, canManageDrivers: true, canManageBookings: true, canManageDestinations: true, canManageHotels: true, canViewReports: true, canManageSettings: true, canManageUsers: true };
+                    }
+                    setEditingUser({ ...editingUser, role: r, permissions: p });
+                  }}
+                  className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                >
+                  <option value="operator">Operator (Create & Edit Itineraries, Fleet, Bookings)</option>
+                  <option value="viewer">Viewer (Read-Only Itineraries & Reports)</option>
+                  <option value="brand_admin">Brand Admin (Manage Users & Brand Settings)</option>
+                  {currentUser?.role === 'super_admin' && (
+                    <option value="super_admin">Super Admin (System-Wide Control)</option>
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 p-2 rounded-lg bg-[#26214F]/40 border border-[#26214F] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editingUser.isActive}
+                    onChange={(e) => setEditingUser({ ...editingUser, isActive: e.target.checked })}
+                    className="rounded text-amber-500 focus:ring-amber-400 bg-[#151521] border-[#26214F]"
+                  />
+                  <span className="text-xs text-white font-medium">Account is Active (able to sign in)</span>
+                </label>
+              </div>
+
+              <div className="pt-2">
+                <label className="block text-xs font-medium text-slate-300 mb-2">Granular Permissions</label>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {[
+                    { key: 'canCreateItinerary', label: 'Create Itineraries' },
+                    { key: 'canEditItinerary', label: 'Edit Itineraries' },
+                    { key: 'canDeleteItinerary', label: 'Delete Itineraries' },
+                    { key: 'canManageFleet', label: 'Manage Fleet Vehicles' },
+                    { key: 'canManageDrivers', label: 'Manage Drivers' },
+                    { key: 'canManageBookings', label: 'Manage Reminders / Bookings' },
+                    { key: 'canManageDestinations', label: 'Manage Destinations' },
+                    { key: 'canManageHotels', label: 'Manage Hotels' },
+                    { key: 'canViewReports', label: 'View Reports' },
+                    { key: 'canManageSettings', label: 'Edit Settings' },
+                  ].map((perm) => (
+                    <label key={perm.key} className="flex items-center gap-2 p-1.5 rounded bg-[#26214F]/40 hover:bg-[#26214F] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!(editingUser.permissions as any)[perm.key]}
+                        onChange={(e) => {
+                          setEditingUser({
+                            ...editingUser,
+                            permissions: {
+                              ...editingUser.permissions,
+                              [perm.key]: e.target.checked
+                            }
+                          });
+                        }}
+                        className="rounded text-amber-500 focus:ring-amber-400 bg-[#151521] border-[#26214F]"
+                      />
+                      <span>{perm.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#26214F]">
+                <button
+                  type="button"
+                  onClick={() => { setIsEditOpen(false); setEditingUser(null); }}
+                  className="px-4 py-2 text-xs font-medium text-slate-300 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editSubmitting}
+                  className="px-5 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow hover:from-amber-400 hover:to-amber-500 transition disabled:opacity-50 flex items-center gap-2"
+                >
+                  {editSubmitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  {editSubmitting ? 'Saving Changes...' : 'Save Changes'}
                 </button>
               </div>
             </form>

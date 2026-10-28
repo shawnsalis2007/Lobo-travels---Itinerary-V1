@@ -1,5 +1,5 @@
 -- =========================================================================
--- LOBO TRAVELS - VERSIONED NON-DESTRUCTIVE DATABASE MIGRATION
+-- LOBO'S TRAVEL WIZARD - VERSIONED NON-DESTRUCTIVE DATABASE MIGRATION
 -- MIGRATION: 001_multi_brand_sync_auth.sql
 -- DESCRIPTION: Multi-brand white-label support, authentication, atomic reference
 --              sequences, soft delete, activity logging, and fleet/driver persistence.
@@ -25,13 +25,13 @@ CREATE TABLE IF NOT EXISTS brands (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Seed default Lobo Travels brand
+-- Seed default Lobo's Travel Wizard brand
 INSERT INTO brands (id, name, slug, code, logo_url, brand_color_primary, brand_color_secondary, brand_color_accent, reference_prefix, max_users, status)
 VALUES (
   'brand-lobo-travels',
-  'Lobo Travels',
-  'lobo-travels',
-  'LOBO',
+  'Lobo''s Travel Wizard',
+  'lobos-travel-wizard',
+  'LTW',
   '/logo.png',
   '#151521',
   '#26214F',

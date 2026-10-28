@@ -31,8 +31,8 @@ export const DEFAULT_BRAND_ID = 'brand-lobo-travels';
 
 export const DEFAULT_BRAND: Brand = {
   id: DEFAULT_BRAND_ID,
-  name: 'Lobo Travels',
-  slug: 'lobo-travels',
+  name: "Lobo's Travel Wizard",
+  slug: 'lobos-travel-wizard',
   code: 'LOBO',
   logoUrl: '/logo.png',
   brandColorPrimary: '#151521',
@@ -466,7 +466,7 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       );
     `;
 
-    // Seed default Lobo Travels brand
+    // Seed default Lobo's Travel Wizard brand
     await sql`
       INSERT INTO brands (id, name, slug, code, logo_url, brand_color_primary, brand_color_secondary, brand_color_accent, reference_prefix, max_users, status, data)
       VALUES (
@@ -1282,7 +1282,7 @@ export async function saveDbBrand(brand: Brand, actorUserId?: string): Promise<B
 
 export async function deleteDbBrand(id: string, actorUserId?: string): Promise<boolean> {
   if (id === DEFAULT_BRAND_ID) {
-    throw new Error('Default Lobo Travels brand cannot be deleted.');
+    throw new Error("Default Lobo's Travel Wizard brand cannot be deleted.");
   }
   const { provider } = getActiveDbProvider();
   if (provider === 'postgres') {

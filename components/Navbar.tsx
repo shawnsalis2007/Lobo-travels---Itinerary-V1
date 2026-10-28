@@ -63,7 +63,7 @@ export default function Navbar({
   const syncStatus = useSyncStatus();
 
   const effectiveBrand = viewingAsBrand || currentBrand;
-  const brandName = effectiveBrand?.name || settings?.companyName || 'LOBO TRAVELS';
+  const brandName = effectiveBrand?.name || settings?.companyName || "LOBO'S TRAVEL WIZARD";
   const brandLogo = effectiveBrand?.logoUrl || settings?.logoUrl || '/logo.png';
 
   const navItems = [
@@ -118,7 +118,7 @@ export default function Navbar({
             onClick={onExitViewingAs}
             className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-white font-semibold transition active:scale-95 whitespace-nowrap text-[11px]"
           >
-            Exit View / Switch to Lobo Travels
+            Exit View / Switch to Lobo's Travel Wizard
           </button>
         </div>
       )}

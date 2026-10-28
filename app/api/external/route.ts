@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const baseUrl = req.nextUrl.origin || 'https://itinerary-builder.vercel.app';
 
   return NextResponse.json({
-    service: 'Lobo Travels External Integration API',
+    service: "Lobo's Travel Wizard External Integration API",
     version: '1.0.0',
     status: 'online',
     database: {

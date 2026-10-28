@@ -466,6 +466,8 @@ export interface OutsourcedVehicleInfo {
   vendorCompanyName: string;
   vendorContactNumber: string;
   bookingConfirmed: boolean;
+  vendorContactPerson?: string;
+  rate?: number;
   vehicleDescription?: string;
   driverName?: string;
   driverPhone?: string;

@@ -2,13 +2,13 @@ import { Destination, Attraction, Hotel, VehicleOption, AppSettings, Itinerary, 
 import { COMPREHENSIVE_DESTINATIONS, COMPREHENSIVE_ATTRACTIONS } from './catalog-data';
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  companyName: 'Lobo Travels',
+  companyName: "Lobo's Travel Wizard",
   tagline: 'Travel packages, fleet operations, and all travel related solutions.',
   logoUrl: '/logo.png',
   phones: ['9811240072', '9891240072', '9312640072'],
-  email: 'info@lobotravels.com',
+  email: 'info@lobostravelwizard.com',
   address: 'Shop No. 12, NDMC Market Near CNG Pump, Mandir Marg, New Delhi - 110001',
-  website: 'lobotravels.com',
+  website: 'lobostravelwizard.com',
   referencePrefix: 'LT-2026-',
   nextReferenceSequence: 251,
   voucherTerms: 'Valid government-issued photo ID is mandatory at all hotel check-ins and monument entrances.',
@@ -615,7 +615,7 @@ export const INITIAL_ITINERARIES: Itinerary[] = [
         destination: 'Delhi',
         attractionIds: ['delhi-qutub', 'delhi-lotus', 'delhi-india-gate'],
         attractionNames: ['Qutub Minar Complex', 'Lotus Temple (Baháʼí House of Worship)', 'India Gate & Kartavya Path'],
-        description: 'Arrive in New Delhi where you will be warmly received by your Lobo Travels chauffeur. Begin your introduction to the national capital with a visit to the UNESCO-listed Qutub Minar, followed by the serene white marble petals of the Lotus Temple. In the late afternoon, drive along the ceremonial Kartavya Path to view India Gate and Rashtrapati Bhavan.',
+        description: "Arrive in New Delhi where you will be warmly received by your Lobo's Travel Wizard chauffeur. Begin your introduction to the national capital with a visit to the UNESCO-listed Qutub Minar, followed by the serene white marble petals of the Lotus Temple. In the late afternoon, drive along the ceremonial Kartavya Path to view India Gate and Rashtrapati Bhavan.",
         isOvernightSameLocation: true,
         overnightLocation: 'Delhi',
         arrivalDetails: {
@@ -765,7 +765,7 @@ export const INITIAL_ITINERARIES: Itinerary[] = [
         destination: 'Jaipur',
         attractionIds: ['jaipur-jal-mahal'],
         attractionNames: ['Jal Mahal (Water Palace Photo Stop)'],
-        description: 'After breakfast and hotel check-out, spend some time exploring Jaipur’s vibrant handicraft and gemstone bazaars at Johari Bazaar. Later, board your comfortable vehicle for your return transfer to Delhi Airport or Railway Station for your onward journey with fond memories of Lobo Travels.',
+        description: "After breakfast and hotel check-out, spend some time exploring Jaipur’s vibrant handicraft and gemstone bazaars at Johari Bazaar. Later, board your comfortable vehicle for your return transfer to Delhi Airport or Railway Station for your onward journey with fond memories of Lobo's Travel Wizard.",
         isOvernightSameLocation: true,
         overnightLocation: 'Jaipur',
         departureDetails: {

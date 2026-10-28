@@ -158,13 +158,13 @@ export default function TravelVoucherView({
                   <div className="h-12 w-12 rounded-lg overflow-hidden flex items-center justify-center p-1 bg-slate-50 border border-slate-200">
                     <img 
                       src={settings?.logoUrl || '/logo.png'} 
-                      alt={settings?.companyName || 'Lobo Travels'} 
+                      alt={settings?.companyName || "Lobo's Travel Wizard"} 
                       className="h-full w-full object-contain"
                     />
                   </div>
                   <div>
                     <h1 className="text-lg font-black tracking-tight text-[#151521]">
-                      {(settings?.companyName || 'LOBO TRAVELS').toUpperCase()}
+                      {(settings?.companyName || "LOBO'S TRAVEL WIZARD").toUpperCase()}
                     </h1>
                     <p className="text-[10px] text-[#9899A1] font-medium">
                       {settings?.tagline || ''}
@@ -483,7 +483,7 @@ export default function TravelVoucherView({
             {/* Pinned Page 1 Footer */}
             <div className="proposal-inner-footer pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-[#151521]">{(settings?.companyName || 'Lobo Travels')} Operations</span>
+                <span className="font-bold text-[#151521]">{(settings?.companyName || "Lobo's Travel Wizard")} Operations</span>
                 <span>·</span>
                 <span>24/7 Helpline: {settings?.phones?.[0] || '+91 9811240072'}</span>
               </div>
@@ -612,7 +612,7 @@ export default function TravelVoucherView({
               {/* Footer & Contacts */}
               <div className="pt-4 border-t-2 border-[#151521] text-xs text-slate-600 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <div className="font-bold text-slate-900 text-xs">{(settings?.companyName || 'Lobo Travels')} Operations Desk</div>
+                  <div className="font-bold text-slate-900 text-xs">{(settings?.companyName || "Lobo's Travel Wizard")} Operations Desk</div>
                   <div className="font-mono text-[11px] font-bold text-[#26214F]">Voucher: {voucherReference}</div>
                 </div>
                 <div className="text-[10px] text-slate-500">
@@ -628,7 +628,7 @@ export default function TravelVoucherView({
             {/* Pinned Page 2 Footer */}
             <div className="proposal-inner-footer pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
+                <span className="font-bold text-[#151521]">{settings?.companyName || "Lobo's Travel Wizard"}</span>
                 <span>·</span>
                 <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
               </div>
@@ -640,7 +640,7 @@ export default function TravelVoucherView({
           {/* Global Repeating Fixed Print Footer across all printed pages */}
           <div className="print-fixed-footer hidden print:flex">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-[#151521]">{(settings?.companyName || 'Lobo Travels')} Operations</span>
+              <span className="font-bold text-[#151521]">{(settings?.companyName || "Lobo's Travel Wizard")} Operations</span>
               <span>·</span>
               <span>24/7 Helpline: {settings?.phones?.[0] || '+91 9811240072'}</span>
             </div>

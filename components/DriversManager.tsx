@@ -11,14 +11,19 @@ import {
   AlertTriangle,
   Car,
   Phone,
+  Calendar,
 } from 'lucide-react';
-import { Driver, FleetVehicle } from '@/types';
+import { Driver, FleetVehicle, AppSettings, OperationalBooking } from '@/types';
+import DirectBookingModal from './DirectBookingModal';
 
 interface DriversManagerProps {
   drivers: Driver[];
   fleet: FleetVehicle[];
+  settings?: AppSettings;
   onSaveDriver: (d: Driver) => void;
   onDeleteDriver: (id: string) => void;
+  onSaveVehicle?: (v: FleetVehicle) => void;
+  onBookingCreated?: (b: OperationalBooking) => void;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -46,11 +51,18 @@ const STATUS_BADGE: Record<Driver['status'], string> = {
 export default function DriversManager({
   drivers,
   fleet,
+  settings,
   onSaveDriver,
   onDeleteDriver,
+  onSaveVehicle,
+  onBookingCreated,
 }: DriversManagerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | Driver['status']>('all');
+
+  // Direct Booking Modal
+  const [isDirectBookingOpen, setIsDirectBookingOpen] = useState(false);
+  const [bookingDriverId, setBookingDriverId] = useState<string | undefined>(undefined);
 
   // Form / modal state
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -153,16 +165,25 @@ export default function DriversManager({
             Drivers Directory
           </h1>
           <p className="text-xs text-slate-500">
-            Manage chauffeurs and their vehicle assignments for Lobo Travels operations.
+            Manage chauffeurs and their vehicle assignments for Lobo's Travel Wizard operations.
           </p>
         </div>
-        <button
-          onClick={openAdd}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Add Driver
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setBookingDriverId(undefined); setIsDirectBookingOpen(true); }}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#26214F] hover:bg-[#26214F]/80 text-amber-300 border border-amber-500/30 text-xs font-bold transition shadow-sm active:scale-95"
+          >
+            <Calendar className="w-4 h-4 text-amber-400" />
+            Direct Booking
+          </button>
+          <button
+            onClick={openAdd}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shadow-sm active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            Add Driver
+          </button>
+        </div>
       </div>
 
       {/* ── Summary Stats ── */}
@@ -240,6 +261,13 @@ export default function DriversManager({
                       </a>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => { setBookingDriverId(d.id); setIsDirectBookingOpen(true); }}
+                        className="p-1.5 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 active:scale-95 transition"
+                        title="Create Direct Booking for this Driver"
+                      >
+                        <Calendar className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => openEdit(d)}
                         className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 transition"
@@ -335,6 +363,13 @@ export default function DriversManager({
                       {/* Actions */}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => { setBookingDriverId(d.id); setIsDirectBookingOpen(true); }}
+                            className="p-1 rounded text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition"
+                            title="Create Direct Booking for this Driver"
+                          >
+                            <Calendar className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={() => openEdit(d)}
                             className="p-1 rounded text-slate-500 hover:text-amber-600 hover:bg-slate-200 transition"
@@ -481,6 +516,21 @@ export default function DriversManager({
           </div>
         </div>
       )}
+      {/* Direct Standalone Booking Modal */}
+      <DirectBookingModal
+        isOpen={isDirectBookingOpen}
+        onClose={() => {
+          setIsDirectBookingOpen(false);
+          setBookingDriverId(undefined);
+        }}
+        fleet={fleet}
+        drivers={drivers}
+        settings={settings}
+        initialDriverId={bookingDriverId}
+        onSaveVehicle={onSaveVehicle}
+        onSaveDriver={onSaveDriver}
+        onBookingCreated={onBookingCreated}
+      />
     </div>
   );
 }

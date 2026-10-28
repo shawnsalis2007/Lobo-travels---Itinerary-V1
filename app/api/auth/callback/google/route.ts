@@ -173,7 +173,7 @@ export async function GET(req: NextRequest) {
       `<!DOCTYPE html>
       <html>
         <head>
-          <title>Google Calendar Connected — Lobo Travels</title>
+          <title>Google Calendar Connected — Lobo's Travel Wizard</title>
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         </head>
         <body style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f172a;color:#f8fafc;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;padding:20px;">
@@ -181,7 +181,7 @@ export async function GET(req: NextRequest) {
             <div style="width:56px;height:56px;border-radius:50%;background:rgba(16,185,129,0.15);color:#10b981;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">✓</div>
             <h2 style="font-size:20px;font-weight:700;margin:0 0 8px;color:#f8fafc;">Calendar Connected!</h2>
             <p style="color:#94a3b8;font-size:13px;line-height:1.5;margin:0 0 20px;">
-              Successfully linked <strong>${userEmail}</strong> with Lobo Travels. Syncing your operational calendars now…
+              Successfully linked <strong>${userEmail}</strong> with Lobo's Travel Wizard. Syncing your operational calendars now…
             </p>
             <p style="font-size:12px;color:#64748b;">Redirecting back to dashboard…</p>
           </div>
@@ -205,13 +205,13 @@ export async function GET(req: NextRequest) {
 
                 // Guarantee core settings properties exist to prevent missing-property exceptions
                 const defaults = {
-                  companyName: 'Lobo Travels',
+                  companyName: "Lobo's Travel Wizard",
                   tagline: 'Travel packages, fleet operations, and all travel related solutions.',
                   logoUrl: '/logo.png',
                   phones: ['9811240072', '9891240072', '9312640072'],
-                  email: 'info@lobotravels.com',
+                  email: 'info@lobostravelwizard.com',
                   address: 'Shop No. 12, NDMC Market Near CNG Pump, Mandir Marg, New Delhi - 110001',
-                  website: 'lobotravels.com',
+                  website: 'lobostravelwizard.com',
                   referencePrefix: 'LT-2026-',
                   nextReferenceSequence: 251,
                   voucherTerms: 'Valid government-issued photo ID is mandatory at all hotel check-ins and monument entrances.',

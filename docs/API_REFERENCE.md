@@ -1,6 +1,6 @@
-# Lobo Travels API Reference & Developer Guide
+# Lobo's Travel Wizard API Reference & Developer Guide
 
-The Lobo Travels Itinerary Builder and Fleet Management Platform provides a secure external REST API for programmatic **Push** and **Pull** operations. External applications, booking systems, CRM platforms, and automated workflow scripts can create, update, and retrieve itineraries, destinations, sights/attractions, and partner hotels.
+The Lobo's Travel Wizard Itinerary Builder and Fleet Management Platform provides a secure external REST API for programmatic **Push** and **Pull** operations. External applications, booking systems, CRM platforms, and automated workflow scripts can create, update, and retrieve itineraries, destinations, sights/attractions, and partner hotels.
 
 ---
 
@@ -44,7 +44,7 @@ curl -X GET "https://itinerary-builder.vercel.app/api/external"
 #### Sample Response (200 OK)
 ```json
 {
-  "service": "Lobo Travels External Integration API",
+  "service": "Lobo's Travel Wizard External Integration API",
   "version": "1.0.0",
   "status": "online",
   "database": {
@@ -485,5 +485,5 @@ curl -X POST "https://itinerary-builder.vercel.app/api/external/catalog" \
 
 Any itineraries or catalog entries pushed via these external API endpoints:
 - Are permanently stored in **Neon Postgres**.
-- Automatically sync to the **Lobo Travels Web Dashboard**, **Itinerary Builder**, and **Destinations/Hotels Manager** upon page reload or database background sync.
+- Automatically sync to the **Lobo's Travel Wizard Web Dashboard**, **Itinerary Builder**, and **Destinations/Hotels Manager** upon page reload or database background sync.
 - Can be viewed, previewed, and exported to high-resolution print-ready PDFs at any time.

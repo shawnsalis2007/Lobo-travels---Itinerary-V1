@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const ai = new GoogleGenAI({ apiKey });
 
     if (action === 'day-description') {
-      const prompt = `You are a professional travel itinerary copywriter for Lobo Travels, an elite Indian tour operator.
+      const prompt = `You are a professional travel itinerary copywriter for Lobo's Travel Wizard, an elite Indian tour operator.
 Write a polished, factual, concise travel narrative (1 to 2 paragraphs, max 110 words) for Day sightseeing in ${destination}.
 Selected attractions to cover: ${Array.isArray(attractions) ? attractions.join(', ') : 'City highlights'}.
 RULES:
@@ -59,7 +59,7 @@ RULES:
     }
 
     if (action === 'tour-summary') {
-      const prompt = `You are an expert luxury travel consultant for Lobo Travels.
+      const prompt = `You are an expert luxury travel consultant for Lobo's Travel Wizard.
 Write a crisp 2-sentence summary (max 60 words) for the tour titled "${tourName || 'India Tour'}".
 Circuit / Days summary: ${daysSummary || 'Delhi, Agra, Jaipur'}.
 Tone: Refined, clear, inviting, professional.`;

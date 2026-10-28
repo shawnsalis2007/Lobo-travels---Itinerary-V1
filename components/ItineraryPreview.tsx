@@ -576,13 +576,13 @@ export default function ItineraryPreview({
                   <div className="h-12 w-12 rounded-lg overflow-hidden flex items-center justify-center p-1 bg-slate-50 border border-slate-200">
                     <img 
                       src={settings?.logoUrl || '/logo.png'} 
-                      alt={settings?.companyName || 'Lobo Travels'} 
+                      alt={settings?.companyName || "Lobo's Travel Wizard"} 
                       className="h-full w-full object-contain"
                     />
                   </div>
                   <div>
                     <h2 className="text-lg font-black tracking-tight text-[#151521]">
-                      {(settings?.companyName || 'LOBO TRAVELS').toUpperCase()}
+                      {(settings?.companyName || "LOBO'S TRAVEL WIZARD").toUpperCase()}
                     </h2>
                     <p className="text-[10px] text-[#9899A1] font-medium tracking-wide">
                       {settings?.tagline || ''}
@@ -767,7 +767,7 @@ export default function ItineraryPreview({
                       Travel Details
                     </span>
                     <span className="text-[10px] font-bold text-sky-800 bg-sky-200/60 px-2 py-0.5 rounded">
-                      Tickets Booked by {settings?.companyName || 'Lobo Travels'}
+                      Tickets Booked by {settings?.companyName || "Lobo's Travel Wizard"}
                     </span>
                   </div>
 
@@ -857,7 +857,7 @@ export default function ItineraryPreview({
             {/* Pinned Page 1 Footer (Screen Preview Only) */}
             <div className="proposal-inner-footer pt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 shrink-0 mt-auto print:hidden">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
+                <span className="font-bold text-[#151521]">{settings?.companyName || "Lobo's Travel Wizard"}</span>
                 <span>·</span>
                 <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
                 <span>·</span>
@@ -1719,7 +1719,7 @@ export default function ItineraryPreview({
               {/* Company Signoff & Verification */}
               <div className="p-3 rounded-xl bg-[#151521] text-white text-xs flex items-center justify-between">
                 <div>
-                  <div className="font-bold text-amber-300">{(settings?.companyName || 'Lobo Travels')} Operations Desk</div>
+                  <div className="font-bold text-amber-300">{(settings?.companyName || "Lobo's Travel Wizard")} Operations Desk</div>
                   <div className="text-[10px] text-slate-300">{settings?.address || ''}</div>
                 </div>
                 <div className="text-right text-[10px] text-slate-300">
@@ -1735,7 +1735,7 @@ export default function ItineraryPreview({
           {/* Global Repeating Fixed Print Footer across all printed pages */}
           <div className="print-fixed-footer hidden print:flex">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-[#151521]">{settings?.companyName || 'Lobo Travels'}</span>
+              <span className="font-bold text-[#151521]">{settings?.companyName || "Lobo's Travel Wizard"}</span>
               <span>·</span>
               <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
               <span>·</span>

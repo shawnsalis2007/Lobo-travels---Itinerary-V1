@@ -9,17 +9,17 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Lobo Travels — Professional Itinerary Builder & Tour Operations',
-  description: 'Enterprise travel operations portal for Lobo Travels: build high-converting client itineraries, manage hotels and fleet, and generate instant travel vouchers.',
+  title: "Lobo's Travel Wizard — Professional Itinerary Builder & Tour Operations",
+  description: "Enterprise travel operations portal for Lobo's Travel Wizard: build high-converting client itineraries, manage hotels and fleet, and generate instant travel vouchers.",
   openGraph: {
-    title: 'Lobo Travels — Professional Itinerary Builder',
-    description: 'Enterprise travel operations portal for Lobo Travels.',
+    title: "Lobo's Travel Wizard — Professional Itinerary Builder",
+    description: "Enterprise travel operations portal for Lobo's Travel Wizard.",
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Lobo Travels — Professional Itinerary Builder',
-    description: 'Enterprise travel operations portal for Lobo Travels.',
+    title: "Lobo's Travel Wizard — Professional Itinerary Builder",
+    description: "Enterprise travel operations portal for Lobo's Travel Wizard.",
   },
 };
 
@@ -34,4 +34,3 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
     </html>
   );
 }
-

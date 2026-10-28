@@ -178,7 +178,7 @@ export default function Dashboard({
       <div className="bg-gradient-to-r from-[#151521] via-[#26214F] to-[#151521] rounded-2xl p-6 sm:p-8 text-white shadow-lg border border-[#26214F] relative overflow-hidden">
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-xs font-medium mb-3 backdrop-blur-sm border border-white/10">
-            <span>Official Lobo Travels Tour Platform</span>
+            <span>Official Lobo's Travel Wizard Tour Platform</span>
             <span>·</span>
             <span>Mandir Marg, New Delhi</span>
           </div>

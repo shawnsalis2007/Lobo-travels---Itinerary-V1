@@ -57,7 +57,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     }
 
     if (id === DEFAULT_BRAND_ID) {
-      return NextResponse.json({ success: false, error: 'The primary Lobo Travels brand cannot be deleted' }, { status: 400 });
+      return NextResponse.json({ success: false, error: "The primary Lobo's Travel Wizard brand cannot be deleted" }, { status: 400 });
     }
 
     await deleteDbBrand(id, auth.user.id);

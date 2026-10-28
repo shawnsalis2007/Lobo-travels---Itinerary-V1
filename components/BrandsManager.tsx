@@ -110,7 +110,7 @@ export default function BrandsManager({ currentBrandId, onViewAsBrand }: BrandsM
 
   const handleDeleteBrand = async (id: string, name: string) => {
     if (id === 'brand-lobo-travels') {
-      alert('The primary Lobo Travels brand cannot be deleted.');
+      alert("The primary Lobo's Travel Wizard brand cannot be deleted.");
       return;
     }
     if (!confirm(`Are you sure you want to permanently delete brand "${name}"? All associated settings and itineraries will be removed.`)) {

@@ -159,7 +159,7 @@ export default function HotelsManager({
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
             <Building2 className="w-5 h-5 text-indigo-600" />
-            Lobo Travels Hotel Partner Directory
+            Lobo's Travel Wizard Hotel Partner Directory
           </h1>
           <p className="text-xs text-slate-500">
             Registered supplier database for auto-populating accommodations during itinerary creation.
