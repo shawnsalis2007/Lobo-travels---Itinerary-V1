@@ -139,7 +139,7 @@ export default function TravelVoucherView({
       <div className="flex justify-start sm:justify-center overflow-x-auto p-1 sm:p-4">
         <div 
           ref={voucherRef}
-          style={{ width: '794px' }}
+          style={{ width: '794px', minWidth: '794px' }}
           className="bg-slate-100 shadow-2xl transition-transform space-y-6 print:space-y-0 print:shadow-none print:transform-none shrink-0"
         >
           
@@ -148,7 +148,7 @@ export default function TravelVoucherView({
           {/* ===================================================================== */}
           <div 
             className="pdf-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
-            style={{ width: '794px', height: '1123px', minHeight: '1123px', padding: '40px 44px 44px 44px', boxSizing: 'border-box' }}
+            style={{ width: '794px', minWidth: '794px', height: '1123px', minHeight: '1123px', padding: '40px 44px 44px 44px', boxSizing: 'border-box' }}
           >
             <div className="space-y-4">
               
@@ -497,7 +497,7 @@ export default function TravelVoucherView({
           {/* ===================================================================== */}
           <div 
             className="pdf-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
-            style={{ width: '794px', height: '1123px', minHeight: '1123px', padding: '40px 44px 44px 44px', boxSizing: 'border-box' }}
+            style={{ width: '794px', minWidth: '794px', height: '1123px', minHeight: '1123px', padding: '40px 44px 44px 44px', boxSizing: 'border-box' }}
           >
             <div className="space-y-5">
               

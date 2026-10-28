@@ -556,7 +556,8 @@ export default function ItineraryPreview({
           style={{ 
             transform: `scale(${zoomLevel / 100})`, 
             transformOrigin: 'top center',
-            width: '794px'
+            width: '794px',
+            minWidth: '794px'
           }}
           className="bg-slate-100 shadow-2xl transition-transform space-y-6 print:space-y-0 print:shadow-none print:transform-none shrink-0"
         >
@@ -566,7 +567,7 @@ export default function ItineraryPreview({
           {/* ===================================================================== */}
           <div 
             className="proposal-section pdf-page cover-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
-            style={{ width: '794px', height: '1123px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
+            style={{ width: '794px', minWidth: '794px', height: '1123px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
           >
             <div>
               {/* Header */}
@@ -872,7 +873,7 @@ export default function ItineraryPreview({
           {/* ===================================================================== */}
           <div
             className="proposal-section daily-schedule-page bg-white text-[#151521] border border-slate-200 relative font-sans flex flex-col justify-between"
-            style={{ width: '794px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
+            style={{ width: '794px', minWidth: '794px', minHeight: '1123px', padding: '40px 48px 44px 48px', boxSizing: 'border-box' }}
           >
             <div className="flex-1 flex flex-col justify-start pb-6 print-content-container">
               {/* Top Page Header */}

@@ -15,7 +15,8 @@ import {
   ExternalLink,
   ShieldCheck,
   Sparkles,
-  Layers
+  Layers,
+  Upload
 } from 'lucide-react';
 import { Brand } from '@/types';
 
@@ -31,6 +32,7 @@ export default function BrandsManager({ currentBrandId, onViewAsBrand }: BrandsM
 
   // New Brand Modal
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [newBrand, setNewBrand] = useState({
     name: '',
@@ -128,6 +130,35 @@ export default function BrandsManager({ currentBrandId, onViewAsBrand }: BrandsM
     }
   };
 
+  const handleUpdateBrand = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBrand) return;
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/brands/${encodeURIComponent(editingBrand.id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingBrand)
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        setError(data.error || 'Failed to update brand');
+        setSubmitting(false);
+        return;
+      }
+
+      setEditingBrand(null);
+      fetchBrands();
+    } catch (e: any) {
+      setError(e?.message || 'Failed to update brand');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
       
@@ -135,12 +166,12 @@ export default function BrandsManager({ currentBrandId, onViewAsBrand }: BrandsM
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <span className="p-2 rounded-lg bg-purple-100 text-purple-700 border border-purple-200 shadow-2xs">
               <Building2 className="w-5 h-5" />
             </span>
-            <h1 className="text-2xl font-bold tracking-tight text-white">White-Label Brands Management</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">White-Label Brands Management</h1>
           </div>
-          <p className="text-xs text-[#9899A1] mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Super Admin portal: Provision and configure independent white-label travel brands with preloaded destination catalogs.
           </p>
         </div>
@@ -254,6 +285,14 @@ export default function BrandsManager({ currentBrandId, onViewAsBrand }: BrandsM
                   <span>{isCurrent ? 'Currently Viewing' : 'View As Brand'}</span>
                 </button>
 
+                <button
+                  onClick={() => setEditingBrand({ ...b })}
+                  className="p-2 rounded-lg bg-[#26214F] hover:bg-[#26214F]/80 text-amber-300 hover:text-white transition"
+                  title="Edit Brand & Logo"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+
                 {!isLobo && (
                   <button
                     onClick={() => handleDeleteBrand(b.id, b.name)}
@@ -359,14 +398,58 @@ export default function BrandsManager({ currentBrandId, onViewAsBrand }: BrandsM
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Logo URL (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="https://example.com/logo.png"
-                  value={newBrand.logoUrl}
-                  onChange={(e) => setNewBrand({ ...newBrand, logoUrl: e.target.value })}
-                  className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
-                />
+                <label className="block text-xs font-medium text-slate-300 mb-1">Brand Logo (File Upload or URL)</label>
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="https://example.com/logo.png or upload image below"
+                    value={newBrand.logoUrl}
+                    onChange={(e) => setNewBrand({ ...newBrand, logoUrl: e.target.value })}
+                    className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  />
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-semibold cursor-pointer transition">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload Logo File</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 2 * 1024 * 1024) {
+                              alert('Image file size should be less than 2MB');
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = (uploadEvent) => {
+                              const base64 = uploadEvent.target?.result as string;
+                              if (base64) {
+                                setNewBrand({ ...newBrand, logoUrl: base64 });
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                    {newBrand.logoUrl && (
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-16 bg-white/10 rounded border border-white/20 p-0.5 flex items-center justify-center overflow-hidden">
+                          <img src={newBrand.logoUrl} alt="Logo preview" className="h-full w-full object-contain" />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewBrand({ ...newBrand, logoUrl: '' })}
+                          className="text-[10px] text-rose-400 hover:text-rose-300 underline"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
@@ -404,6 +487,186 @@ export default function BrandsManager({ currentBrandId, onViewAsBrand }: BrandsM
                 >
                   {submitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   {submitting ? 'Creating Brand...' : 'Create Brand'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Brand Modal */}
+      {editingBrand && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-lg bg-[#151521] border border-[#26214F] text-white rounded-2xl shadow-2xl p-6 overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-amber-400" />
+                <h3 className="font-bold text-lg text-white">Edit Brand: {editingBrand.name}</h3>
+              </div>
+              <button onClick={() => setEditingBrand(null)} className="text-[#9899A1] hover:text-white">✕</button>
+            </div>
+
+            <form onSubmit={handleUpdateBrand} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Brand Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editingBrand.name}
+                  onChange={(e) => setEditingBrand({ ...editingBrand, name: e.target.value })}
+                  className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Code</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={editingBrand.code}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, code: e.target.value.toUpperCase() })}
+                    className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white font-mono uppercase focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Prefix</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingBrand.referencePrefix}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, referencePrefix: e.target.value.toUpperCase() })}
+                    className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white font-mono uppercase focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Brand Logo (File Upload or URL)</label>
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="https://example.com/logo.png or upload image below"
+                    value={editingBrand.logoUrl || ''}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, logoUrl: e.target.value })}
+                    className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  />
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-semibold cursor-pointer transition">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload Logo File</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 2 * 1024 * 1024) {
+                              alert('Image file size should be less than 2MB');
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = (uploadEvent) => {
+                              const base64 = uploadEvent.target?.result as string;
+                              if (base64) {
+                                setEditingBrand({ ...editingBrand, logoUrl: base64 });
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                    {editingBrand.logoUrl && (
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-16 bg-white/10 rounded border border-white/20 p-0.5 flex items-center justify-center overflow-hidden">
+                          <img src={editingBrand.logoUrl} alt="Logo preview" className="h-full w-full object-contain" />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditingBrand({ ...editingBrand, logoUrl: '' })}
+                          className="text-[10px] text-rose-400 hover:text-rose-300 underline"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Primary Color</label>
+                  <input
+                    type="color"
+                    value={editingBrand.brandColorPrimary || '#151521'}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, brandColorPrimary: e.target.value })}
+                    className="w-full h-9 rounded bg-[#26214F] border border-[#26214F] cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Secondary</label>
+                  <input
+                    type="color"
+                    value={editingBrand.brandColorSecondary || '#26214F'}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, brandColorSecondary: e.target.value })}
+                    className="w-full h-9 rounded bg-[#26214F] border border-[#26214F] cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Accent</label>
+                  <input
+                    type="color"
+                    value={editingBrand.brandColorAccent || '#f59e0b'}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, brandColorAccent: e.target.value })}
+                    className="w-full h-9 rounded bg-[#26214F] border border-[#26214F] cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Max User Seats</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={editingBrand.maxUsers || 10}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, maxUsers: parseInt(e.target.value) || 10 })}
+                    className="w-full px-3 py-2 text-sm bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Status</label>
+                  <select
+                    value={editingBrand.status || 'active'}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, status: e.target.value as any })}
+                    className="w-full px-3 py-2 text-sm bg-[#26214F] border border-[#26214F] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  >
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#26214F]">
+                <button
+                  type="button"
+                  onClick={() => setEditingBrand(null)}
+                  className="px-4 py-2 text-xs font-medium text-slate-300 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow hover:from-amber-400 hover:to-amber-500 transition disabled:opacity-50 flex items-center gap-2"
+                >
+                  {submitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  {submitting ? 'Saving...' : 'Save Brand Settings'}
                 </button>
               </div>
             </form>

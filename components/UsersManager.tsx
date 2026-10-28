@@ -204,12 +204,12 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            <span className="p-2 rounded-lg bg-blue-100 text-blue-700 border border-blue-200 shadow-2xs">
               <Users className="w-5 h-5" />
             </span>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Users & Team Permissions</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Users & Team Permissions</h1>
           </div>
-          <p className="text-xs text-[#9899A1] mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Manage user seats, role assignments (Super Admin, Brand Admin, Operator, Viewer), and granular permissions.
           </p>
         </div>

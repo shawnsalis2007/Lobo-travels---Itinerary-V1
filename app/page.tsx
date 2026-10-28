@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Shield, Lock, RefreshCw } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Dashboard from '@/components/Dashboard';
 import ItineraryBuilder from '@/components/ItineraryBuilder';
@@ -65,23 +66,37 @@ export default function Home() {
   const [isViewingAs, setIsViewingAs] = useState(false);
   const [viewingAsBrand, setViewingAsBrand] = useState<Brand | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
 
   useEffect(() => {
-    // Initial sync from persistent cloud database API routes
-    syncFromCloudDatabase().catch(() => {});
+    let isMounted = true;
 
     // Check user session
     fetch('/api/auth/me')
       .then(r => r.ok ? r.json() : null)
       .then(data => {
+        if (!isMounted) return;
         if (data?.authenticated && data.user) {
           setCurrentUser(data.user);
           setCurrentBrand(data.brand);
           setIsViewingAs(!!data.isViewingAs);
           setViewingAsBrand(data.viewingAsBrand || null);
+          setIsLoginModalOpen(false);
+          // Initial sync from persistent cloud database API routes
+          syncFromCloudDatabase().catch(() => {});
+        } else {
+          setCurrentUser(null);
+          setIsLoginModalOpen(true);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!isMounted) return;
+        setCurrentUser(null);
+        setIsLoginModalOpen(true);
+      })
+      .finally(() => {
+        if (isMounted) setIsAuthChecking(false);
+      });
 
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
@@ -89,7 +104,23 @@ export default function Home() {
     if (tabParam && ['dashboard', 'itineraries', 'hotels', 'destinations', 'reminders', 'reports', 'fleet', 'drivers', 'settings', 'brands', 'users'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
+
+    return () => { isMounted = false; };
   }, []);
+
+  // Enforce role-based tab access
+  useEffect(() => {
+    if (!currentUser) return;
+    if (activeTab === 'brands' && currentUser.role !== 'super_admin') {
+      setActiveTab('dashboard');
+    }
+    if (activeTab === 'users' && currentUser.role !== 'super_admin' && currentUser.role !== 'brand_admin') {
+      setActiveTab('dashboard');
+    }
+    if (activeTab === 'builder' && currentUser.role === 'viewer') {
+      setActiveTab('dashboard');
+    }
+  }, [activeTab, currentUser]);
 
   const handleLoginSuccess = (user: User, brand: Brand) => {
     setCurrentUser(user);
@@ -103,9 +134,10 @@ export default function Home() {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (_) {}
     setCurrentUser(null);
+    setCurrentBrand(null);
     setIsViewingAs(false);
     setViewingAsBrand(null);
-    syncFromCloudDatabase().catch(() => {});
+    setIsLoginModalOpen(true);
   };
 
   const handleViewAsBrand = async (brandId: string) => {
@@ -352,6 +384,61 @@ export default function Home() {
     );
   });
 
+  const effectiveBrand = viewingAsBrand || currentBrand;
+  const brandName = effectiveBrand?.name || settings?.companyName || 'LOBO TRAVELS';
+
+  // 1. Loading screen while checking authentication session
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-[#151521] flex flex-col items-center justify-center p-4 text-white">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-purple-600 p-3 shadow-2xl animate-pulse flex items-center justify-center mb-4 border border-amber-400/30">
+          <Shield className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-xl font-bold tracking-tight text-white mb-2">Lobo Travels Tour Operations</h1>
+        <p className="text-xs text-[#9899A1] flex items-center gap-2">
+          <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400" />
+          Verifying session credentials...
+        </p>
+      </div>
+    );
+  }
+
+  // 2. Strict Authentication Protection: If not authenticated, require login immediately
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-[#151521] flex flex-col justify-between text-white selection:bg-amber-400 selection:text-slate-950">
+        <header className="p-4 sm:p-6 border-b border-[#26214F] flex items-center justify-between max-w-7xl w-full mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-white/10 p-1 flex items-center justify-center border border-white/10">
+              <img src="/logo.png" alt="Lobo Travels" className="h-full w-full object-contain" />
+            </div>
+            <div>
+              <span className="text-lg font-bold text-white tracking-tight">LOBO TRAVELS</span>
+              <p className="text-[11px] text-[#9899A1]">Tour Operations & Multi-Brand Fleet Platform</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-amber-300 font-semibold px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+            <Lock className="w-3.5 h-3.5" />
+            <span>Secure Operations Portal</span>
+          </div>
+        </header>
+
+        <main className="flex-1 flex items-center justify-center p-4">
+          <LoginModal
+            isOpen={true}
+            canClose={false}
+            onClose={() => {}}
+            onLoginSuccess={handleLoginSuccess}
+          />
+        </main>
+
+        <footer className="p-4 text-center text-xs text-slate-500 border-t border-[#26214F]">
+          © {new Date().getFullYear()} Lobo Travels Tour Operations. Restricted access — authorized personnel only.
+        </footer>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-[#151521] flex flex-col font-sans selection:bg-amber-200">
       
@@ -581,18 +668,18 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-bold text-white tracking-wide">
-              {(settings?.companyName || 'LOBO TRAVELS').toUpperCase()}
+              {brandName.toUpperCase()}
             </span>
             <span>·</span>
             <span>{settings?.tagline || ''}</span>
           </div>
 
           <div className="flex items-center gap-4 text-[11px] text-slate-500">
-            <span>Helpline: {settings?.phones?.[0] || '+91 9811240072'}</span>
+            <span>Helpline: {effectiveBrand?.contactInfo?.phones?.[0] || settings?.phones?.[0] || '+91 9811240072'}</span>
             <span>·</span>
-            <span>{settings?.email || 'info@lobotravels.com'}</span>
+            <span>{effectiveBrand?.contactInfo?.email || settings?.email || 'info@lobotravels.com'}</span>
             <span>·</span>
-            <span>{settings?.address || ''}</span>
+            <span>{effectiveBrand?.contactInfo?.address || settings?.address || ''}</span>
           </div>
         </div>
       </footer>

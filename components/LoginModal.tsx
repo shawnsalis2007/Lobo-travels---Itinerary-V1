@@ -6,11 +6,12 @@ import { User, Brand } from '@/types';
 
 interface LoginModalProps {
   isOpen: boolean;
+  canClose?: boolean;
   onClose: () => void;
   onLoginSuccess: (user: User, brand: Brand) => void;
 }
 
-export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
+export default function LoginModal({ isOpen, canClose = true, onClose, onLoginSuccess }: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -121,12 +122,15 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
       <div className="relative w-full max-w-md bg-[#151521] border border-[#26214F] text-white rounded-2xl shadow-2xl p-6 overflow-hidden">
         
         {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {canClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
+            title="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
 
         {/* Modal Header */}
         <div className="text-center mb-6">

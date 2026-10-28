@@ -62,6 +62,10 @@ export default function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const syncStatus = useSyncStatus();
 
+  const effectiveBrand = viewingAsBrand || currentBrand;
+  const brandName = effectiveBrand?.name || settings?.companyName || 'LOBO TRAVELS';
+  const brandLogo = effectiveBrand?.logoUrl || settings?.logoUrl || '/logo.png';
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Compass },
     { id: 'itineraries', label: 'Itineraries', icon: FileText },
@@ -129,8 +133,8 @@ export default function Navbar({
           >
             <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-white/10 p-1 flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-white/30 transition-colors">
               <img 
-                src={settings?.logoUrl || '/logo.png'} 
-                alt={settings?.companyName || 'Lobo Travels'} 
+                src={brandLogo} 
+                alt={brandName} 
                 className="h-full w-full object-contain"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
@@ -140,10 +144,10 @@ export default function Navbar({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-lg font-bold tracking-tight text-white group-hover:text-amber-200 transition-colors">
-                  {(settings?.companyName || 'LOBO TRAVELS').toUpperCase()}
+                  {brandName.toUpperCase()}
                 </span>
                 <span className="hidden md:inline-block text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded bg-[#26214F] text-amber-300 border border-amber-400/20">
-                  {currentBrand?.code || 'Tour Operations'}
+                  {effectiveBrand?.code || 'Tour Operations'}
                 </span>
               </div>
               <p className="text-[11px] text-[#9899A1] hidden sm:block truncate max-w-[240px]">
@@ -314,6 +318,18 @@ export default function Navbar({
                   </button>
                 )}
               </div>
+            )}
+
+            {!currentUser && onOpenLogin && (
+              <button
+                onClick={() => {
+                  onOpenLogin();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-center gap-1.5 p-2 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold mb-2"
+              >
+                <LogIn className="w-3.5 h-3.5" /> Sign In
+              </button>
             )}
 
             {navItems.map((item) => {

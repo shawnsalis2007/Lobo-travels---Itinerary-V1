@@ -24,7 +24,8 @@ import {
   Trash2,
   RefreshCw,
   Loader2,
-  Database
+  Database,
+  Upload
 } from 'lucide-react';
 import { AppSettings, GoogleCalendarAccount, Itinerary, OperationalBooking } from '@/types';
 import { 
@@ -390,22 +391,65 @@ export default function SettingsManager({
             </div>
           </div>
 
-          {/* Logo URL & Live Preview */}
-          <div className="space-y-2 pt-2">
+          {/* Logo URL & File Upload with Live Preview */}
+          <div className="space-y-3 pt-2">
             <label className="block text-xs font-semibold text-slate-700">
-              Agency Logo Image URL (Used across UI, Itinerary PDF & Voucher)
+              Agency Logo (File Upload or Image URL — Used across UI, Itinerary PDF & Voucher)
             </label>
-            <input
-              type="text"
-              value={formData.logoUrl}
-              onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg font-mono text-xs"
-            />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <input
+                type="text"
+                placeholder="https://example.com/logo.png or upload image file"
+                value={formData.logoUrl}
+                onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                className="flex-1 px-3 py-2 border border-slate-200 rounded-lg font-mono text-xs focus:ring-1 focus:ring-amber-500 focus:outline-none"
+              />
+              <label className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold cursor-pointer transition shadow-2xs whitespace-nowrap">
+                <Upload className="w-3.5 h-3.5 text-amber-700" />
+                <span>Upload Logo File</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 2 * 1024 * 1024) {
+                        alert('Image file size should be less than 2MB');
+                        return;
+                      }
+                      const reader = new FileReader();
+                      reader.onload = (uploadEvent) => {
+                        const base64 = uploadEvent.target?.result as string;
+                        if (base64) {
+                          setFormData({ ...formData, logoUrl: base64 });
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </label>
+            </div>
             <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
               <span className="text-xs text-slate-500 font-medium">Live Logo Preview:</span>
               <div className="h-12 w-28 bg-white p-1 rounded-md border border-slate-200 flex items-center justify-center overflow-hidden">
-                <img src={formData.logoUrl} alt="Logo Preview" className="h-full w-full object-contain" />
+                <img 
+                  src={formData.logoUrl || '/logo.png'} 
+                  alt="Logo Preview" 
+                  className="h-full w-full object-contain"
+                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                />
               </div>
+              {formData.logoUrl && (
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, logoUrl: '' })}
+                  className="text-xs text-rose-600 hover:text-rose-800 underline font-medium"
+                >
+                  Clear Logo
+                </button>
+              )}
             </div>
           </div>
         </div>
