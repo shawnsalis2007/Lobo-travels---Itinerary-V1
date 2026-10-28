@@ -372,13 +372,12 @@ export default function ItineraryPreview({
             <ChevronLeft className="w-4 h-4" />
             <span>Back</span>
           </button>
-          <div className="hidden sm:block">
-            <div className="flex items-center gap-2">
+          <div>
+            <div className="flex items-center gap-1.5">
               <span className="font-mono text-xs font-bold text-amber-300">
                 {itinerary.referenceNumber}
               </span>
-              <span className="text-[11px] text-slate-400">·</span>
-              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                 itinerary.status === 'Confirmed'
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                   : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
@@ -386,43 +385,44 @@ export default function ItineraryPreview({
                 {itinerary.status}
               </span>
             </div>
-            <p className="text-[11px] text-slate-300 truncate max-w-[200px]">
+            <p className="text-[11px] text-slate-300 truncate max-w-[130px] sm:max-w-[220px]">
               {itinerary.clientName}
             </p>
           </div>
         </div>
 
         {/* Center: Zoom and Inline Editing Toggle */}
-        <div className="flex items-center gap-2 bg-[#26214F]/60 p-1 rounded-xl border border-white/10">
-          <button
-            onClick={() => setZoomLevel(Math.max(60, zoomLevel - 10))}
-            className="p-1 rounded text-slate-300 hover:text-white"
-            title="Zoom Out"
-          >
-            <ZoomOut className="w-3.5 h-3.5" />
-          </button>
-          <span className="text-[11px] font-mono px-1 text-amber-200">{zoomLevel}%</span>
-          <button
-            onClick={() => setZoomLevel(Math.min(140, zoomLevel + 10))}
-            className="p-1 rounded text-slate-300 hover:text-white"
-            title="Zoom In"
-          >
-            <ZoomIn className="w-3.5 h-3.5" />
-          </button>
-
-          <div className="h-4 w-px bg-white/20 mx-1" />
+        <div className="flex items-center gap-2">
+          {/* Zoom controls hidden on small mobile to give room for primary actions */}
+          <div className="hidden md:flex items-center gap-1 bg-[#26214F]/60 p-1 rounded-xl border border-white/10">
+            <button
+              onClick={() => setZoomLevel(Math.max(60, zoomLevel - 10))}
+              className="p-1 rounded text-slate-300 hover:text-white"
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-3.5 h-3.5" />
+            </button>
+            <span className="text-[11px] font-mono px-1.5 text-amber-200">{zoomLevel}%</span>
+            <button
+              onClick={() => setZoomLevel(Math.min(140, zoomLevel + 10))}
+              className="p-1 rounded text-slate-300 hover:text-white"
+              title="Zoom In"
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
+          </div>
 
           {/* Inline Edit Toggle */}
           <button
             onClick={() => setIsInlineEditMode(!isInlineEditMode)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
               isInlineEditMode
                 ? 'bg-amber-400 text-slate-950 font-bold'
-                : 'text-slate-300 hover:text-white'
+                : 'bg-white/10 text-slate-200 hover:bg-white/20'
             }`}
           >
             <Edit3 className="w-3 h-3" />
-            <span>{isInlineEditMode ? 'Exit Inline Edit' : 'Inline Edit'}</span>
+            <span>{isInlineEditMode ? 'Exit Inline' : 'Inline Edit'}</span>
           </button>
         </div>
 
@@ -861,7 +861,7 @@ export default function ItineraryPreview({
                 <span>·</span>
                 <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
                 <span>·</span>
-                <span>{settings?.website || 'lobotravels.com'}</span>
+                <span>{settings?.website || 'lobostravelwizard.com'}</span>
               </div>
               <div className="font-mono">Ref: {itinerary.referenceNumber}</div>
               <div>Proposal Cover</div>
@@ -1739,7 +1739,7 @@ export default function ItineraryPreview({
               <span>·</span>
               <span>{settings?.phones?.[0] || '+91 9811240072'}</span>
               <span>·</span>
-              <span>{settings?.website || 'lobotravels.com'}</span>
+              <span>{settings?.website || 'lobostravelwizard.com'}</span>
             </div>
             <div className="font-mono font-semibold">Ref: {itinerary.referenceNumber}</div>
             <div>Custom Tailored Travel Proposal</div>

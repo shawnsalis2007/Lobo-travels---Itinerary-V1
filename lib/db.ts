@@ -45,9 +45,9 @@ export const DEFAULT_BRAND: Brand = {
   },
   contactInfo: {
     phones: ['+91 9811240072', '+91 9891240072'],
-    email: 'info@lobotravels.com',
+    email: 'info@lobostravelwizard.com',
     address: 'Shop No. 12, NDMC Market Near CNG Pump, Mandir Marg, New Delhi - 110001',
-    website: 'lobotravels.com'
+    website: 'lobostravelwizard.com'
   },
   referencePrefix: 'LT-2026-',
   maxUsers: 50,

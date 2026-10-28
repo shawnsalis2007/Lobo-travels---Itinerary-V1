@@ -329,7 +329,7 @@ export default function SettingsManager({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => {
@@ -832,7 +832,7 @@ export default function SettingsManager({
                     </select>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       disabled={!selectedCalendarId || !calendarConnectLabel.trim()}
@@ -890,7 +890,7 @@ export default function SettingsManager({
           {/* ── Sync Existing Itineraries & Reminders Action ──────────────── */}
           <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/80 p-4 rounded-xl border border-slate-200">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
                   <CalendarClock className="w-3.5 h-3.5 text-indigo-600" />
                   Sync Existing Itineraries to Google Calendar
@@ -935,7 +935,7 @@ export default function SettingsManager({
                   : 'bg-rose-50 text-rose-900 border-rose-300'
               }`}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {syncFeedback.type === 'success' ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 ) : (

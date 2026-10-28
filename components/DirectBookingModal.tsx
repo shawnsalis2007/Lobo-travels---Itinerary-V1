@@ -322,8 +322,8 @@ export default function DirectBookingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-2xl bg-[#151521] border border-[#26214F] text-white rounded-2xl shadow-2xl p-6 overflow-hidden max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-2xl bg-[#151521] border border-[#26214F] text-white rounded-2xl shadow-2xl p-4 sm:p-6 overflow-hidden max-h-[92vh] overflow-y-auto">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#26214F] mb-5">
@@ -680,19 +680,19 @@ export default function DirectBookingModal({
           </div>
 
           {/* Submit & Cancel Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#26214F]">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-[#26214F]">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white transition"
+              className="w-full sm:w-auto px-4 py-2.5 text-xs font-medium text-slate-400 hover:text-white transition rounded-xl text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2.5 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg transition active:scale-95 disabled:opacity-50 flex items-center gap-2"
+              className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>

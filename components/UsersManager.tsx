@@ -340,9 +340,111 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
         </div>
       )}
 
-      {/* Users Table */}
+      {/* Users List Container */}
       <div className="bg-[#151521] border border-[#26214F] rounded-xl overflow-hidden shadow">
-        <div className="overflow-x-auto">
+        
+        {/* Mobile Card View (sm:hidden) */}
+        <div className="sm:hidden divide-y divide-[#26214F]/60">
+          {users.map((u) => {
+            const isLocked = u.lockedUntil && new Date(u.lockedUntil).getTime() > Date.now();
+            const userBrand = brands.find((b) => b.id === u.brandId);
+
+            return (
+              <div key={u.id} className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-500 to-purple-600 flex items-center justify-center font-bold text-white text-xs shrink-0">
+                      {(u.fullName || u.email || 'U').substring(0, 1).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white text-sm leading-tight">{u.fullName || u.email}</p>
+                      <p className="text-[11px] text-[#9899A1] font-mono">{u.email}</p>
+                    </div>
+                  </div>
+                  <div>{getRoleBadge(u.role)}</div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-[#26214F]/80 text-slate-300 border border-[#26214F]">
+                    <Building className="w-3 h-3 text-amber-400" />
+                    {userBrand?.name || u.brandId || 'Default Brand'}
+                  </span>
+                  {isLocked ? (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> Locked
+                    </span>
+                  ) : u.isActive ? (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      Active
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-700 text-slate-300">
+                      Deactivated
+                    </span>
+                  )}
+                  <span className="text-[10px] text-[#9899A1] ml-auto">
+                    Joined {new Date(u.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-end gap-1.5 pt-1 border-t border-[#26214F]/40">
+                  <button
+                    onClick={() => openEditUser(u)}
+                    className="p-1.5 rounded-lg bg-[#26214F] text-slate-300 hover:text-white transition flex items-center gap-1 text-xs"
+                    title="Edit user details and brand"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>Edit</span>
+                  </button>
+
+                  {isLocked && (
+                    <button
+                      onClick={() => handleToggleLock(u)}
+                      className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition flex items-center gap-1 text-xs"
+                      title="Unlock account"
+                    >
+                      <Unlock className="w-3.5 h-3.5" />
+                      <span>Unlock</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => handleResetPassword(u.id, u.email)}
+                    className="p-1.5 rounded-lg bg-[#26214F] text-slate-300 hover:text-white transition flex items-center gap-1 text-xs"
+                    title="Reset password"
+                  >
+                    <KeyRound className="w-3.5 h-3.5" />
+                    <span>Reset Pass</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleToggleActive(u)}
+                    className={`px-2 py-1.5 rounded-lg text-xs font-medium transition ${
+                      u.isActive 
+                        ? 'bg-[#26214F] text-slate-400 hover:text-white' 
+                        : 'bg-emerald-500/20 text-emerald-300'
+                    }`}
+                  >
+                    {u.isActive ? 'Deactivate' : 'Activate'}
+                  </button>
+
+                  {currentUser?.role === 'super_admin' && currentUser?.id !== u.id && (
+                    <button
+                      onClick={() => handleDeleteUser(u.id, u.email)}
+                      className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-950/60 transition"
+                      title="Delete user"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop Table View (hidden sm:block) */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-300">
             <thead className="bg-[#26214F]/60 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-[#26214F]">
               <tr>

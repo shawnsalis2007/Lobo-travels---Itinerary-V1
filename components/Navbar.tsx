@@ -128,7 +128,10 @@ export default function Navbar({
           
           {/* Logo & Company Title */}
           <div 
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => {
+              setActiveTab('dashboard');
+              setMobileMenuOpen(false);
+            }}
             className="flex items-center gap-3 cursor-pointer group flex-shrink-0"
           >
             <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-white/10 p-1 flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-white/30 transition-colors">
@@ -293,8 +296,16 @@ export default function Navbar({
                 placeholder="Search reference no., client, tour..."
                 value={searchQuery}
                 onChange={(e) => onSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-xs bg-[#26214F] text-white placeholder-[#9899A1] rounded-lg border border-[#26214F] focus:outline-none focus:ring-1 focus:ring-amber-400"
+                className="w-full pl-9 pr-8 py-2 text-xs bg-[#26214F] text-white placeholder-[#9899A1] rounded-lg border border-[#26214F] focus:outline-none focus:ring-1 focus:ring-amber-400"
               />
+              {searchQuery && (
+                <button 
+                  onClick={() => onSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-[#9899A1] hover:text-white p-1"
+                >
+                  ×
+                </button>
+              )}
             </div>
             
             {/* Mobile User Profile */}

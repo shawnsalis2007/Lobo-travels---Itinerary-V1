@@ -681,7 +681,7 @@ export default function Home() {
           <div className="flex items-center gap-4 text-[11px] text-slate-500">
             <span>Helpline: {effectiveBrand?.contactInfo?.phones?.[0] || settings?.phones?.[0] || '+91 9811240072'}</span>
             <span>·</span>
-            <span>{effectiveBrand?.contactInfo?.email || settings?.email || 'info@lobotravels.com'}</span>
+            <span>{effectiveBrand?.contactInfo?.email || settings?.email || 'info@lobostravelwizard.com'}</span>
             <span>·</span>
             <span>{effectiveBrand?.contactInfo?.address || settings?.address || ''}</span>
           </div>
