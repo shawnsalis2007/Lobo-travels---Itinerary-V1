@@ -105,7 +105,7 @@ export const COVER_IMAGE_PRESETS = [
   { name: 'Taj Mahal (Agra)', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=80' },
   { name: 'India Gate (Delhi)', image: 'https://images.unsplash.com/photo-1592635196078-9fdc757f27f4?auto=format&fit=crop&w=1200&q=80' },
   { name: 'Hawa Mahal (Jaipur)', image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1200&q=80' },
-  { name: 'Amber Fort (Amer)', image: 'https://images.unsplash.com/photo-1600100397608-f010f44383a1?auto=format&fit=crop&w=1200&q=80' },
+  { name: 'Amber Fort (Amer)', image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail' },
   { name: 'Kerala Backwaters', image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80' },
   { name: 'Varanasi Ghats', image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1200&q=80' },
   { name: 'Dal Lake (Kashmir)', image: 'https://images.unsplash.com/photo-1595815771614-ade9d652a65d?auto=format&fit=crop&w=1200&q=80' },
@@ -2258,6 +2258,14 @@ export default function ItineraryBuilder({
 
     persistAttraction(editingAttraction);
 
+    if (typeof window !== 'undefined') {
+      fetch('/api/destinations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'attraction', data: editingAttraction })
+      }).catch(err => console.error('[Attraction Save] Error syncing to DB:', err));
+    }
+
     // Update local attractions
     setLocalAttractions(prev => {
       const idx = prev.findIndex(a => a.id === editingAttraction.id);
@@ -4328,11 +4336,16 @@ export default function ItineraryBuilder({
                                                     : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
                                                 }`}
                                               >
-                                                <div className={`w-3.5 h-3.5 mt-0.5 rounded flex items-center justify-center border ${
+                                                <div className={`w-3.5 h-3.5 mt-0.5 rounded flex items-center justify-center border shrink-0 ${
                                                   isSelected ? 'bg-purple-600 border-purple-600 text-white' : 'border-slate-300'
                                                 }`}>
                                                   {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                                                 </div>
+                                                {att.image && (
+                                                  <div className="w-7 h-7 rounded shrink-0 overflow-hidden bg-slate-100 border border-slate-200 shadow-2xs">
+                                                    <SafeImage src={att.image} alt={att.name} className="w-full h-full object-cover" />
+                                                  </div>
+                                                )}
                                                 <div className="flex-1 min-w-0">
                                                   <div className="truncate font-semibold">{att.name}</div>
                                                   <div className="text-[9px] text-slate-400">{att.duration}</div>
@@ -5562,11 +5575,16 @@ export default function ItineraryBuilder({
                                           : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                                       }`}
                                     >
-                                      <div className={`w-4 h-4 mt-0.5 rounded flex items-center justify-center border transition ${
+                                      <div className={`w-4 h-4 mt-0.5 rounded flex items-center justify-center border transition shrink-0 ${
                                         isSelected ? 'bg-amber-500 border-amber-500 text-white' : 'border-slate-300 bg-white'
                                       }`}>
                                         {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                                       </div>
+                                      {attraction.image && (
+                                        <div className="w-7 h-7 rounded shrink-0 overflow-hidden bg-slate-100 border border-slate-200 shadow-2xs">
+                                          <SafeImage src={attraction.image} alt={attraction.name} className="w-full h-full object-cover" />
+                                        </div>
+                                      )}
                                       <div className="flex-1 min-w-0">
                                         <div className="font-semibold truncate">{attraction.name}</div>
                                         <div className="text-[10px] text-slate-400 flex items-center gap-1.5 mt-0.5">
@@ -7169,19 +7187,61 @@ export default function ItineraryBuilder({
             </div>
 
             <div className="space-y-3">
-              {/* Image Preview */}
+              {/* Image Preview & Upload */}
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Image URL</label>
-                <input
-                  type="text"
-                  value={editingAttraction.image}
-                  onChange={(e) => setEditingAttraction({ ...editingAttraction, image: e.target.value })}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-700">Attraction Image</label>
+                  <label className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[11px] font-semibold cursor-pointer transition-colors shadow-2xs">
+                    <Upload className="w-3 h-3 text-amber-700" />
+                    <span>Upload Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 10 * 1024 * 1024) {
+                          alert('Image is too large. Please select an image under 10MB.');
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const base64 = ev.target?.result as string;
+                          if (base64) {
+                            setEditingAttraction({ ...editingAttraction, image: base64 });
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editingAttraction.image || ''}
+                    onChange={(e) => setEditingAttraction({ ...editingAttraction, image: e.target.value })}
+                    placeholder="Paste image URL (https://...) or upload above"
+                    className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
+                  />
+                  {editingAttraction.image && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingAttraction({ ...editingAttraction, image: '' })}
+                      className="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg font-medium"
+                      title="Clear image"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
                 {editingAttraction.image && (
-                  <div className="mt-2 h-36 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                  <div className="mt-2 h-40 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative group">
                     <SafeImage src={editingAttraction.image} alt={editingAttraction.name} className="w-full h-full object-cover" />
+                    <div className="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-xs">
+                      Live Preview
+                    </div>
                   </div>
                 )}
               </div>
@@ -7485,17 +7545,59 @@ export default function ItineraryBuilder({
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Hero Image URL</label>
-                <input
-                  type="text"
-                  value={destModalState.heroImage}
-                  onChange={(e) => setDestModalState(prev => ({ ...prev, heroImage: e.target.value }))}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-700">Hero Cover Image</label>
+                  <label className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[11px] font-semibold cursor-pointer transition-colors shadow-2xs">
+                    <Upload className="w-3 h-3 text-amber-700" />
+                    <span>Upload Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 10 * 1024 * 1024) {
+                          alert('Image is too large. Please select an image under 10MB.');
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const base64 = ev.target?.result as string;
+                          if (base64) {
+                            setDestModalState(prev => ({ ...prev, heroImage: base64 }));
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={destModalState.heroImage}
+                    onChange={(e) => setDestModalState(prev => ({ ...prev, heroImage: e.target.value }))}
+                    placeholder="Paste image URL (https://...) or upload above"
+                    className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
+                  />
+                  {destModalState.heroImage && (
+                    <button
+                      type="button"
+                      onClick={() => setDestModalState(prev => ({ ...prev, heroImage: '' }))}
+                      className="px-2.5 py-2 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg font-medium"
+                      title="Clear image"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
                 {destModalState.heroImage && (
-                  <div className="mt-2 h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                  <div className="mt-2 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative group">
                     <SafeImage src={destModalState.heroImage} alt={destModalState.name} className="w-full h-full object-cover" />
+                    <div className="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-xs">
+                      Live Preview
+                    </div>
                   </div>
                 )}
               </div>
@@ -7557,17 +7659,59 @@ export default function ItineraryBuilder({
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Image URL</label>
-                <input
-                  type="text"
-                  value={addAttractionModalState.image}
-                  onChange={(e) => setAddAttractionModalState(prev => ({ ...prev, image: e.target.value }))}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-700">Attraction Image</label>
+                  <label className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[11px] font-semibold cursor-pointer transition-colors shadow-2xs">
+                    <Upload className="w-3 h-3 text-amber-700" />
+                    <span>Upload Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 10 * 1024 * 1024) {
+                          alert('Image is too large. Please select an image under 10MB.');
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const base64 = ev.target?.result as string;
+                          if (base64) {
+                            setAddAttractionModalState(prev => ({ ...prev, image: base64 }));
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={addAttractionModalState.image}
+                    onChange={(e) => setAddAttractionModalState(prev => ({ ...prev, image: e.target.value }))}
+                    placeholder="Paste image URL (https://...) or upload above"
+                    className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800"
+                  />
+                  {addAttractionModalState.image && (
+                    <button
+                      type="button"
+                      onClick={() => setAddAttractionModalState(prev => ({ ...prev, image: '' }))}
+                      className="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg font-medium"
+                      title="Clear image"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
                 {addAttractionModalState.image && (
-                  <div className="mt-2 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                  <div className="mt-2 h-32 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative group">
                     <SafeImage src={addAttractionModalState.image} alt={addAttractionModalState.name || 'Attraction Preview'} className="w-full h-full object-cover" />
+                    <div className="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-xs">
+                      Live Preview
+                    </div>
                   </div>
                 )}
               </div>

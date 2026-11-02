@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     const dbInfo = getActiveDbProvider();
 
     // Differentiate between attraction and destination
-    if (body.type === 'attraction' || body.destinationId) {
+    if (body.type === 'attraction' || body.destinationId || (body.data && body.data.destinationId)) {
       const attractionData = (body.data || body) as Attraction;
       if (!attractionData.name || !attractionData.destinationId) {
         return NextResponse.json(

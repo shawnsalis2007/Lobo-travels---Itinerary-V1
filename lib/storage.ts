@@ -249,11 +249,16 @@ function refreshAllCaches(): void {
       });
     }
 
-    // 3. Re-apply canonical attraction overrides so image corrections (like Kempty Falls under Mussoorie) always take effect
+    // 3. Re-apply canonical attraction overrides only if an attraction has no image or has a known broken URL
     attMap.forEach((att, key) => {
-      const overrideImg = getAttractionImage(att.name, att.image) || getAttractionImage(att.id, att.image);
-      if (overrideImg && overrideImg !== att.image) {
-        attMap.set(key, { ...att, image: overrideImg });
+      const isBroken = !att.image || 
+        att.image.includes('googleusercontent.com') || 
+        att.image.includes('photo-1600100397608-f010f44383a1');
+      if (isBroken) {
+        const overrideImg = getAttractionImage(att.name, att.image) || getAttractionImage(att.id, att.image);
+        if (overrideImg) {
+          attMap.set(key, { ...att, image: overrideImg });
+        }
       }
     });
 

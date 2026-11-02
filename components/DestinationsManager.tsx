@@ -11,7 +11,8 @@ import {
   Sparkles, 
   X,
   Compass,
-  Check
+  Check,
+  Upload
 } from 'lucide-react';
 import { Destination, Attraction } from '@/types';
 import { SafeImage } from './SafeImage';
@@ -542,13 +543,61 @@ export default function DestinationsManager({
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Hero Image URL</label>
-                <input
-                  type="text"
-                  value={newDestData.heroImage || ''}
-                  onChange={(e) => setNewDestData({ ...newDestData, heroImage: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg font-mono text-[11px]"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-700">Hero Cover Image</label>
+                  <label className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg text-[11px] font-semibold cursor-pointer transition-colors shadow-2xs">
+                    <Upload className="w-3 h-3 text-purple-700" />
+                    <span>Upload Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 10 * 1024 * 1024) {
+                          alert('Image is too large. Please select an image under 10MB.');
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const base64 = ev.target?.result as string;
+                          if (base64) {
+                            setNewDestData({ ...newDestData, heroImage: base64 });
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Paste image URL (https://...) or upload above"
+                    value={newDestData.heroImage || ''}
+                    onChange={(e) => setNewDestData({ ...newDestData, heroImage: e.target.value })}
+                    className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg font-mono text-[11px]"
+                  />
+                  {newDestData.heroImage && (
+                    <button
+                      type="button"
+                      onClick={() => setNewDestData({ ...newDestData, heroImage: '' })}
+                      className="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg font-medium"
+                      title="Clear image"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                {newDestData.heroImage && (
+                  <div className="mt-2 h-28 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 relative group">
+                    <SafeImage src={newDestData.heroImage} alt="Cover Preview" className="w-full h-full object-cover" />
+                    <div className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-xs">
+                      Live Preview
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -652,20 +701,59 @@ export default function DestinationsManager({
 
               {/* Photo Image URL & Live Preview */}
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Attraction Image URL</label>
-                <input
-                  type="text"
-                  placeholder="https://images.unsplash.com/..."
-                  value={editingAttraction.image || ''}
-                  onChange={(e) => setEditingAttraction({ ...editingAttraction, image: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg font-mono text-[11px]"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-700">Attraction Image</label>
+                  <label className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg text-[11px] font-semibold cursor-pointer transition-colors shadow-2xs">
+                    <Upload className="w-3 h-3 text-purple-700" />
+                    <span>Upload Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 10 * 1024 * 1024) {
+                          alert('Image is too large. Please select an image under 10MB.');
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const base64 = ev.target?.result as string;
+                          if (base64) {
+                            setEditingAttraction({ ...editingAttraction, image: base64 });
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Paste image URL (https://...) or upload above"
+                    value={editingAttraction.image || ''}
+                    onChange={(e) => setEditingAttraction({ ...editingAttraction, image: e.target.value })}
+                    className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg font-mono text-[11px]"
+                  />
+                  {editingAttraction.image && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingAttraction({ ...editingAttraction, image: '' })}
+                      className="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg font-medium"
+                      title="Clear image"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
                 {editingAttraction.image && (
-                  <div className="mt-2 flex items-center gap-3 p-2 bg-slate-50 rounded-lg border border-slate-200">
-                    <div className="w-14 h-14 rounded bg-slate-200 overflow-hidden flex-shrink-0">
-                      <SafeImage src={editingAttraction.image} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="mt-2 h-36 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative group">
+                    <SafeImage src={editingAttraction.image} alt="Preview" className="w-full h-full object-cover" />
+                    <div className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-xs">
+                      Live Preview
                     </div>
-                    <span className="text-[11px] text-slate-500">Live Image Preview</span>
                   </div>
                 )}
               </div>
@@ -802,16 +890,59 @@ export default function DestinationsManager({
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Hero Cover Image URL</label>
-                <input
-                  type="text"
-                  value={editingDestination.heroImage || ''}
-                  onChange={(e) => setEditingDestination({ ...editingDestination, heroImage: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg font-mono text-[11px]"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-700">Hero Cover Image</label>
+                  <label className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg text-[11px] font-semibold cursor-pointer transition-colors shadow-2xs">
+                    <Upload className="w-3 h-3 text-purple-700" />
+                    <span>Upload Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 10 * 1024 * 1024) {
+                          alert('Image is too large. Please select an image under 10MB.');
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const base64 = ev.target?.result as string;
+                          if (base64) {
+                            setEditingDestination({ ...editingDestination, heroImage: base64 });
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Paste image URL (https://...) or upload above"
+                    value={editingDestination.heroImage || ''}
+                    onChange={(e) => setEditingDestination({ ...editingDestination, heroImage: e.target.value })}
+                    className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg font-mono text-[11px]"
+                  />
+                  {editingDestination.heroImage && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingDestination({ ...editingDestination, heroImage: '' })}
+                      className="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg font-medium"
+                      title="Clear image"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
                 {editingDestination.heroImage && (
-                  <div className="mt-2 h-28 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                  <div className="mt-2 h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 relative group">
                     <SafeImage src={editingDestination.heroImage} alt="Cover Preview" className="w-full h-full object-cover" />
+                    <div className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-xs">
+                      Live Preview
+                    </div>
                   </div>
                 )}
               </div>

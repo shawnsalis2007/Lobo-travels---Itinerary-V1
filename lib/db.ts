@@ -838,6 +838,68 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       }
     }
 
+    // One-time repair migration: update any attractions in PostgreSQL that still have broken/expired googleusercontent or unsplash images
+    try {
+      await sql`
+        UPDATE attractions 
+        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
+        WHERE (id = 'jaipur-amber-fort' OR name ILIKE '%amber fort%' OR name ILIKE '%amer fort%')
+          AND (image LIKE '%googleusercontent%' OR image LIKE '%photo-1600100397608-f010f44383a1%');
+      `;
+      await sql`
+        UPDATE attractions 
+        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
+        WHERE (id = 'jaipur-jantar-mantar' OR name ILIKE '%jantar mantar%')
+          AND (image LIKE '%googleusercontent%');
+      `;
+      await sql`
+        UPDATE attractions 
+        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
+        WHERE (id = 'fs-buland-darwaza' OR name ILIKE '%buland darwaza%')
+          AND (image LIKE '%googleusercontent%');
+      `;
+      await sql`
+        UPDATE attractions 
+        SET image = 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Fatehpur_Sikri%2C_Jodha_Bai_Mahal_%282002%29_08.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled',
+            data = jsonb_set(data, '{image}', '"https://upload.wikimedia.org/wikipedia/commons/5/5e/Fatehpur_Sikri%2C_Jodha_Bai_Mahal_%282002%29_08.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"')
+        WHERE (id = 'fs-jodha-bai-palace' OR name ILIKE '%jodha bai%')
+          AND (image LIKE '%googleusercontent%');
+      `;
+      await sql`
+        UPDATE attractions 
+        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"')
+        WHERE (id = 'jaipur-patrika-gate' OR name ILIKE '%patrika gate%' OR name ILIKE '%albert hall%')
+          AND (image LIKE '%googleusercontent%');
+      `;
+      await sql`
+        UPDATE attractions 
+        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"')
+        WHERE (id = 'udaipur-city-palace' OR (destination_id = 'udaipur' AND name ILIKE '%city palace%'))
+          AND (image LIKE '%googleusercontent%');
+      `;
+      await sql`
+        UPDATE attractions 
+        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
+        WHERE (id = 'udaipur-saheliyon-ki-bari' OR name ILIKE '%saheliyon%')
+          AND (image LIKE '%googleusercontent%');
+      `;
+      await sql`
+        UPDATE attractions 
+        SET image = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Monsoon_Palace.jpg/1280px-Monsoon_Palace.jpg',
+            data = jsonb_set(data, '{image}', '"https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Monsoon_Palace.jpg/1280px-Monsoon_Palace.jpg"')
+        WHERE (id = 'udaipur-monsoon-palace' OR name ILIKE '%monsoon palace%' OR name ILIKE '%sajjangarh%')
+          AND (image LIKE '%googleusercontent%');
+      `;
+    } catch (migErr) {
+      console.warn('[Postgres Migration] Non-fatal image repair warning:', migErr);
+    }
+
     // Seed hotels if empty
     const hotelCountRes = await sql`SELECT count(*)::int as cnt FROM hotels`;
     if (hotelCountRes[0]?.cnt === 0 || forceSeed) {
@@ -2035,8 +2097,10 @@ export async function getDbAttractionById(id: string): Promise<Attraction | null
 
 export async function saveDbAttraction(attraction: Attraction, actorUserId?: string): Promise<Attraction> {
   const { provider } = getActiveDbProvider();
-  const attId = attraction.id.toLowerCase().trim();
+  const rawId = attraction.id || `${attraction.destinationId || 'dest'}-${attraction.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+  const attId = rawId.toLowerCase().trim();
   const brandId = attraction.brandId || DEFAULT_BRAND_ID;
+  const normalizedAttraction: Attraction = { ...attraction, id: attId };
 
   if (provider === 'postgres') {
     try {
@@ -2083,11 +2147,11 @@ export async function saveDbAttraction(attraction: Attraction, actorUserId?: str
 
   writeLocalStore(data => {
     const idx = data.attractions.findIndex(a => a.id.toLowerCase() === attId);
-    if (idx >= 0) data.attractions[idx] = attraction;
-    else data.attractions.unshift(attraction);
+    if (idx >= 0) data.attractions[idx] = normalizedAttraction;
+    else data.attractions.unshift(normalizedAttraction);
   });
 
-  return attraction;
+  return normalizedAttraction;
 }
 
 export async function deleteDbAttraction(id: string, actorUserId?: string): Promise<boolean> {
