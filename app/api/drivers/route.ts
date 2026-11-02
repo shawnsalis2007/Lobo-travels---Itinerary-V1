@@ -5,6 +5,12 @@ import { Driver } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'Pragma': 'no-cache',
+  'Expires': '0'
+};
+
 export async function GET(req: NextRequest) {
   try {
     await ensurePostgresTables();
@@ -13,7 +19,7 @@ export async function GET(req: NextRequest) {
     const brandId = searchParams.get('brandId') || (auth ? (auth.isViewingAs ? auth.activeBrandId : auth.user.brandId) : DEFAULT_BRAND_ID);
 
     const drivers = await getDbDrivers(brandId);
-    return NextResponse.json({ success: true, drivers });
+    return NextResponse.json({ success: true, drivers }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/drivers GET error:', error);
     return NextResponse.json({ success: false, error: error?.message || 'Failed to fetch drivers' }, { status: 500 });
@@ -38,7 +44,7 @@ export async function POST(req: NextRequest) {
       brandId
     }, auth?.user.id);
 
-    return NextResponse.json({ success: true, driver: saved });
+    return NextResponse.json({ success: true, driver: saved }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/drivers POST error:', error);
     return NextResponse.json({ success: false, error: error?.message || 'Failed to save driver' }, { status: 500 });
@@ -57,7 +63,7 @@ export async function DELETE(req: NextRequest) {
 
     const auth = await getAuthContext(req);
     await deleteDbDriver(id, auth?.user.id);
-    return NextResponse.json({ success: true, id });
+    return NextResponse.json({ success: true, id }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/drivers DELETE error:', error);
     return NextResponse.json({ success: false, error: error?.message || 'Failed to delete driver' }, { status: 500 });

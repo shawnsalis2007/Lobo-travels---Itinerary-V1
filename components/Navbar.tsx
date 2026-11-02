@@ -26,7 +26,7 @@ import {
   Cloud
 } from 'lucide-react';
 import { AppSettings, User, Brand, UserRole } from '@/types';
-import { useSyncStatus } from '@/lib/storage';
+import { useSyncStatus, syncFromCloudDatabase } from '@/lib/storage';
 
 interface NavbarProps {
   activeTab: string;
@@ -159,8 +159,12 @@ export default function Navbar({
             </div>
           </div>
 
-          {/* Cloud Sync Status Indicator */}
-          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#26214F]/50 border border-[#26214F] text-[11px]">
+          {/* Cloud Sync Status Indicator & Manual Trigger */}
+          <button
+            onClick={() => syncFromCloudDatabase()}
+            title="Click to instantly sync with PostgreSQL cloud database"
+            className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#26214F]/50 hover:bg-[#26214F] border border-[#26214F] text-[11px] transition cursor-pointer active:scale-95"
+          >
             {syncStatus.state === 'synced' ? (
               <>
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -182,7 +186,7 @@ export default function Navbar({
                 <span className="text-red-300">Sync Alert</span>
               </>
             )}
-          </div>
+          </button>
 
           {/* Global Search Bar */}
           <div className="hidden lg:flex items-center flex-1 max-w-xs relative">
@@ -306,6 +310,23 @@ export default function Navbar({
                   ×
                 </button>
               )}
+            </div>
+
+            {/* Mobile Cloud Sync Status & Manual Trigger */}
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#26214F]/60 border border-[#26214F] text-xs mb-2">
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${syncStatus.state === 'synced' ? 'bg-emerald-400 animate-pulse' : syncStatus.state === 'syncing' ? 'bg-blue-400 animate-ping' : 'bg-amber-400'}`} />
+                <span className="text-slate-300 font-medium">
+                  {syncStatus.state === 'synced' ? 'Cloud Synced' : syncStatus.state === 'syncing' ? 'Syncing...' : 'Local/Offline'}
+                </span>
+              </div>
+              <button
+                onClick={() => syncFromCloudDatabase()}
+                className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-amber-300 text-[11px] font-semibold active:scale-95 transition"
+              >
+                <RefreshCw className={`w-3 h-3 ${syncStatus.state === 'syncing' ? 'animate-spin text-blue-300' : 'text-amber-300'}`} />
+                <span>Sync Now</span>
+              </button>
             </div>
             
             {/* Mobile User Profile */}

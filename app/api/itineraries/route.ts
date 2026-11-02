@@ -13,6 +13,12 @@ import { Itinerary } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'Pragma': 'no-cache',
+  'Expires': '0'
+};
+
 export async function GET(req: NextRequest) {
   try {
     await ensurePostgresTables();
@@ -54,7 +60,7 @@ export async function GET(req: NextRequest) {
       count: result.length,
       provider: dbInfo.label,
       isCloud: dbInfo.isCloud
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/itineraries GET error:', error);
     return NextResponse.json(
@@ -123,7 +129,7 @@ export async function POST(req: NextRequest) {
       success: true,
       itinerary: saveResult.itinerary,
       provider: dbInfo.label
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/itineraries POST error:', error);
     return NextResponse.json(
@@ -184,7 +190,7 @@ export async function DELETE(req: NextRequest) {
       success: true, 
       id, 
       mode: hardDelete && isSuperAdmin ? 'hard_deleted' : 'soft_deleted' 
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/itineraries DELETE error:', error);
     return NextResponse.json(

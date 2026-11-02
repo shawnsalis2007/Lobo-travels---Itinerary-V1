@@ -5,6 +5,12 @@ import { OperationalBooking } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'Pragma': 'no-cache',
+  'Expires': '0'
+};
+
 export async function GET(req: NextRequest) {
   try {
     await ensurePostgresTables();
@@ -13,7 +19,7 @@ export async function GET(req: NextRequest) {
     const brandId = searchParams.get('brandId') || (auth ? (auth.isViewingAs ? auth.activeBrandId : auth.user.brandId) : DEFAULT_BRAND_ID);
 
     const bookings = await getDbBookings(brandId);
-    return NextResponse.json({ success: true, bookings });
+    return NextResponse.json({ success: true, bookings }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/bookings GET error:', error);
     return NextResponse.json({ success: false, error: error?.message || 'Failed to fetch bookings' }, { status: 500 });
@@ -34,7 +40,7 @@ export async function POST(req: NextRequest) {
       brandId
     }, auth?.user.id);
 
-    return NextResponse.json({ success: true, booking: saved });
+    return NextResponse.json({ success: true, booking: saved }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/bookings POST error:', error);
     return NextResponse.json({ success: false, error: error?.message || 'Failed to save booking' }, { status: 500 });
@@ -53,7 +59,7 @@ export async function DELETE(req: NextRequest) {
 
     const auth = await getAuthContext(req);
     await deleteDbBooking(id, auth?.user.id);
-    return NextResponse.json({ success: true, id });
+    return NextResponse.json({ success: true, id }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/bookings DELETE error:', error);
     return NextResponse.json({ success: false, error: error?.message || 'Failed to delete booking' }, { status: 500 });

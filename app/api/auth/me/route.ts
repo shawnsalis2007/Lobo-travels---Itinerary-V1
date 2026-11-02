@@ -4,6 +4,12 @@ import { ensurePostgresTables, getDbBrands } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'Pragma': 'no-cache',
+  'Expires': '0'
+};
+
 export async function GET(req: NextRequest) {
   try {
     await ensurePostgresTables();
@@ -42,7 +48,7 @@ export async function GET(req: NextRequest) {
       isViewingAs: auth.isViewingAs,
       viewingAsBrand: auth.viewingAsBrand,
       availableBrands
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/auth/me error:', error);
     return NextResponse.json(

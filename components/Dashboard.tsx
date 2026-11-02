@@ -22,10 +22,12 @@ import {
   Filter,
   Calendar,
   Users,
-  Car
+  Car,
+  RefreshCw
 } from 'lucide-react';
 import { Itinerary, BookingStatus, Destination, Attraction, Hotel, VehicleOption, AppSettings } from '@/types';
 import { formatDateDMY } from '@/lib/utils';
+import { useSyncStatus, syncFromCloudDatabase } from '@/lib/storage';
 
 interface DashboardProps {
   itineraries: Itinerary[];
@@ -66,6 +68,17 @@ export default function Dashboard({
   const [showRecycleBin, setShowRecycleBin] = useState<boolean>(false);
   const [deletedItineraries, setDeletedItineraries] = useState<Itinerary[]>([]);
   const [protectedWarningRef, setProtectedWarningRef] = useState<string | null>(null);
+  const syncStatus = useSyncStatus();
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
+  const handleSyncDatabase = async () => {
+    setIsSyncing(true);
+    try {
+      await syncFromCloudDatabase();
+    } finally {
+      setTimeout(() => setIsSyncing(false), 500);
+    }
+  };
 
   const fetchRecycleBin = async () => {
     try {
@@ -206,6 +219,15 @@ export default function Dashboard({
             >
               <Ticket className="w-4 h-4 text-amber-300" />
               Confirmed Bookings ({confirmedCount})
+            </button>
+            <button
+              onClick={handleSyncDatabase}
+              disabled={isSyncing || syncStatus.state === 'syncing'}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium text-xs border border-white/20 transition backdrop-blur-sm active:scale-95 disabled:opacity-50"
+              title="Refresh and sync data with cloud database"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-amber-300 ${isSyncing || syncStatus.state === 'syncing' ? 'animate-spin' : ''}`} />
+              <span>{isSyncing || syncStatus.state === 'syncing' ? 'Syncing...' : 'Sync Cloud'}</span>
             </button>
           </div>
         </div>
@@ -464,6 +486,17 @@ export default function Dashboard({
                 </button>
               ))}
             </div>
+
+            {/* Cloud Sync Button */}
+            <button
+              onClick={handleSyncDatabase}
+              disabled={isSyncing || syncStatus.state === 'syncing'}
+              title="Sync itineraries from cloud PostgreSQL database"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition active:scale-95 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-indigo-600 ${isSyncing || syncStatus.state === 'syncing' ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Sync Cloud</span>
+            </button>
           </div>
         </div>
 

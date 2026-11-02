@@ -9,6 +9,12 @@ import { Hotel } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'Pragma': 'no-cache',
+  'Expires': '0'
+};
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -25,7 +31,7 @@ export async function GET(req: NextRequest) {
       hotels,
       provider: dbInfo.label,
       isCloud: dbInfo.isCloud
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/hotels GET error:', error);
     return NextResponse.json(
@@ -54,7 +60,7 @@ export async function POST(req: NextRequest) {
       success: true,
       hotel: saved,
       provider: dbInfo.label
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/hotels POST error:', error);
     return NextResponse.json(
@@ -77,7 +83,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await deleteDbHotel(id);
-    return NextResponse.json({ success: true, id });
+    return NextResponse.json({ success: true, id }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('API /api/hotels DELETE error:', error);
     return NextResponse.json(

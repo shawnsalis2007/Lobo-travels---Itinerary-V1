@@ -35,8 +35,11 @@ import {
   useDrivers,
   useSettings,
   saveItinerary,
+  saveItineraryAsync,
   deleteItinerary,
+  deleteItineraryAsync,
   duplicateItinerary,
+  duplicateItineraryAsync,
   getNextReferenceNumber,
   saveHotel,
   deleteHotel,
@@ -119,6 +122,13 @@ export default function Home() {
     }
     if (activeTab === 'builder' && currentUser.role === 'viewer') {
       setActiveTab('dashboard');
+    }
+  }, [activeTab, currentUser]);
+
+  // Re-sync latest state from cloud PostgreSQL whenever user switches tabs
+  useEffect(() => {
+    if (currentUser) {
+      syncFromCloudDatabase().catch(() => {});
     }
   }, [activeTab, currentUser]);
 
@@ -294,30 +304,50 @@ export default function Home() {
     }
   };
 
-  const handleDuplicate = (id: string) => {
-    const duplicated = duplicateItinerary(id);
-    if (duplicated) {
-      setSelectedItinerary(duplicated);
-      setActiveTab('preview');
+  const handleDuplicate = async (id: string) => {
+    try {
+      const duplicated = await duplicateItineraryAsync(id);
+      if (duplicated) {
+        setSelectedItinerary(duplicated);
+        await syncFromCloudDatabase();
+        setActiveTab('preview');
+      }
+    } catch (err: any) {
+      alert(`Failed to duplicate itinerary: ${err?.message || err}`);
     }
   };
 
-  const handleDelete = (id: string) => {
-    deleteItinerary(id);
-    if (selectedItinerary?.id === id) {
-      setSelectedItinerary(null);
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await deleteItineraryAsync(id);
+      if (!res.success) {
+        alert(res.error || 'Failed to delete itinerary from database.');
+        return;
+      }
+      if (selectedItinerary?.id === id) {
+        setSelectedItinerary(null);
+      }
+      await syncFromCloudDatabase();
+    } catch (err: any) {
+      alert(`Error deleting itinerary: ${err?.message || err}`);
     }
   };
 
-  const handleConfirmBooking = (id: string) => {
+  const handleConfirmBooking = async (id: string) => {
     const item = getItineraryById(id);
     if (item) {
-      const updated = saveItinerary({
+      const updated = {
         ...item,
-        status: 'Confirmed',
-        confirmedAt: '2026-09-28T09:00:00.000Z'
-      });
-      setSelectedItinerary(updated);
+        status: 'Confirmed' as const,
+        confirmedAt: new Date().toISOString()
+      };
+      const res = await saveItineraryAsync(updated);
+      if (res.success && res.itinerary) {
+        setSelectedItinerary(res.itinerary);
+        await syncFromCloudDatabase();
+      } else {
+        alert(res.error || 'Failed to confirm booking in cloud database.');
+      }
     }
   };
 
@@ -329,19 +359,30 @@ export default function Home() {
     }
   };
 
-  const handleSaveDraft = (itn: Itinerary) => {
-    const saved = saveItinerary(itn);
-    setSelectedItinerary(saved);
-    alert(`Itinerary ${saved.referenceNumber} successfully saved!`);
+  const handleSaveDraft = async (itn: Itinerary) => {
+    const res = await saveItineraryAsync(itn);
+    if (res.success && res.itinerary) {
+      setSelectedItinerary(res.itinerary);
+      await syncFromCloudDatabase();
+      alert(`Itinerary ${res.itinerary.referenceNumber} successfully saved to cloud database!`);
+    } else {
+      alert(`Error saving itinerary to cloud database: ${res.error || 'Unknown error'}`);
+    }
   };
 
-  const handleGeneratePreview = (itn: Itinerary) => {
-    const saved = saveItinerary({
+  const handleGeneratePreview = async (itn: Itinerary) => {
+    const toSave: Itinerary = {
       ...itn,
       status: itn.status === 'Draft' ? 'Generated' : itn.status
-    });
-    setSelectedItinerary(saved);
-    setActiveTab('preview');
+    };
+    const res = await saveItineraryAsync(toSave);
+    if (res.success && res.itinerary) {
+      setSelectedItinerary(res.itinerary);
+      await syncFromCloudDatabase();
+      setActiveTab('preview');
+    } else {
+      alert(`Error saving itinerary to cloud database: ${res.error || 'Unknown error'}`);
+    }
   };
 
   const handleAddNewHotelQuick = (data: Partial<Hotel>): Hotel => {
@@ -527,9 +568,14 @@ export default function Home() {
             destinations={destinations}
             attractions={attractions}
             onEdit={() => setActiveTab('builder')}
-            onSave={(updated) => {
-              const saved = saveItinerary(updated);
-              setSelectedItinerary(saved);
+            onSave={async (updated) => {
+              const res = await saveItineraryAsync(updated);
+              if (res.success && res.itinerary) {
+                setSelectedItinerary(res.itinerary);
+                await syncFromCloudDatabase();
+              } else {
+                alert(`Error saving itinerary changes: ${res.error || 'Failed to save'}`);
+              }
             }}
             onDuplicate={handleDuplicate}
             onConfirmBooking={handleConfirmBooking}

@@ -686,44 +686,12 @@ export async function syncFromCloudDatabase(): Promise<boolean> {
       hasUpdates = true;
     }
 
-    // 4. Sync Itineraries & Auto-Migrate Local Browser Itineraries
+    // 4. Sync Itineraries (PostgreSQL is Single Source of Truth)
     if (itinRes?.success && Array.isArray(itinRes.itineraries)) {
       const serverItins: Itinerary[] = itinRes.itineraries;
-      const localItins = getStorageItem<Itinerary[]>(STORAGE_KEYS.ITINERARIES, []);
-
-      // Check if local browser has custom itineraries not yet present on server
-      const serverRefMap = new Set(serverItins.map(i => (i.referenceNumber || '').toLowerCase()));
-      const missingOnServer = localItins.filter(i => {
-        const ref = (i.referenceNumber || '').toLowerCase();
-        // Ignore dummy seeds LT-2026-0001 and LT-2026-0002 if server has other real items
-        if ((ref === 'lt-2026-0001' || ref === 'lt-2026-0002') && serverItins.length > 2) return false;
-        return ref && !serverRefMap.has(ref);
-      });
-
-      if (missingOnServer.length > 0) {
-        // Automatically sync missing local browser itineraries to the cloud database
-        console.log(`[Storage] Auto-syncing ${missingOnServer.length} local browser itineraries to cloud database...`);
-        fetch('/api/import/browser', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ itineraries: missingOnServer })
-        }).catch(e => console.warn('[Storage] Auto-import of browser data error:', e));
-
-        // Merge locally so user doesn't lose anything
-        const merged = [...serverItins];
-        for (const m of missingOnServer) {
-          if (!merged.some(item => item.id === m.id || item.referenceNumber === m.referenceNumber)) {
-            merged.push(m);
-          }
-        }
-        itinerariesCache = merged;
-        localStorage.setItem(STORAGE_KEYS.ITINERARIES, JSON.stringify(merged));
-        hasUpdates = true;
-      } else {
-        itinerariesCache = serverItins;
-        localStorage.setItem(STORAGE_KEYS.ITINERARIES, JSON.stringify(serverItins));
-        hasUpdates = true;
-      }
+      itinerariesCache = serverItins;
+      localStorage.setItem(STORAGE_KEYS.ITINERARIES, JSON.stringify(serverItins));
+      hasUpdates = true;
     }
 
     // 5. Sync Fleet
@@ -760,16 +728,33 @@ export async function syncFromCloudDatabase(): Promise<boolean> {
   }
 }
 
-// Background Cloud Sync & Periodic 12-Second Polling
+// Background Cloud Sync & Fast Periodic Polling + Event Listeners
 if (typeof window !== 'undefined') {
   setTimeout(() => {
     syncFromCloudDatabase().catch(() => {});
   }, 100);
 
-  // Poll every 12 seconds for cross-device updates
+  // Poll every 6 seconds for fast cross-device sync
   setInterval(() => {
+    if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+      syncFromCloudDatabase().catch(() => {});
+    }
+  }, 6000);
+
+  // Instant re-sync when switching back to tab or unlocking mobile screen
+  window.addEventListener('focus', () => {
     syncFromCloudDatabase().catch(() => {});
-  }, 12000);
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      syncFromCloudDatabase().catch(() => {});
+    }
+  });
+
+  window.addEventListener('online', () => {
+    syncFromCloudDatabase().catch(() => {});
+  });
 }
 
 // Reference Number Generator
@@ -820,7 +805,10 @@ export async function saveItineraryAsync(
     notifySyncStatus('syncing');
     const res = await fetch('/api/itineraries', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
       body: JSON.stringify({ data: itinerary, expectedVersion })
     });
 
@@ -851,14 +839,14 @@ export async function saveItineraryAsync(
     } else {
       updated = [savedRecord, ...current];
     }
+    itinerariesCache = updated;
     setStorageItem(STORAGE_KEYS.ITINERARIES, updated);
     notifySyncStatus('synced');
     return { success: true, itinerary: savedRecord };
   } catch (err: any) {
-    console.warn('[Storage] saveItineraryAsync fallback to local:', err);
+    console.error('[Storage] saveItineraryAsync error:', err);
     notifySyncStatus('offline');
-    const fallback = saveItinerary(itinerary);
-    return { success: true, itinerary: fallback };
+    return { success: false, error: err?.message || 'Database connection error' };
   }
 }
 
@@ -911,20 +899,27 @@ export async function deleteItineraryAsync(
   hardDelete: boolean = false
 ): Promise<{ success: boolean; isProtected?: boolean; error?: string }> {
   try {
+    notifySyncStatus('syncing');
     const res = await fetch(`/api/itineraries?id=${encodeURIComponent(id)}&hardDelete=${hardDelete}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: { 'Cache-Control': 'no-cache' }
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.success) {
-      return { success: false, isProtected: data.isProtected, error: data.error || 'Failed to delete itinerary' };
+      notifySyncStatus('error');
+      return { success: false, isProtected: data.isProtected, error: data.error || 'Failed to delete itinerary from database' };
     }
 
     const current = getItineraries();
-    setStorageItem(STORAGE_KEYS.ITINERARIES, current.filter(item => item.id !== id));
+    const filtered = current.filter(item => item.id !== id);
+    itinerariesCache = filtered;
+    setStorageItem(STORAGE_KEYS.ITINERARIES, filtered);
+    notifySyncStatus('synced');
     return { success: true };
   } catch (e: any) {
-    deleteItinerary(id);
-    return { success: true };
+    console.error('[Storage] deleteItineraryAsync error:', e);
+    notifySyncStatus('offline');
+    return { success: false, error: e?.message || 'Database connection error' };
   }
 }
 
@@ -1032,6 +1027,35 @@ export function duplicateItinerary(sourceId: string): Itinerary | null {
 
   saveItinerary(duplicated);
   return duplicated;
+}
+
+export async function duplicateItineraryAsync(sourceId: string): Promise<Itinerary | null> {
+  const source = getItineraryById(sourceId);
+  if (!source) throw new Error('Source itinerary not found');
+
+  const newRef = getNextReferenceNumber();
+  const newId = 'itn-' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+  const now = new Date().toISOString();
+
+  const duplicated: Itinerary = {
+    ...JSON.parse(JSON.stringify(source)),
+    id: newId,
+    referenceNumber: newRef,
+    tourName: `${source.tourName} (Copy)`,
+    status: 'Draft',
+    advancePaid: 0,
+    pendingAmount: source.totalCost,
+    paymentStatus: 'Unpaid',
+    confirmedAt: undefined,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const res = await saveItineraryAsync(duplicated);
+  if (!res.success || !res.itinerary) {
+    throw new Error(res.error || 'Failed to save duplicated itinerary to database');
+  }
+  return res.itinerary;
 }
 
 export function resetAllToDefaults(): void {
