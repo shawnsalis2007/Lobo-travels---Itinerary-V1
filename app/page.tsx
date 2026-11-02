@@ -42,20 +42,33 @@ import {
   duplicateItineraryAsync,
   getNextReferenceNumber,
   saveHotel,
+  saveHotelAsync,
   deleteHotel,
+  deleteHotelAsync,
   saveDestination,
+  saveDestinationAsync,
   deleteDestination,
+  deleteDestinationAsync,
   saveAttraction,
+  saveAttractionAsync,
   deleteAttraction,
+  deleteAttractionAsync,
   saveFleetVehicle,
+  saveFleetVehicleAsync,
   deleteFleetVehicle,
+  deleteFleetVehicleAsync,
   saveDriver,
+  saveDriverAsync,
   deleteDriver,
+  deleteDriverAsync,
   saveSettings,
+  saveSettingsAsync,
   resetAllToDefaults,
   getItineraryById,
   useOperationalBookings,
   saveOperationalBooking,
+  saveOperationalBookingAsync,
+  deleteOperationalBookingAsync,
   syncFromCloudDatabase
 } from '@/lib/storage';
 
@@ -183,12 +196,31 @@ export default function Home() {
   const settings = useSettings();
   const operationalBookings = useOperationalBookings();
 
-  // Guarded delete handlers that surface storage errors to the user
-  const handleDeleteFleetVehicle = (id: string) => {
-    try { deleteFleetVehicle(id); } catch (e: any) { alert(e.message); }
+  // Guarded delete handlers that surface storage errors to the user and persist to Neon Postgres
+  const handleDeleteFleetVehicle = async (id: string) => {
+    try {
+      const res = await deleteFleetVehicleAsync(id);
+      if (!res.success) {
+        alert(res.error || 'Failed to delete vehicle');
+        return;
+      }
+      await syncFromCloudDatabase();
+    } catch (e: any) {
+      alert(e.message || e);
+    }
   };
-  const handleDeleteDriver = (id: string) => {
-    try { deleteDriver(id); } catch (e: any) { alert(e.message); }
+
+  const handleDeleteDriver = async (id: string) => {
+    try {
+      const res = await deleteDriverAsync(id);
+      if (!res.success) {
+        alert(res.error || 'Failed to delete driver');
+        return;
+      }
+      await syncFromCloudDatabase();
+    } catch (e: any) {
+      alert(e.message || e);
+    }
   };
 
   // Active Itinerary for Builder, Preview, or Voucher
@@ -597,11 +629,13 @@ export default function Home() {
         {activeTab === 'hotels' && (
           <HotelsManager
             hotels={hotels}
-            onSaveHotel={(h) => {
-              saveHotel(h);
+            onSaveHotel={async (h) => {
+              await saveHotelAsync(h);
+              await syncFromCloudDatabase();
             }}
-            onDeleteHotel={(id) => {
-              deleteHotel(id);
+            onDeleteHotel={async (id) => {
+              await deleteHotelAsync(id);
+              await syncFromCloudDatabase();
             }}
           />
         )}
@@ -611,17 +645,21 @@ export default function Home() {
           <DestinationsManager
             destinations={destinations}
             attractions={attractions}
-            onSaveDestination={(d) => {
-              saveDestination(d);
+            onSaveDestination={async (d) => {
+              await saveDestinationAsync(d);
+              await syncFromCloudDatabase();
             }}
-            onDeleteDestination={(id) => {
-              deleteDestination(id);
+            onDeleteDestination={async (id) => {
+              await deleteDestinationAsync(id);
+              await syncFromCloudDatabase();
             }}
-            onSaveAttraction={(a) => {
-              saveAttraction(a);
+            onSaveAttraction={async (a) => {
+              await saveAttractionAsync(a);
+              await syncFromCloudDatabase();
             }}
-            onDeleteAttraction={(id) => {
-              deleteAttraction(id);
+            onDeleteAttraction={async (id) => {
+              await deleteAttractionAsync(id);
+              await syncFromCloudDatabase();
             }}
           />
         )}
@@ -633,7 +671,10 @@ export default function Home() {
             fleet={fleet}
             drivers={drivers}
             settings={settings}
-            onSaveBooking={(b) => { saveOperationalBooking(b); }}
+            onSaveBooking={async (b) => {
+              await saveOperationalBookingAsync(b);
+              await syncFromCloudDatabase();
+            }}
             itineraries={itineraries}
             onViewVoucher={handleGenerateVoucher}
           />
@@ -655,9 +696,15 @@ export default function Home() {
             drivers={drivers}
             fleet={fleet}
             settings={settings}
-            onSaveVehicle={(v) => { saveFleetVehicle(v); }}
+            onSaveVehicle={async (v) => {
+              await saveFleetVehicleAsync(v);
+              await syncFromCloudDatabase();
+            }}
             onDeleteVehicle={handleDeleteFleetVehicle}
-            onSaveDriver={(d) => { saveDriver(d); }}
+            onSaveDriver={async (d) => {
+              await saveDriverAsync(d);
+              await syncFromCloudDatabase();
+            }}
           />
         )}
 
@@ -667,9 +714,15 @@ export default function Home() {
             drivers={drivers}
             fleet={fleet}
             settings={settings}
-            onSaveDriver={(d) => { saveDriver(d); }}
+            onSaveDriver={async (d) => {
+              await saveDriverAsync(d);
+              await syncFromCloudDatabase();
+            }}
             onDeleteDriver={handleDeleteDriver}
-            onSaveVehicle={(v) => { saveFleetVehicle(v); }}
+            onSaveVehicle={async (v) => {
+              await saveFleetVehicleAsync(v);
+              await syncFromCloudDatabase();
+            }}
           />
         )}
 
@@ -679,8 +732,9 @@ export default function Home() {
             settings={settings}
             itineraries={itineraries}
             bookings={operationalBookings}
-            onSaveSettings={(st) => {
-              saveSettings(st);
+            onSaveSettings={async (st) => {
+              await saveSettingsAsync(st);
+              await syncFromCloudDatabase();
             }}
             onResetDefaults={() => {
               resetAllToDefaults();

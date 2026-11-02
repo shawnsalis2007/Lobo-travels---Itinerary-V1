@@ -10,7 +10,8 @@ import {
   Brand,
   User,
   ActivityLog,
-  DEFAULT_PERMISSIONS
+  DEFAULT_PERMISSIONS,
+  UserPermissions
 } from '@/types';
 import { 
   DEFAULT_SETTINGS, 
@@ -138,17 +139,83 @@ const LOCAL_DATA_DIR = path.join(process.cwd(), '.data');
 const LOCAL_DATA_FILE = path.join(LOCAL_DATA_DIR, 'lobo_persistent_store.json');
 const PRE_MIGRATION_BACKUP_FILE = path.join(LOCAL_DATA_DIR, 'backup_pre_migration.json');
 
-// Default initial master Super Admin account (pre-generated with bcrypt 10 rounds)
-// Password: vlobo99@outlook.com -> venson7359
+// Pre-configured permissions for Brand Admins (all capabilities within the brand tenant)
+const BRAND_ADMIN_PERMISSIONS: UserPermissions = {
+  canCreateItinerary: true,
+  canEditItinerary: true,
+  canDeleteItinerary: true,
+  canManageFleet: true,
+  canManageDrivers: true,
+  canManageBookings: true,
+  canManageDestinations: true,
+  canManageHotels: true,
+  canViewReports: true,
+  canManageSettings: true,
+  canManageUsers: true,
+  itineraries_view: true,
+  itineraries_create: true,
+  itineraries_edit: true,
+  itineraries_delete: true,
+  itineraries_restore: true,
+  status_change: true,
+  voucher_issue: true,
+  destinations_manage: true,
+  hotels_manage: true,
+  fleet_manage: true,
+  drivers_manage: true,
+  reports_export: true,
+  reminders_manage: true,
+  activity_log_view: true,
+  users_manage: true,
+  settings_edit: true
+};
+
+// Default Master Super Admin and Brand Admin seed accounts (hashed with bcrypt 10 rounds)
+// Master Super Admin: vlobo99@outlook.com -> venson7359
+// Brand Admin 1: russelgomes12@gmail.com -> russel@1212
+// Brand Admin 2: shawnsalis2007@gmail.com -> shawn@104
 const SEED_USERS: User[] = [
   {
     id: 'user-superadmin-01',
     brandId: DEFAULT_BRAND_ID,
     email: 'vlobo99@outlook.com',
-    passwordHash: '$2b$10$PzsHXOJkyKbIwJF2rgAO9eUiqz4vcj4YfWOdAIQoAljbbrxHk/K9C',
+    passwordHash: '$2b$10$VrfaQUY..W346UICVKfcF.tO8X0V/g1xeaJ6XIxfb6rgDTJ/LETkS',
     fullName: 'Venson Lobo (Super Admin)',
     role: 'super_admin',
-    permissions: { ...DEFAULT_PERMISSIONS, canManageUsers: true, canManageSettings: true, canDeleteItinerary: true },
+    permissions: {
+      ...BRAND_ADMIN_PERMISSIONS,
+      canManageUsers: true,
+      canManageSettings: true,
+      canDeleteItinerary: true
+    },
+    isActive: true,
+    mustChangePassword: false,
+    failedLoginAttempts: 0,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z'
+  },
+  {
+    id: 'user-brandadmin-russel',
+    brandId: DEFAULT_BRAND_ID,
+    email: 'russelgomes12@gmail.com',
+    passwordHash: '$2b$10$3FunOj5qalXPo1mprhpYXu2D6mf3LCvFauj1VJSBlweZEfZdoEzIW',
+    fullName: 'Russel Gomes (Brand Admin)',
+    role: 'brand_admin',
+    permissions: BRAND_ADMIN_PERMISSIONS,
+    isActive: true,
+    mustChangePassword: false,
+    failedLoginAttempts: 0,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z'
+  },
+  {
+    id: 'user-brandadmin-shawn',
+    brandId: DEFAULT_BRAND_ID,
+    email: 'shawnsalis2007@gmail.com',
+    passwordHash: '$2b$10$hanQzUgDRIpc8h1jZlzBMOfVCcxTvJ94/FEDbMR1VTJIu5pP2slxm',
+    fullName: 'Shawn Salis (Brand Admin)',
+    role: 'brand_admin',
+    permissions: BRAND_ADMIN_PERMISSIONS,
     isActive: true,
     mustChangePassword: false,
     failedLoginAttempts: 0,
@@ -188,8 +255,13 @@ function readLocalStore(): LocalStoreData {
       const sanitizedUsers = rawUsers.filter((u: User) => 
         !['superadmin@lobotravels.com', 'admin@lobotravels.com', 'staff@lobotravels.com', 'viewer@lobotravels.com'].includes((u.email || '').toLowerCase())
       );
-      if (!sanitizedUsers.some((u: User) => (u.email || '').toLowerCase() === 'vlobo99@outlook.com')) {
-        sanitizedUsers.unshift(SEED_USERS[0]);
+      for (const su of SEED_USERS) {
+        const idx = sanitizedUsers.findIndex((u: User) => (u.email || '').toLowerCase() === su.email.toLowerCase());
+        if (idx === -1) {
+          sanitizedUsers.push(su);
+        } else {
+          sanitizedUsers[idx] = { ...sanitizedUsers[idx], ...su };
+        }
       }
 
       return {
@@ -1083,70 +1155,43 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       `;
     }
 
-    // Seed master Super Admin user if empty
-    const userCountRes = await sql`SELECT count(*)::int as cnt FROM users WHERE email = 'vlobo99@outlook.com'`;
-    if (userCountRes[0]?.cnt === 0 || forceSeed) {
-      console.log('[Neon Postgres] Seeding initial master Super Admin account...');
-      for (const u of SEED_USERS) {
-        await sql`
-          INSERT INTO users (id, brand_id, email, password_hash, full_name, role, permissions, is_active, must_change_password, failed_login_attempts, created_at, updated_at)
-          VALUES (
-            ${u.id},
-            ${u.brandId},
-            ${u.email},
-            ${u.passwordHash},
-            ${u.fullName},
-            ${u.role},
-            ${JSON.stringify(u.permissions)},
-            ${u.isActive},
-            ${u.mustChangePassword},
-            0,
-            NOW(),
-            NOW()
-          )
-          ON CONFLICT (email) DO UPDATE SET
-            role = EXCLUDED.role,
-            full_name = EXCLUDED.full_name,
-            permissions = EXCLUDED.permissions
-        `;
-      }
+    // Guarantee master Super Admin (vlobo99@outlook.com) and Brand Admins (Russel, Shawn) are present with exact credentials
+    console.log('[Neon Postgres] Ensuring Master Super Admin and Brand Admin seed accounts...');
+    for (const u of SEED_USERS) {
+      await sql`
+        INSERT INTO users (id, brand_id, email, password_hash, full_name, role, permissions, is_active, must_change_password, failed_login_attempts, created_at, updated_at)
+        VALUES (
+          ${u.id},
+          ${u.brandId},
+          ${u.email},
+          ${u.passwordHash},
+          ${u.fullName},
+          ${u.role},
+          ${JSON.stringify(u.permissions)},
+          true,
+          false,
+          0,
+          NOW(),
+          NOW()
+        )
+        ON CONFLICT (email) DO UPDATE SET
+          password_hash = EXCLUDED.password_hash,
+          full_name = EXCLUDED.full_name,
+          role = EXCLUDED.role,
+          brand_id = EXCLUDED.brand_id,
+          permissions = EXCLUDED.permissions,
+          is_active = true,
+          failed_login_attempts = 0,
+          locked_until = NULL,
+          updated_at = NOW()
+      `;
     }
 
-    // Always guarantee Super Admin vlobo99@outlook.com is present with updated credentials
-    const superAdmin = SEED_USERS[0];
-    await sql`
-      INSERT INTO users (id, brand_id, email, password_hash, full_name, role, permissions, is_active, must_change_password, failed_login_attempts, created_at, updated_at)
-      VALUES (
-        'user-superadmin-01',
-        ${DEFAULT_BRAND_ID},
-        ${superAdmin.email},
-        ${superAdmin.passwordHash},
-        ${superAdmin.fullName},
-        'super_admin',
-        ${JSON.stringify(superAdmin.permissions)},
-        true,
-        false,
-        0,
-        NOW(),
-        NOW()
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        email = EXCLUDED.email,
-        password_hash = EXCLUDED.password_hash,
-        full_name = EXCLUDED.full_name,
-        role = 'super_admin',
-        permissions = EXCLUDED.permissions,
-        is_active = true,
-        failed_login_attempts = 0,
-        locked_until = NULL,
-        updated_at = NOW()
-    `;
-
-    // Purge legacy test seed accounts from setup so Super Admin has full exclusive control
+    // Purge legacy test seed accounts from setup so Super Admin and Brand Admins have exclusive control
     await sql`
       DELETE FROM users 
       WHERE email IN ('superadmin@lobotravels.com', 'admin@lobotravels.com', 'staff@lobotravels.com', 'viewer@lobotravels.com')
-        AND email != 'vlobo99@outlook.com'
+        AND email NOT IN ('vlobo99@outlook.com', 'russelgomes12@gmail.com', 'shawnsalis2007@gmail.com')
     `;
 
     // Cleanup Kempty Falls duplicate if needed

@@ -428,6 +428,34 @@ export function saveSettings(settings: AppSettings): void {
   }
 }
 
+export async function saveSettingsAsync(settings: AppSettings): Promise<{ success: boolean; settings?: AppSettings; error?: string }> {
+  const sanitized = sanitizeSettings(settings);
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      body: JSON.stringify(sanitized)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to save settings to database' };
+    }
+    const saved = sanitizeSettings(data.settings || sanitized);
+    settingsCache = saved;
+    setStorageItem(STORAGE_KEYS.SETTINGS, saved);
+    notifySyncStatus('synced');
+    return { success: true, settings: saved };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
+  }
+}
+
 // Vehicles
 export function getVehicles(): VehicleOption[] {
   return getStorageItem<VehicleOption[]>(STORAGE_KEYS.VEHICLES, INITIAL_VEHICLES);
@@ -463,6 +491,43 @@ export function saveDestination(destination: Destination): void {
   }
 }
 
+export async function saveDestinationAsync(destination: Destination): Promise<{ success: boolean; item?: Destination; error?: string }> {
+  unrecordDeletedDestination(destination.id);
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch('/api/destinations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      body: JSON.stringify({ type: 'destination', data: destination })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to save destination to database' };
+    }
+    const saved = (data.item || destination) as Destination;
+    const current = getDestinations();
+    const index = current.findIndex(d => d.id.toLowerCase() === saved.id.toLowerCase());
+    let updated: Destination[];
+    if (index >= 0) {
+      updated = [...current];
+      updated[index] = saved;
+    } else {
+      updated = [saved, ...current];
+    }
+    destinationsCache = updated;
+    setStorageItem(STORAGE_KEYS.DESTINATIONS, updated);
+    notifySyncStatus('synced');
+    return { success: true, item: saved };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
+  }
+}
+
 export function deleteDestination(id: string): void {
   const current = getDestinations();
   const lowerId = id.toLowerCase().trim();
@@ -483,6 +548,38 @@ export function deleteDestination(id: string): void {
     fetch(`/api/destinations?id=${encodeURIComponent(id)}&type=destination`, {
       method: 'DELETE'
     }).catch(err => console.error('[Storage] Error deleting destination in cloud DB:', err));
+  }
+}
+
+export async function deleteDestinationAsync(id: string): Promise<{ success: boolean; error?: string }> {
+  const lowerId = id.toLowerCase().trim();
+  recordDeletedDestination(lowerId);
+
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch(`/api/destinations?id=${encodeURIComponent(id)}&type=destination`, {
+      method: 'DELETE',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to delete destination from database' };
+    }
+    const current = getDestinations();
+    const updatedDests = current.filter(d => d.id.toLowerCase() !== lowerId && d.name.toLowerCase() !== lowerId);
+    destinationsCache = updatedDests;
+    setStorageItem(STORAGE_KEYS.DESTINATIONS, updatedDests);
+
+    const currentAtts = getAttractions();
+    const updatedAtts = currentAtts.filter(a => a.destinationId?.toLowerCase() !== lowerId && a.destinationName?.toLowerCase() !== lowerId);
+    attractionsCache = updatedAtts;
+    setStorageItem(STORAGE_KEYS.ATTRACTIONS, updatedAtts);
+    notifySyncStatus('synced');
+    return { success: true };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
   }
 }
 
@@ -512,6 +609,43 @@ export function saveAttraction(attraction: Attraction): void {
   }
 }
 
+export async function saveAttractionAsync(attraction: Attraction): Promise<{ success: boolean; item?: Attraction; error?: string }> {
+  unrecordDeletedAttraction(attraction.id);
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch('/api/destinations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      body: JSON.stringify({ type: 'attraction', data: attraction })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to save attraction to database' };
+    }
+    const saved = (data.item || attraction) as Attraction;
+    const current = getAttractions();
+    const index = current.findIndex(a => a.id.toLowerCase() === saved.id.toLowerCase());
+    let updated: Attraction[];
+    if (index >= 0) {
+      updated = [...current];
+      updated[index] = saved;
+    } else {
+      updated = [saved, ...current];
+    }
+    attractionsCache = updated;
+    setStorageItem(STORAGE_KEYS.ATTRACTIONS, updated);
+    notifySyncStatus('synced');
+    return { success: true, item: saved };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
+  }
+}
+
 export function deleteAttraction(id: string): void {
   const current = getAttractions();
   const lowerId = id.toLowerCase().trim();
@@ -526,6 +660,33 @@ export function deleteAttraction(id: string): void {
     fetch(`/api/destinations?id=${encodeURIComponent(id)}&type=attraction`, {
       method: 'DELETE'
     }).catch(err => console.error('[Storage] Error deleting attraction in cloud DB:', err));
+  }
+}
+
+export async function deleteAttractionAsync(id: string): Promise<{ success: boolean; error?: string }> {
+  const lowerId = id.toLowerCase().trim();
+  recordDeletedAttraction(lowerId);
+
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch(`/api/destinations?id=${encodeURIComponent(id)}&type=attraction`, {
+      method: 'DELETE',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to delete attraction from database' };
+    }
+    const current = getAttractions();
+    const updated = current.filter(a => a.id.toLowerCase() !== lowerId && a.name.toLowerCase() !== lowerId);
+    attractionsCache = updated;
+    setStorageItem(STORAGE_KEYS.ATTRACTIONS, updated);
+    notifySyncStatus('synced');
+    return { success: true };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
   }
 }
 
@@ -554,6 +715,42 @@ export function saveHotel(hotel: Hotel): void {
   }
 }
 
+export async function saveHotelAsync(hotel: Hotel): Promise<{ success: boolean; hotel?: Hotel; error?: string }> {
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch('/api/hotels', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      body: JSON.stringify(hotel)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to save hotel to database' };
+    }
+    const saved = (data.hotel || hotel) as Hotel;
+    const current = getHotels();
+    const index = current.findIndex(h => h.id.toLowerCase() === saved.id.toLowerCase());
+    let updated: Hotel[];
+    if (index >= 0) {
+      updated = [...current];
+      updated[index] = saved;
+    } else {
+      updated = [saved, ...current];
+    }
+    hotelsCache = updated;
+    setStorageItem(STORAGE_KEYS.HOTELS, updated);
+    notifySyncStatus('synced');
+    return { success: true, hotel: saved };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
+  }
+}
+
 export function deleteHotel(id: string): void {
   const current = getHotels();
   setStorageItem(STORAGE_KEYS.HOTELS, current.filter(h => h.id.toLowerCase() !== id.toLowerCase()));
@@ -561,6 +758,30 @@ export function deleteHotel(id: string): void {
     fetch(`/api/hotels?id=${encodeURIComponent(id)}`, {
       method: 'DELETE'
     }).catch(err => console.error('[Storage] Error deleting hotel in cloud DB:', err));
+  }
+}
+
+export async function deleteHotelAsync(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch(`/api/hotels?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to delete hotel from database' };
+    }
+    const current = getHotels();
+    const updated = current.filter(h => h.id.toLowerCase() !== id.toLowerCase());
+    hotelsCache = updated;
+    setStorageItem(STORAGE_KEYS.HOTELS, updated);
+    notifySyncStatus('synced');
+    return { success: true };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
   }
 }
 
@@ -1148,6 +1369,88 @@ export function deleteFleetVehicle(id: string): void {
   }
 }
 
+export async function saveFleetVehicleAsync(vehicle: FleetVehicle): Promise<{ success: boolean; vehicle?: FleetVehicle; error?: string }> {
+  const modelName = vehicle.modelName || (vehicle.brand && vehicle.model ? `${vehicle.brand} ${vehicle.model}` : '') || vehicle.model || vehicle.brand || 'Toyota Innova Crysta';
+  const regNumber = vehicle.registrationNumber || vehicle.plateNumber || 'DL 1ZA 4072';
+  const capacity = Number(vehicle.capacity || vehicle.seats || 7);
+  const category = vehicle.category || vehicle.type || 'MUV';
+  const fuelType = vehicle.fuelType || 'Diesel';
+  const sanitizedVehicle: FleetVehicle = {
+    ...vehicle,
+    modelName,
+    registrationNumber: regNumber,
+    plateNumber: vehicle.plateNumber || regNumber,
+    capacity,
+    seats: vehicle.seats || capacity,
+    category,
+    type: vehicle.type || category,
+    fuelType,
+    isActive: vehicle.isActive !== false && vehicle.status !== 'inactive'
+  };
+
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch('/api/fleet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      credentials: 'include',
+      body: JSON.stringify(sanitizedVehicle)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to save vehicle' };
+    }
+    const saved = (data.vehicle || sanitizedVehicle) as FleetVehicle;
+    const current = getFleet();
+    const index = current.findIndex(v => v.id === saved.id);
+    let updated: FleetVehicle[];
+    if (index >= 0) {
+      updated = [...current];
+      updated[index] = saved;
+    } else {
+      updated = [saved, ...current];
+    }
+    fleetCache = updated;
+    setStorageItem(STORAGE_KEYS.FLEET, updated);
+    notifySyncStatus('synced');
+    return { success: true, vehicle: saved };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
+  }
+}
+
+export async function deleteFleetVehicleAsync(id: string): Promise<{ success: boolean; error?: string }> {
+  const bookings = getOperationalBookings();
+  const referenced = bookings.some(b => b.ownVehicleId === id && b.status !== 'cancelled');
+  if (referenced) {
+    throw new Error('Cannot delete vehicle: it is referenced by one or more active bookings. Cancel the bookings first.');
+  }
+
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch(`/api/fleet?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to delete vehicle' };
+    }
+    const current = getFleet();
+    const updated = current.filter(v => v.id !== id);
+    fleetCache = updated;
+    setStorageItem(STORAGE_KEYS.FLEET, updated);
+    notifySyncStatus('synced');
+    return { success: true };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
+  }
+}
+
 // ===================== ADD-ON MODULE: DRIVERS =====================
 
 export function useDrivers(): Driver[] {
@@ -1199,6 +1502,69 @@ export function deleteDriver(id: string): void {
     fetch(`/api/drivers?id=${encodeURIComponent(id)}`, {
       method: 'DELETE'
     }).catch(e => console.warn('[Storage] Sync delete to /api/drivers failed:', e));
+  }
+}
+
+export async function saveDriverAsync(driver: Driver): Promise<{ success: boolean; driver?: Driver; error?: string }> {
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch('/api/drivers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify(driver)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to save driver' };
+    }
+    const saved = (data.driver || driver) as Driver;
+    const current = getDrivers();
+    const index = current.findIndex(d => d.id === saved.id);
+    let updated: Driver[];
+    if (index >= 0) {
+      updated = [...current];
+      updated[index] = saved;
+    } else {
+      updated = [saved, ...current];
+    }
+    driversCache = updated;
+    setStorageItem(STORAGE_KEYS.DRIVERS, updated);
+    notifySyncStatus('synced');
+    return { success: true, driver: saved };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
+  }
+}
+
+export async function deleteDriverAsync(id: string): Promise<{ success: boolean; error?: string }> {
+  const bookings = getOperationalBookings();
+  const referenced = bookings.some(b => b.ownDriverId === id && b.status !== 'cancelled');
+  if (referenced) {
+    throw new Error('Cannot delete driver: they are referenced by one or more active bookings. Cancel the bookings first.');
+  }
+
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch(`/api/drivers?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to delete driver' };
+    }
+    const current = getDrivers();
+    const updated = current.filter(d => d.id !== id);
+    driversCache = updated;
+    setStorageItem(STORAGE_KEYS.DRIVERS, updated);
+    notifySyncStatus('synced');
+    return { success: true };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
   }
 }
 
@@ -1258,6 +1624,67 @@ export function deleteOperationalBooking(id: string): void {
     fetch(`/api/bookings?id=${encodeURIComponent(id)}`, {
       method: 'DELETE'
     }).catch(e => console.warn('[Storage] Sync delete to /api/bookings failed:', e));
+  }
+}
+
+export async function saveOperationalBookingAsync(booking: OperationalBooking): Promise<{ success: boolean; booking?: OperationalBooking; error?: string }> {
+  const now = new Date().toISOString();
+  const updatedRecord: OperationalBooking = { ...booking, updatedAt: now };
+  if (!updatedRecord.createdAt) updatedRecord.createdAt = now;
+
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch('/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify(updatedRecord)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to save booking' };
+    }
+    const saved = (data.booking || updatedRecord) as OperationalBooking;
+    const current = getOperationalBookings();
+    const index = current.findIndex(b => b.id === saved.id);
+    let updated: OperationalBooking[];
+    if (index >= 0) {
+      updated = [...current];
+      updated[index] = saved;
+    } else {
+      updated = [saved, ...current];
+    }
+    bookingsCache = updated;
+    setStorageItem(STORAGE_KEYS.BOOKINGS, updated);
+    notifySyncStatus('synced');
+    return { success: true, booking: saved };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
+  }
+}
+
+export async function deleteOperationalBookingAsync(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    notifySyncStatus('syncing');
+    const res = await fetch(`/api/bookings?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      notifySyncStatus('error');
+      return { success: false, error: data.error || 'Failed to delete booking' };
+    }
+    const current = getOperationalBookings();
+    const updated = current.filter(b => b.id !== id);
+    bookingsCache = updated;
+    setStorageItem(STORAGE_KEYS.BOOKINGS, updated);
+    notifySyncStatus('synced');
+    return { success: true };
+  } catch (err: any) {
+    notifySyncStatus('offline');
+    return { success: false, error: err?.message || 'Database connection error' };
   }
 }
 

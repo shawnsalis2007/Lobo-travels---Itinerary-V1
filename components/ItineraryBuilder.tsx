@@ -76,7 +76,13 @@ import {
 } from '@/types';
 import { PRESET_ROUTES } from '@/lib/mock-data';
 import { INTERCITY_ROUTES } from '@/lib/catalog-data';
-import { saveAttraction as persistAttraction, saveDestination as persistDestination } from '@/lib/storage';
+import { 
+  saveAttraction as persistAttraction, 
+  saveDestination as persistDestination,
+  saveAttractionAsync,
+  saveDestinationAsync,
+  syncFromCloudDatabase 
+} from '@/lib/storage';
 import { SafeImage } from './SafeImage';
 import { formatDayDate, getDayDateISO } from '@/lib/utils';
 import { 
@@ -2253,20 +2259,16 @@ export default function ItineraryBuilder({
     setIsEditAttractionOpen(true);
   };
 
-  const handleSaveEditedAttraction = () => {
+  const handleSaveEditedAttraction = async () => {
     if (!editingAttraction || !editingAttraction.name) return;
 
     persistAttraction(editingAttraction);
-
-    if (typeof window !== 'undefined') {
-      fetch('/api/destinations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'attraction', data: editingAttraction })
-      }).catch(err => console.error('[Attraction Save] Error syncing to DB:', err));
-    }
+    saveAttractionAsync(editingAttraction).then(() => syncFromCloudDatabase().catch(() => {})).catch(() => {});
 
     // Update local attractions
+    const oldAttr = localAttractions.find(a => a.id === editingAttraction.id);
+    const oldImage = oldAttr?.image;
+
     setLocalAttractions(prev => {
       const idx = prev.findIndex(a => a.id === editingAttraction.id);
       if (idx >= 0) {
@@ -2286,7 +2288,19 @@ export default function ItineraryBuilder({
           const a = localAttractions.find(att => att.id === id);
           return a?.name || id;
         });
-        const updatedDay = { ...day, attractionNames: newNames };
+
+        let updatedImages = [...(day.images || [])];
+        if (editingAttraction.image) {
+          if (oldImage && updatedImages.includes(oldImage)) {
+            updatedImages = updatedImages.map(img => img === oldImage ? editingAttraction.image : img);
+          } else if (!updatedImages.includes(editingAttraction.image)) {
+            updatedImages.push(editingAttraction.image);
+          }
+        } else if (oldImage) {
+          updatedImages = updatedImages.filter(img => img !== oldImage);
+        }
+
+        const updatedDay = { ...day, attractionNames: newNames, images: updatedImages };
         updatedDay.description = generateAutoDayDescription(updatedDay, dIdx, prev.days.length, prev.includeHotels);
         return updatedDay;
       });
@@ -2361,6 +2375,7 @@ export default function ItineraryBuilder({
       };
 
       persistDestination(updated);
+      saveDestinationAsync(updated).then(() => syncFromCloudDatabase().catch(() => {})).catch(() => {});
       setLocalDestinations(prev => prev.map(d => d.id === updated.id ? updated : d));
 
       // Also update any days using the old destination name
@@ -2410,6 +2425,7 @@ export default function ItineraryBuilder({
       };
 
       persistDestination(newDest);
+      saveDestinationAsync(newDest).then(() => syncFromCloudDatabase().catch(() => {})).catch(() => {});
       setLocalDestinations(prev => [newDest, ...prev]);
 
       if (typeof destModalState.forDayIndex === 'number') {
@@ -2468,6 +2484,7 @@ export default function ItineraryBuilder({
     };
 
     persistAttraction(newAttr);
+    saveAttractionAsync(newAttr).then(() => syncFromCloudDatabase().catch(() => {})).catch(() => {});
     setLocalAttractions(prev => [newAttr, ...prev]);
 
     // Automatically check into the day's attractions!
