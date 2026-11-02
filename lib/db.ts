@@ -914,22 +914,22 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
     try {
       await sql`
         UPDATE attractions 
-        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
+        SET image = 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
         WHERE (id = 'jaipur-amber-fort' OR name ILIKE '%amber fort%' OR name ILIKE '%amer fort%')
           AND (image LIKE '%googleusercontent%' OR image LIKE '%photo-1600100397608-f010f44383a1%');
       `;
       await sql`
         UPDATE attractions 
-        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
+        SET image = 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
         WHERE (id = 'jaipur-jantar-mantar' OR name ILIKE '%jantar mantar%')
           AND (image LIKE '%googleusercontent%');
       `;
       await sql`
         UPDATE attractions 
-        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
+        SET image = 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
         WHERE (id = 'fs-buland-darwaza' OR name ILIKE '%buland darwaza%')
           AND (image LIKE '%googleusercontent%');
       `;
@@ -942,22 +942,22 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       `;
       await sql`
         UPDATE attractions 
-        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"')
+        SET image = 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"')
         WHERE (id = 'jaipur-patrika-gate' OR name ILIKE '%patrika gate%' OR name ILIKE '%albert hall%')
           AND (image LIKE '%googleusercontent%');
       `;
       await sql`
         UPDATE attractions 
-        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"')
+        SET image = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"')
         WHERE (id = 'udaipur-city-palace' OR (destination_id = 'udaipur' AND name ILIKE '%city palace%'))
           AND (image LIKE '%googleusercontent%');
       `;
       await sql`
         UPDATE attractions 
-        SET image = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-            data = jsonb_set(data, '{image}', '"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
+        SET image = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+            data = jsonb_set(data, '{image}', '"https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"')
         WHERE (id = 'udaipur-saheliyon-ki-bari' OR name ILIKE '%saheliyon%')
           AND (image LIKE '%googleusercontent%');
       `;

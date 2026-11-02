@@ -994,7 +994,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'UNESCO Monumental Gate',
     unesco: true,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'fs-palace-complex',
@@ -1006,7 +1006,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Historic Palace Complex',
     unesco: true,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/3/30/Panch_Mahal_and_its_gardens.jpg/1280px-Panch_Mahal_and_its_gardens.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Panch_Mahal_and_its_gardens.jpg/1280px-Panch_Mahal_and_its_gardens.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'fs-panch-mahal',
@@ -1042,7 +1042,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '45 Minutes',
     category: 'Royal Audience Hall',
     unesco: true,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Diwan-i-khas%2C_Red_fort.jpg/500px-Diwan-i-khas%2C_Red_fort.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Diwan-i-khas%2C_Red_fort.jpg/500px-Diwan-i-khas%2C_Red_fort.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -1058,7 +1058,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Hill Fortress & Palace',
     unesco: true,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'jaipur-hawa-mahal',
@@ -1094,7 +1094,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Astronomical Monument',
     unesco: true,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'jaipur-jal-mahal',
@@ -1106,7 +1106,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '30 Minutes',
     category: 'Lake Palace',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Jaipur_03-2016_39_Jal_Mahal_-_Water_Palace.jpg/1280px-Jaipur_03-2016_39_Jal_Mahal_-_Water_Palace.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Jaipur_03-2016_39_Jal_Mahal_-_Water_Palace.jpg/1280px-Jaipur_03-2016_39_Jal_Mahal_-_Water_Palace.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'jaipur-nahargarh',
@@ -1142,7 +1142,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Heritage & Museum',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
   },
   {
     id: 'jaipur-jhalana-safari',
@@ -1170,7 +1170,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Pilgrimage Shrine',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/God_Keshav_Dev_at_Keshav_Dev_Temple.JPG/1280px-God_Keshav_Dev_at_Keshav_Dev_Temple.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/God_Keshav_Dev_at_Keshav_Dev_Temple.JPG/1280px-God_Keshav_Dev_at_Keshav_Dev_Temple.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
   },
   {
     id: 'mv-prem-mandir',
@@ -1182,7 +1182,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Spiritual Monument',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Vrindavan_Prem_Mandir_4.jpg/1280px-Vrindavan_Prem_Mandir_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Vrindavan_Prem_Mandir_4.jpg/1280px-Vrindavan_Prem_Mandir_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
   },
   {
     id: 'mv-banke-bihari',
@@ -1206,7 +1206,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Pilgrimage Temple',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/ISKCON_Temple_Vrindavan.jpg/1280px-ISKCON_Temple_Vrindavan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/ISKCON_Temple_Vrindavan.jpg/1280px-ISKCON_Temple_Vrindavan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -1246,7 +1246,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Palace Museum',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Umaid_Bhawan%2C_Jodhpur.jpg/1280px-Umaid_Bhawan%2C_Jodhpur.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Umaid_Bhawan%2C_Jodhpur.jpg/1280px-Umaid_Bhawan%2C_Jodhpur.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
   },
   {
     id: 'jodhpur-mandore',
@@ -1258,7 +1258,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Heritage Gardens',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg/1280px-Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg/1280px-Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
   },
   {
     id: 'jodhpur-blue-city-walk',
@@ -1286,7 +1286,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Palace Complex',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
   },
   {
     id: 'udaipur-pichola-boat',
@@ -1298,7 +1298,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Scenic Boat Cruise',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/Udaipur_Lake_India.JPG/1280px-Udaipur_Lake_India.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Udaipur_Lake_India.JPG/1280px-Udaipur_Lake_India.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'udaipur-saheliyon-ki-bari',
@@ -1310,7 +1310,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Historic Gardens',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'udaipur-bagore-ki-haveli',
@@ -1438,7 +1438,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Scenic Lake & Shrines',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/81/Main_entrance_of_Gadisar_Lake.jpg/1280px-Main_entrance_of_Gadisar_Lake.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Main_entrance_of_Gadisar_Lake.jpg/1280px-Main_entrance_of_Gadisar_Lake.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -1466,7 +1466,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Sacred Water Shrine',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c3/Evening_lights_by_the_Pushkar_Lake%2C_Pushkar.jpg/1280px-Evening_lights_by_the_Pushkar_Lake%2C_Pushkar.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Evening_lights_by_the_Pushkar_Lake%2C_Pushkar.jpg/1280px-Evening_lights_by_the_Pushkar_Lake%2C_Pushkar.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'pushkar-savitri-temple',
@@ -1478,7 +1478,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Hilltop Temple & Cable Car',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Pushkar.jpg/1280px-Pushkar.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Pushkar.jpg/1280px-Pushkar.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -1494,7 +1494,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3.5 Hours',
     category: 'Wildlife Tiger Safari',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7f/Ranthambore_National_Park.JPG/1280px-Ranthambore_National_Park.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Ranthambore_National_Park.JPG/1280px-Ranthambore_National_Park.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'ranthambore-fort',
@@ -1506,7 +1506,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'UNESCO Forest Fort',
     unesco: true,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/52/Ranthambhore_Fort.jpg/1280px-Ranthambhore_Fort.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Ranthambhore_Fort.jpg/1280px-Ranthambhore_Fort.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -1522,7 +1522,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Unconquered Fortress',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e7/India_Bikaner_Junagarh_Fort.jpg/1280px-India_Bikaner_Junagarh_Fort.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/India_Bikaner_Junagarh_Fort.jpg/1280px-India_Bikaner_Junagarh_Fort.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'bikaner-karni-mata',
@@ -1534,7 +1534,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Sacred Pilgrimage',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/20191212_%C5%9Awi%C4%85tynia_Karni_Maty_w_De%C5%9Bnok_1031_8078_DxO.jpg/1280px-20191212_%C5%9Awi%C4%85tynia_Karni_Maty_w_De%C5%9Bnok_1031_8078_DxO.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/20191212_%C5%9Awi%C4%85tynia_Karni_Maty_w_De%C5%9Bnok_1031_8078_DxO.jpg/1280px-20191212_%C5%9Awi%C4%85tynia_Karni_Maty_w_De%C5%9Bnok_1031_8078_DxO.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'bikaner-camel-research',
@@ -1558,7 +1558,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Heritage Architecture',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/The_Laxmi_Niwas_Palace%2C_Bikaner%2C_Rajasthan.jpg/1280px-The_Laxmi_Niwas_Palace%2C_Bikaner%2C_Rajasthan.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/The_Laxmi_Niwas_Palace%2C_Bikaner%2C_Rajasthan.jpg/1280px-The_Laxmi_Niwas_Palace%2C_Bikaner%2C_Rajasthan.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -1574,7 +1574,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Spiritual River Ritual',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ad/Dasaswamedh_ghat-varanasi_india-andres_larin.jpg/1280px-Dasaswamedh_ghat-varanasi_india-andres_larin.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Dasaswamedh_ghat-varanasi_india-andres_larin.jpg/1280px-Dasaswamedh_ghat-varanasi_india-andres_larin.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'varanasi-sunrise-boat',
@@ -1586,7 +1586,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Scenic Boat Journey',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Ahilya_Ghat_by_the_Ganges%2C_Varanasi.jpg/1280px-Ahilya_Ghat_by_the_Ganges%2C_Varanasi.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Ahilya_Ghat_by_the_Ganges%2C_Varanasi.jpg/1280px-Ahilya_Ghat_by_the_Ganges%2C_Varanasi.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'varanasi-kashi-vishwanath',
@@ -1610,7 +1610,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Buddhist Heritage',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/Ancient_Buddhist_monasteries_near_Dhamekh_Stupa_Monument_Site%2C_Sarnath.jpg/1280px-Ancient_Buddhist_monasteries_near_Dhamekh_Stupa_Monument_Site%2C_Sarnath.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Ancient_Buddhist_monasteries_near_Dhamekh_Stupa_Monument_Site%2C_Sarnath.jpg/1280px-Ancient_Buddhist_monasteries_near_Dhamekh_Stupa_Monument_Site%2C_Sarnath.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'varanasi-silk-weaving',
@@ -1622,7 +1622,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Artisan Workshop',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/Varanasi%2C_India%2C_Ghats%2C_Cremation_ceremony_in_progress.jpg/1280px-Varanasi%2C_India%2C_Ghats%2C_Cremation_ceremony_in_progress.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Varanasi%2C_India%2C_Ghats%2C_Cremation_ceremony_in_progress.jpg/1280px-Varanasi%2C_India%2C_Ghats%2C_Cremation_ceremony_in_progress.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -1674,7 +1674,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Fort & Culinary Tour',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/Gobindgarh_fort%2C_Amritsar%2C_Punjab%2C_India.jpg/1280px-Gobindgarh_fort%2C_Amritsar%2C_Punjab%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Gobindgarh_fort%2C_Amritsar%2C_Punjab%2C_India.jpg/1280px-Gobindgarh_fort%2C_Amritsar%2C_Punjab%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -1690,7 +1690,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Colonial Promenade',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/2/25/The_Ridge_Shimla_5.jpg/960px-The_Ridge_Shimla_5.jpg?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/The_Ridge_Shimla_5.jpg/960px-The_Ridge_Shimla_5.jpg?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
   },
   {
     id: 'shimla-kufri',
@@ -1702,7 +1702,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Hill Adventure Resort',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/Kufri_hills.jpg/1280px-Kufri_hills.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Kufri_hills.jpg/1280px-Kufri_hills.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'shimla-jakhoo-temple',
@@ -1726,7 +1726,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Colonial Heritage Estate',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Viceregal_Lodge%2C_Simla%2C_India.jpg/1280px-Viceregal_Lodge%2C_Simla%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Viceregal_Lodge%2C_Simla%2C_India.jpg/1280px-Viceregal_Lodge%2C_Simla%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -1806,7 +1806,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Tibetan Buddhist Complex',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
   },
   {
     id: 'dharamshala-hpca-stadium',
@@ -1830,7 +1830,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Nature Hike & Temple',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Bhagsu_view.jpg/1280px-Bhagsu_view.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Bhagsu_view.jpg/1280px-Bhagsu_view.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'dharamshala-norbulingka',
@@ -1858,7 +1858,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Iconic Lake Experience',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/Dal_Lake_Hazratbal_Srinagar.jpg/1280px-Dal_Lake_Hazratbal_Srinagar.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Dal_Lake_Hazratbal_Srinagar.jpg/1280px-Dal_Lake_Hazratbal_Srinagar.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'srinagar-mughal-gardens',
@@ -1870,7 +1870,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Imperial Gardens',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/Shalimar_Bagh_1.jpg/1280px-Shalimar_Bagh_1.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Shalimar_Bagh_1.jpg/1280px-Shalimar_Bagh_1.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'srinagar-shankaracharya',
@@ -1882,7 +1882,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Hilltop Sacred Shrine',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9b/The_Ancient_Shankaracharya_Temple_%28Srinagar%2C_Jammu_and_Kashmir%29_%28cropped%29.jpg/1280px-The_Ancient_Shankaracharya_Temple_%28Srinagar%2C_Jammu_and_Kashmir%29_%28cropped%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/The_Ancient_Shankaracharya_Temple_%28Srinagar%2C_Jammu_and_Kashmir%29_%28cropped%29.jpg/1280px-The_Ancient_Shankaracharya_Temple_%28Srinagar%2C_Jammu_and_Kashmir%29_%28cropped%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'srinagar-old-city-heritage',
@@ -1894,7 +1894,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Heritage Walk',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/41/Jama_Masjid%2C_Srinagar_%2814363005587%29.jpg/1280px-Jama_Masjid%2C_Srinagar_%2814363005587%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Jama_Masjid%2C_Srinagar_%2814363005587%29.jpg/1280px-Jama_Masjid%2C_Srinagar_%2814363005587%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -1910,7 +1910,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3.5 Hours',
     category: 'High Altitude Gondola & Snow',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Gulmarg_gondola.JPG/1280px-Gulmarg_gondola.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Gulmarg_gondola.JPG/1280px-Gulmarg_gondola.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'gulmarg-golf-course',
@@ -1922,7 +1922,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Alpine Meadow Walk',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Ancient_Temple%2C_Gulmarg.jpg/1280px-Ancient_Temple%2C_Gulmarg.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Ancient_Temple%2C_Gulmarg.jpg/1280px-Ancient_Temple%2C_Gulmarg.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'gulmarg-st-marys',
@@ -1950,7 +1950,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3.5 Hours',
     category: 'Scenic Alpine Valley',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/93/Betaab_Valley.jpg/1280px-Betaab_Valley.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Betaab_Valley.jpg/1280px-Betaab_Valley.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'pahalgam-baisaran',
@@ -1962,7 +1962,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Pony Trek & Alpine Meadow',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a3/Mini_Switzerland_of_india_photo.jpg/1280px-Mini_Switzerland_of_india_photo.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Mini_Switzerland_of_india_photo.jpg/1280px-Mini_Switzerland_of_india_photo.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'pahalgam-lidder-river',
@@ -1974,7 +1974,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Riverside Nature Walk',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f1/Lidder_River_1.jpg/1280px-Lidder_River_1.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Lidder_River_1.jpg/1280px-Lidder_River_1.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -2014,7 +2014,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'River Adventure Sport',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Trayambakeshwar_Temple_VK.jpg/1280px-Trayambakeshwar_Temple_VK.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Trayambakeshwar_Temple_VK.jpg/1280px-Trayambakeshwar_Temple_VK.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'rishikesh-beatles-ashram',
@@ -2122,7 +2122,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Historic Monument',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3a/Mumbai_03-2016_30_Gateway_of_India.jpg/1280px-Mumbai_03-2016_30_Gateway_of_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Mumbai_03-2016_30_Gateway_of_India.jpg/1280px-Mumbai_03-2016_30_Gateway_of_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'mumbai-marine-drive',
@@ -2134,7 +2134,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Seaside Promenade',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Mumbai_03-2016_27_skyline_at_Marine_Drive.jpg/1280px-Mumbai_03-2016_27_skyline_at_Marine_Drive.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Mumbai_03-2016_27_skyline_at_Marine_Drive.jpg/1280px-Mumbai_03-2016_27_skyline_at_Marine_Drive.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'mumbai-cst-terminus',
@@ -2146,7 +2146,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'UNESCO Victorian Heritage',
     unesco: true,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4d/Chhatrapati_shivaji_terminus%2C_esterno_01.jpg/1280px-Chhatrapati_shivaji_terminus%2C_esterno_01.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Chhatrapati_shivaji_terminus%2C_esterno_01.jpg/1280px-Chhatrapati_shivaji_terminus%2C_esterno_01.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'mumbai-elephanta-caves',
@@ -2158,7 +2158,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3.5 Hours',
     category: 'UNESCO Rock-Cut Caves & Boat',
     unesco: true,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/Elephanta_Caves_Trimurti.jpg/1280px-Elephanta_Caves_Trimurti.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Elephanta_Caves_Trimurti.jpg/1280px-Elephanta_Caves_Trimurti.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'mumbai-bandra-sea-link',
@@ -2170,7 +2170,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Modern Landmark & Temple',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5d/Bandra%E2%80%93Worli_Sea_Link.jpg/1280px-Bandra%E2%80%93Worli_Sea_Link.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Bandra%E2%80%93Worli_Sea_Link.jpg/1280px-Bandra%E2%80%93Worli_Sea_Link.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -2186,7 +2186,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'UNESCO Heritage Cathedral',
     unesco: true,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Front_Elevation_of_Basilica_of_Bom_Jesus.jpg/1280px-Front_Elevation_of_Basilica_of_Bom_Jesus.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Front_Elevation_of_Basilica_of_Bom_Jesus.jpg/1280px-Front_Elevation_of_Basilica_of_Bom_Jesus.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'goa-calangute-baga',
@@ -2198,7 +2198,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Beach & Watersports',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/81/Sunset_at_Calangute.jpg/1280px-Sunset_at_Calangute.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Sunset_at_Calangute.jpg/1280px-Sunset_at_Calangute.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'goa-dudhsagar',
@@ -2210,7 +2210,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '5 Hours',
     category: 'Waterfall Jungle Adventure',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0b/Doodhsagar_Fall.jpg/1280px-Doodhsagar_Fall.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Doodhsagar_Fall.jpg/1280px-Doodhsagar_Fall.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'goa-fort-aguada',
@@ -2238,7 +2238,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '4 Hours',
     category: 'Backwater Houseboat Cruise',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e4/Alappuzha_Boat_Beauty_W.jpg/1280px-Alappuzha_Boat_Beauty_W.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Alappuzha_Boat_Beauty_W.jpg/1280px-Alappuzha_Boat_Beauty_W.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'kerala-munnar-tea-gardens',
@@ -2250,7 +2250,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Hill Plantation Experience',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b9/Munnar_Overview.jpg/1280px-Munnar_Overview.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Munnar_Overview.jpg/1280px-Munnar_Overview.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'kerala-periyar-wildlife',
@@ -2262,7 +2262,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2.5 Hours',
     category: 'Wildlife Lake Safari',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/6/66/Periyar_National_Park.JPG/1280px-Periyar_National_Park.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Periyar_National_Park.JPG/1280px-Periyar_National_Park.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'kerala-kochi-chinese-nets',
@@ -2274,7 +2274,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3 Hours',
     category: 'Cultural Show & Heritage',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/1/19/Chinese_Fishing_Net_Raising_Birds_Sunrise_Ashtamudi_Kollam_Mar22_A7C_01784.jpg/1280px-Chinese_Fishing_Net_Raising_Birds_Sunrise_Ashtamudi_Kollam_Mar22_A7C_01784.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Chinese_Fishing_Net_Raising_Birds_Sunrise_Ashtamudi_Kollam_Mar22_A7C_01784.jpg/1280px-Chinese_Fishing_Net_Raising_Birds_Sunrise_Ashtamudi_Kollam_Mar22_A7C_01784.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   }
 ,
   // ==========================================
@@ -2290,7 +2290,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '3–4 Hours',
     category: 'Alpine Meadow',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Khajjiar.jpg/1280px-Khajjiar.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Khajjiar.jpg/1280px-Khajjiar.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'dalhousie-dainkund',
@@ -2318,7 +2318,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Buddhist Temple & Monastery',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail'
   },
   {
     id: 'mcleodganj-bhagsunag',
@@ -2330,7 +2330,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Mountain Waterfall',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Bhagsu_view.jpg/1280px-Bhagsu_view.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Bhagsu_view.jpg/1280px-Bhagsu_view.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -2346,7 +2346,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2–3 Hours',
     category: 'Sacred Pilgrimage Temple',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Shri_Ram_Janambhoomi_Mandir%2C_Ayodhya_Dham.jpg/1280px-Shri_Ram_Janambhoomi_Mandir%2C_Ayodhya_Dham.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Shri_Ram_Janambhoomi_Mandir%2C_Ayodhya_Dham.jpg/1280px-Shri_Ram_Janambhoomi_Mandir%2C_Ayodhya_Dham.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'ayodhya-hanuman-garhi',
@@ -2358,7 +2358,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Historic Temple Fort',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Hanuman_Garhi_Temple%2C_a_major_religious_site_in_Ayodhya_utter_pradesh.jpg/1280px-Hanuman_Garhi_Temple%2C_a_major_religious_site_in_Ayodhya_utter_pradesh.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Hanuman_Garhi_Temple%2C_a_major_religious_site_in_Ayodhya_utter_pradesh.jpg/1280px-Hanuman_Garhi_Temple%2C_a_major_religious_site_in_Ayodhya_utter_pradesh.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'ayodhya-ram-ki-paidi',
@@ -2370,7 +2370,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Sacred Ghats & Aarti',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/ba/Sarayu_River_night_view%2C_Ayodhya_001.jpg/1280px-Sarayu_River_night_view%2C_Ayodhya_001.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Sarayu_River_night_view%2C_Ayodhya_001.jpg/1280px-Sarayu_River_night_view%2C_Ayodhya_001.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -2386,7 +2386,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Ancient Shrine',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Vishnupad_Temple%2CUpdated.jpg/1280px-Vishnupad_Temple%2CUpdated.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Vishnupad_Temple%2CUpdated.jpg/1280px-Vishnupad_Temple%2CUpdated.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'gaya-mangla-gauri',
@@ -2414,7 +2414,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'UNESCO World Heritage',
     unesco: true,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4e/Mahabodhitemple.jpg/1280px-Mahabodhitemple.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Mahabodhitemple.jpg/1280px-Mahabodhitemple.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'bodhgaya-bodhi-tree',
@@ -2438,7 +2438,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '45 Minutes',
     category: 'Colossal Monument',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/Great_Buddha_Statue%2C_Bodh_Gaya_at_Sunset.jpg/1280px-Great_Buddha_Statue%2C_Bodh_Gaya_at_Sunset.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Great_Buddha_Statue%2C_Bodh_Gaya_at_Sunset.jpg/1280px-Great_Buddha_Statue%2C_Bodh_Gaya_at_Sunset.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -2454,7 +2454,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1.5 Hours',
     category: 'Holy Ghat & River Aarti',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/Mandakini_river_in_chitrkoot.jpg/1280px-Mandakini_river_in_chitrkoot.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Mandakini_river_in_chitrkoot.jpg/1280px-Mandakini_river_in_chitrkoot.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'chitrakoot-kamadgiri',
@@ -2466,7 +2466,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Sacred Parikrama Hill',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/Government_Polytechnic_-_Bargarh_-_Chitrakoot_2014-07-06_7257.JPG/1280px-Government_Polytechnic_-_Bargarh_-_Chitrakoot_2014-07-06_7257.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Government_Polytechnic_-_Bargarh_-_Chitrakoot_2014-07-06_7257.JPG/1280px-Government_Polytechnic_-_Bargarh_-_Chitrakoot_2014-07-06_7257.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -2482,7 +2482,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '2 Hours',
     category: 'Holy Confluence',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/09/NorthIndiaCircuit_250.jpg/1280px-NorthIndiaCircuit_250.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/NorthIndiaCircuit_250.jpg/1280px-NorthIndiaCircuit_250.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'prayagraj-bade-hanuman',
@@ -2494,7 +2494,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Subterranean Shrine',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/59/Lete_Hanuman_Ji_Mandir.jpg/1280px-Lete_Hanuman_Ji_Mandir.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Lete_Hanuman_Ji_Mandir.jpg/1280px-Lete_Hanuman_Ji_Mandir.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
 
   // ==========================================
@@ -2522,7 +2522,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '1 Hour',
     category: 'Devotional Shrine',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/2/24/Sankat_Mochan_temple_entrance%2C_Varanasi_-_IRCTC_2017_%281%29.jpg/1280px-Sankat_Mochan_temple_entrance%2C_Varanasi_-_IRCTC_2017_%281%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Sankat_Mochan_temple_entrance%2C_Varanasi_-_IRCTC_2017_%281%29.jpg/1280px-Sankat_Mochan_temple_entrance%2C_Varanasi_-_IRCTC_2017_%281%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'varanasi-kaal-bhairav',
@@ -2534,7 +2534,7 @@ export const COMPREHENSIVE_ATTRACTIONS: Attraction[] = [
     duration: '45 Minutes',
     category: 'Guardian Deity Temple',
     unesco: false,
-    image: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Kaal_Bhairab%2C_Kathmandu%2C_Nepal.jpg/1280px-Kaal_Bhairab%2C_Kathmandu%2C_Nepal.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Kaal_Bhairab%2C_Kathmandu%2C_Nepal.jpg/1280px-Kaal_Bhairab%2C_Kathmandu%2C_Nepal.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail'
   },
   {
     id: 'varanasi-manikarnika',
@@ -4726,9 +4726,9 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'church of akbar': 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Agra%2C_Akbar%27s_church.JPG',
 
   // Fatehpur Sikri
-  'fs-buland-darwaza': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'buland darwaza': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'buland darwaza & sheikh salim chishti shrine': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'fs-buland-darwaza': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'buland darwaza': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'buland darwaza & sheikh salim chishti shrine': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg/1280px-Fatehput_Sikiri_Buland_Darwaza_gate_2010.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
 
   'fs-panch-mahal': 'https://images.unsplash.com/photo-1742303300027-a4c32eafe389?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   'panch mahal': 'https://images.unsplash.com/photo-1742303300027-a4c32eafe389?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
@@ -4738,15 +4738,15 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   "joda bai's palace": 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Fatehpur_Sikri%2C_Jodha_Bai_Mahal_%282002%29_08.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled',
   "jodha bai palace": 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Fatehpur_Sikri%2C_Jodha_Bai_Mahal_%282002%29_08.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled',
 
-  'fs-diwan-i-khas': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Diwan-i-khas%2C_Red_fort.jpg/500px-Diwan-i-khas%2C_Red_fort.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail',
-  'diwan-i-khas': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Diwan-i-khas%2C_Red_fort.jpg/500px-Diwan-i-khas%2C_Red_fort.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail',
-  'diwan-i-khas (hall of private audience)': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Diwan-i-khas%2C_Red_fort.jpg/500px-Diwan-i-khas%2C_Red_fort.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail',
+  'fs-diwan-i-khas': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Diwan-i-khas%2C_Red_fort.jpg/500px-Diwan-i-khas%2C_Red_fort.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail',
+  'diwan-i-khas': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Diwan-i-khas%2C_Red_fort.jpg/500px-Diwan-i-khas%2C_Red_fort.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail',
+  'diwan-i-khas (hall of private audience)': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Diwan-i-khas%2C_Red_fort.jpg/500px-Diwan-i-khas%2C_Red_fort.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail',
 
   // Jaipur
-  'jaipur-amber-fort': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'amber fort': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'amer fort': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'amber fort & palace (amer fort)': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'jaipur-amber-fort': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'amber fort': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'amer fort': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'amber fort & palace (amer fort)': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg/1280px-20191219_Fort_Amber%2C_Amer%2C_Jaipur_0955_9481.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
 
   'jaipur-hawa-mahal': 'https://images.unsplash.com/photo-1650530777057-3a7dbc24bf6c?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8SGF3YSUyME1haGFsfGVufDB8fDB8fHww',
   'hawa mahal': 'https://images.unsplash.com/photo-1650530777057-3a7dbc24bf6c?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8SGF3YSUyME1haGFsfGVufDB8fDB8fHww',
@@ -4756,9 +4756,9 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'city palace': 'https://images.unsplash.com/photo-1667099639128-4b10f464f4a2?q=80&w=873&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   'city palace, jaipur': 'https://images.unsplash.com/photo-1667099639128-4b10f464f4a2?q=80&w=873&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 
-  'jaipur-jantar-mantar': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'jantar mantar': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'jantar mantar astronomical observatory': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'jaipur-jantar-mantar': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'jantar mantar': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'jantar mantar astronomical observatory': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Jantar_Mantar_at_Jaipur.jpg/1280px-Jantar_Mantar_at_Jaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
 
   'jaipur-nahargarh': 'https://images.unsplash.com/photo-1591284080149-58e039950b29?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   'nahargarh fort': 'https://images.unsplash.com/photo-1591284080149-58e039950b29?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
@@ -4769,29 +4769,29 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'chokhi dhani': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg/1280px-Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg',
   'chokhi dhani ethnic cultural village': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg/1280px-Kathputli_%28Puppet_Dance%29_in_Rajasthan.jpg',
 
-  'jaipur-patrika-gate': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'patrika gate': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'albert hall museum': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'patrika gate & albert hall museum': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'jaipur-patrika-gate': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'patrika gate': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'albert hall museum': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'patrika gate & albert hall museum': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg/1280px-Patrika_Gate_Jawahar_Circle_Jaipur_2022-07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
 
   // Mathura / Vrindavan
-  'mv-janmabhoomi': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/God_Keshav_Dev_at_Keshav_Dev_Temple.JPG/1280px-God_Keshav_Dev_at_Keshav_Dev_Temple.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'shri krishna janmabhoomi temple': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/God_Keshav_Dev_at_Keshav_Dev_Temple.JPG/1280px-God_Keshav_Dev_at_Keshav_Dev_Temple.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'krishna janmabhoomi': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/God_Keshav_Dev_at_Keshav_Dev_Temple.JPG/1280px-God_Keshav_Dev_at_Keshav_Dev_Temple.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'mv-janmabhoomi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/God_Keshav_Dev_at_Keshav_Dev_Temple.JPG/1280px-God_Keshav_Dev_at_Keshav_Dev_Temple.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'shri krishna janmabhoomi temple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/God_Keshav_Dev_at_Keshav_Dev_Temple.JPG/1280px-God_Keshav_Dev_at_Keshav_Dev_Temple.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'krishna janmabhoomi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/God_Keshav_Dev_at_Keshav_Dev_Temple.JPG/1280px-God_Keshav_Dev_at_Keshav_Dev_Temple.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
 
-  'mv-prem-mandir': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Vrindavan_Prem_Mandir_4.jpg/1280px-Vrindavan_Prem_Mandir_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'prem mandir': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Vrindavan_Prem_Mandir_4.jpg/1280px-Vrindavan_Prem_Mandir_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'prem mandir vrindavan': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Vrindavan_Prem_Mandir_4.jpg/1280px-Vrindavan_Prem_Mandir_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'mv-prem-mandir': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Vrindavan_Prem_Mandir_4.jpg/1280px-Vrindavan_Prem_Mandir_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'prem mandir': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Vrindavan_Prem_Mandir_4.jpg/1280px-Vrindavan_Prem_Mandir_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'prem mandir vrindavan': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Vrindavan_Prem_Mandir_4.jpg/1280px-Vrindavan_Prem_Mandir_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
 
   'mv-banke-bihari': 'https://images.unsplash.com/photo-1655885333110-22b955d35667?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8QmFua2UlMjBCaWhhcmklMjBUZW1wbGUlMjBWcmluZGF2YW58ZW58MHx8MHx8fDA%3D',
   'banke bihari': 'https://images.unsplash.com/photo-1655885333110-22b955d35667?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8QmFua2UlMjBCaWhhcmklMjBUZW1wbGUlMjBWcmluZGF2YW58ZW58MHx8MHx8fDA%3D',
   'banke bihari temple': 'https://images.unsplash.com/photo-1655885333110-22b955d35667?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8QmFua2UlMjBCaWhhcmklMjBUZW1wbGUlMjBWcmluZGF2YW58ZW58MHx8MHx8fDA%3D',
   'banke bihari temple vrindavan': 'https://images.unsplash.com/photo-1655885333110-22b955d35667?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8QmFua2UlMjBCaWhhcmklMjBUZW1wbGUlMjBWcmluZGF2YW58ZW58MHx8MHx8fDA%3D',
 
-  'mv-iskcon': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/ISKCON_Temple_Vrindavan.jpg/1280px-ISKCON_Temple_Vrindavan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'iskcon': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/ISKCON_Temple_Vrindavan.jpg/1280px-ISKCON_Temple_Vrindavan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'iskcon temple': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/ISKCON_Temple_Vrindavan.jpg/1280px-ISKCON_Temple_Vrindavan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'iskcon krishna balaram temple': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/ISKCON_Temple_Vrindavan.jpg/1280px-ISKCON_Temple_Vrindavan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'mv-iskcon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/ISKCON_Temple_Vrindavan.jpg/1280px-ISKCON_Temple_Vrindavan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'iskcon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/ISKCON_Temple_Vrindavan.jpg/1280px-ISKCON_Temple_Vrindavan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'iskcon temple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/ISKCON_Temple_Vrindavan.jpg/1280px-ISKCON_Temple_Vrindavan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'iskcon krishna balaram temple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/ISKCON_Temple_Vrindavan.jpg/1280px-ISKCON_Temple_Vrindavan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
 
   // Jodhpur
   'jodhpur-jaswant-thada': 'https://images.unsplash.com/photo-1647946411346-f5d403d483c4?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
@@ -4801,13 +4801,13 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'jodhpur-mehrangarh': 'https://images.unsplash.com/photo-1566873535350-a3f5d4a804b7?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   'mehrangarh fort': 'https://images.unsplash.com/photo-1566873535350-a3f5d4a804b7?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 
-  'jodhpur-umaid-bhawan': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Umaid_Bhawan%2C_Jodhpur.jpg/1280px-Umaid_Bhawan%2C_Jodhpur.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'umaid bhawan palace': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Umaid_Bhawan%2C_Jodhpur.jpg/1280px-Umaid_Bhawan%2C_Jodhpur.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'umaid bhawan palace & heritage museum': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Umaid_Bhawan%2C_Jodhpur.jpg/1280px-Umaid_Bhawan%2C_Jodhpur.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'jodhpur-umaid-bhawan': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Umaid_Bhawan%2C_Jodhpur.jpg/1280px-Umaid_Bhawan%2C_Jodhpur.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'umaid bhawan palace': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Umaid_Bhawan%2C_Jodhpur.jpg/1280px-Umaid_Bhawan%2C_Jodhpur.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'umaid bhawan palace & heritage museum': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Umaid_Bhawan%2C_Jodhpur.jpg/1280px-Umaid_Bhawan%2C_Jodhpur.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
 
-  'jodhpur-mandore': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg/1280px-Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'mandore gardens': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg/1280px-Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'mandore gardens & royal cenotaphs': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg/1280px-Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'jodhpur-mandore': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg/1280px-Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'mandore gardens': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg/1280px-Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'mandore gardens & royal cenotaphs': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg/1280px-Cenotaphs_in_Mandore_Gardens_at_Mandore%2C_Rajasthan_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
 
   'jodhpur-blue-city-walk': 'https://images.unsplash.com/photo-1759250452033-0648324d97b6?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDEzfHx8ZW58MHx8fHx8',
   'blue city': 'https://images.unsplash.com/photo-1759250452033-0648324d97b6?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDEzfHx8ZW58MHx8fHx8',
@@ -4815,12 +4815,12 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'blue city walking tour & clock tower bazaar': 'https://images.unsplash.com/photo-1759250452033-0648324d97b6?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDEzfHx8ZW58MHx8fHx8',
 
   // Udaipur
-  'udaipur-city-palace': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'city palace complex & crystal gallery': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'udaipur-city-palace': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'city palace complex & crystal gallery': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/City_Palace_Udaipur_Rajasthan_India.JPG/1280px-City_Palace_Udaipur_Rajasthan_India.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
 
-  'udaipur-saheliyon-ki-bari': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'saheliyon-ki-bari': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'saheliyon-ki-bari (courtyard of maidens)': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'udaipur-saheliyon-ki-bari': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'saheliyon-ki-bari': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'saheliyon-ki-bari (courtyard of maidens)': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Saheliyon-ki-Bari_Fountain.JPG/1280px-Saheliyon-ki-Bari_Fountain.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
 
   'udaipur-bagore-ki-haveli': 'https://images.unsplash.com/photo-1722080711528-095791cd14d4?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8QmFnb3JlJTIwS2klMjBIYXZlbGl8ZW58MHx8MHx8fDA%3D',
   'bagore ki haveli': 'https://images.unsplash.com/photo-1722080711528-095791cd14d4?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8QmFnb3JlJTIwS2klMjBIYXZlbGl8ZW58MHx8MHx8fDA%3D',
@@ -4851,23 +4851,23 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'sajjangarh monsoon palace sunset lookout': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Monsoon_Palace.jpg/1280px-Monsoon_Palace.jpg',
 
   // Shimla
-  'shimla-ridge-mall': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/2/25/The_Ridge_Shimla_5.jpg/960px-The_Ridge_Shimla_5.jpg?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'the ridge': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/2/25/The_Ridge_Shimla_5.jpg/960px-The_Ridge_Shimla_5.jpg?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'mall road': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/2/25/The_Ridge_Shimla_5.jpg/960px-The_Ridge_Shimla_5.jpg?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'the ridge & mall road walking tour': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/2/25/The_Ridge_Shimla_5.jpg/960px-The_Ridge_Shimla_5.jpg?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'shimla-ridge-mall': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/The_Ridge_Shimla_5.jpg/960px-The_Ridge_Shimla_5.jpg?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'the ridge': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/The_Ridge_Shimla_5.jpg/960px-The_Ridge_Shimla_5.jpg?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'mall road': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/The_Ridge_Shimla_5.jpg/960px-The_Ridge_Shimla_5.jpg?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'the ridge & mall road walking tour': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/The_Ridge_Shimla_5.jpg/960px-The_Ridge_Shimla_5.jpg?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
 
-  'shimla-kufri': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/Kufri_hills.jpg/1280px-Kufri_hills.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'kufri': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/Kufri_hills.jpg/1280px-Kufri_hills.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'kufri adventure park': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/Kufri_hills.jpg/1280px-Kufri_hills.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'kufri adventure park & snow viewpoint': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/Kufri_hills.jpg/1280px-Kufri_hills.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'shimla-kufri': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Kufri_hills.jpg/1280px-Kufri_hills.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'kufri': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Kufri_hills.jpg/1280px-Kufri_hills.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'kufri adventure park': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Kufri_hills.jpg/1280px-Kufri_hills.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'kufri adventure park & snow viewpoint': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Kufri_hills.jpg/1280px-Kufri_hills.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
 
   'shimla-jakhoo-temple': 'https://www.thestatesman.com/wp-content/uploads/2023/04/5D59F9E7-7572-40E1-A9E8-779237EA23BB.jpeg',
   'jakhoo temple': 'https://www.thestatesman.com/wp-content/uploads/2023/04/5D59F9E7-7572-40E1-A9E8-779237EA23BB.jpeg',
   'jakhoo temple & aerial ropeway': 'https://www.thestatesman.com/wp-content/uploads/2023/04/5D59F9E7-7572-40E1-A9E8-779237EA23BB.jpeg',
 
-  'shimla-viceregal-lodge': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Viceregal_Lodge%2C_Simla%2C_India.jpg/1280px-Viceregal_Lodge%2C_Simla%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'viceregal lodge': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Viceregal_Lodge%2C_Simla%2C_India.jpg/1280px-Viceregal_Lodge%2C_Simla%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'viceregal lodge (rashtrapati niwas)': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Viceregal_Lodge%2C_Simla%2C_India.jpg/1280px-Viceregal_Lodge%2C_Simla%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'shimla-viceregal-lodge': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Viceregal_Lodge%2C_Simla%2C_India.jpg/1280px-Viceregal_Lodge%2C_Simla%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'viceregal lodge': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Viceregal_Lodge%2C_Simla%2C_India.jpg/1280px-Viceregal_Lodge%2C_Simla%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'viceregal lodge (rashtrapati niwas)': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Viceregal_Lodge%2C_Simla%2C_India.jpg/1280px-Viceregal_Lodge%2C_Simla%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
 
   // Manali
   'manali-solang-valley': 'https://www.snowvalleyresorts.com/wp-content/uploads/featurd-image-min-915x513.webp',
@@ -4929,11 +4929,11 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'patwon ki haveli & salim singh haveli': 'https://images.unsplash.com/photo-1677649117932-4c8abf3e27bb?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8UGF0d29uJTIwS2klMjBIYXZlbGl8ZW58MHx8MHx8fDA%3D',
 
   // Dharamshala / McLeodGanj
-  'dharamshala-dalai-lama-temple': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'mcleodganj-tsuglagkhang': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'tsuglagkhang complex': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'tsuglagkhang complex (dalai lama temple & monastery)': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
-  'tsuglagkhang dalai lama temple complex': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'dharamshala-dalai-lama-temple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'mcleodganj-tsuglagkhang': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'tsuglagkhang complex': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'tsuglagkhang complex (dalai lama temple & monastery)': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
+  'tsuglagkhang dalai lama temple complex': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg/1280px-Ajay_Tallam_Dalai_Lama_Temple%2C_McLeod_Ganj.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail',
 
   'dharamshala-hpca-stadium': 'https://www.swantour.com/blogs/wp-content/uploads/2020/01/Dharamsala-Cricket-Stadium.jpg',
   'hpca cricket stadium': 'https://www.swantour.com/blogs/wp-content/uploads/2020/01/Dharamsala-Cricket-Stadium.jpg',
@@ -4991,9 +4991,9 @@ export const ATTRACTION_IMAGE_OVERRIDES: Record<string, string> = {
   'bodhi tree': 'https://tricycle.org/wp-content/uploads/2019/04/bodhi-tree.jpg',
 
   // Chitrakoot
-  'chitrakoot-ramghat': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/Mandakini_river_in_chitrkoot.jpg/1280px-Mandakini_river_in_chitrkoot.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'ramghat': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/Mandakini_river_in_chitrkoot.jpg/1280px-Mandakini_river_in_chitrkoot.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
-  'ramghat in chitrakoot': 'https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/Mandakini_river_in_chitrkoot.jpg/1280px-Mandakini_river_in_chitrkoot.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'chitrakoot-ramghat': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Mandakini_river_in_chitrkoot.jpg/1280px-Mandakini_river_in_chitrkoot.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'ramghat': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Mandakini_river_in_chitrkoot.jpg/1280px-Mandakini_river_in_chitrkoot.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
+  'ramghat in chitrakoot': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Mandakini_river_in_chitrkoot.jpg/1280px-Mandakini_river_in_chitrkoot.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail',
   // Jaipur - Jhalana Leopard Safari
   'jaipur-jhalana-safari': 'https://upload.wikimedia.org/wikipedia/commons/3/33/Indian_leopard_in_Jawai_Bandh_April_2025_by_Tisha_Mukherjee_02.jpg',
   'jhalana leopard safari': 'https://upload.wikimedia.org/wikipedia/commons/3/33/Indian_leopard_in_Jawai_Bandh_April_2025_by_Tisha_Mukherjee_02.jpg',
