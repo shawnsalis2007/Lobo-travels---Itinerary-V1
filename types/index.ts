@@ -502,6 +502,12 @@ export interface OperationalBooking {
   calendarEventIds: CalendarEventRef[];
   calendarAccountIds: string[];  // which calendars this booking is synced to
   status: OperationalBookingStatus;
+  assignedTo?: string;          // e.g. "Russel Gomes", "russelgomes12@gmail.com"
+  assignedUserEmail?: string;   // specific dispatcher/admin email
+  notes?: string;               // booking operations notes
+  pickupLocation?: string;      // initial pickup point
+  dropLocation?: string;        // final drop-off point
+  pickupTime?: string;          // e.g. "09:00"
   createdAt: string;
   updatedAt: string;
   brandId?: string;

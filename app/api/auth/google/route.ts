@@ -4,7 +4,9 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const label = searchParams.get('label') || 'Google Calendar';
+  const email = searchParams.get('email') || searchParams.get('login_hint');
+  const brandId = searchParams.get('brandId') || 'brand-lobo-travels';
+  const label = searchParams.get('label') || (email ? `${email} — Lobo Travels` : 'Google Calendar');
   const mode = searchParams.get('mode') || 'redirect'; // 'redirect' or 'json'
 
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -28,6 +30,8 @@ export async function GET(req: NextRequest) {
 
   const stateObj = {
     label,
+    email: email || undefined,
+    brandId,
     redirectUri,
     timestamp: Date.now(),
   };
@@ -41,6 +45,11 @@ export async function GET(req: NextRequest) {
   authUrl.searchParams.set('access_type', 'offline');
   authUrl.searchParams.set('prompt', 'consent');
   authUrl.searchParams.set('state', state);
+
+  // If email hint is provided (e.g. Russelgomes12@gmail.com), pre-fill Google login
+  if (email) {
+    authUrl.searchParams.set('login_hint', email);
+  }
 
   if (mode === 'json') {
     return NextResponse.json({ url: authUrl.toString(), redirectUri });

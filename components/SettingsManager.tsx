@@ -629,6 +629,18 @@ export default function SettingsManager({
                   {/* Google email (read-only) */}
                   <span className="text-slate-500 font-mono">{cal?.googleEmail || ''}</span>
 
+                  {/* Brand Admin Badge */}
+                  {cal?.googleEmail?.toLowerCase().includes('russel') && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                      Russel Gomes
+                    </span>
+                  )}
+                  {cal?.googleEmail?.toLowerCase().includes('shawn') && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                      Shawn Salis
+                    </span>
+                  )}
+
                   {/* Calendar ID (read-only, truncated) */}
                   <span
                     className="text-slate-400 hidden sm:block truncate max-w-[180px]"
@@ -749,64 +761,117 @@ export default function SettingsManager({
                 </div>
               )}
 
-              {/* Step 1 — Authorise buttons */}
+              {/* Quick Connect Brand Admins or Standard OAuth */}
               {!pendingAccessToken && (
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      openGoogleOAuthPopup(calendarConnectLabel, (account) => {
-                        setFormData((prev) => {
-                          const existing = (prev.connectedCalendars ?? []).filter(
-                            (c) => c.googleEmail !== account.googleEmail && c.calendarId !== account.calendarId
-                          );
-                          if (existing.length === 0) account.isDefault = true;
-                          const updated = [...existing, account];
-                          onSaveSettings({ ...prev, connectedCalendars: updated });
-                          return { ...prev, connectedCalendars: updated };
-                        });
-                        setShowCalendarConnect(false);
-                        setSaveSuccess(true);
-                        setTimeout(() => setSaveSuccess(false), 3000);
-                      });
-                    }}
-                    className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-sm transition active:scale-95"
-                  >
-                    <Globe className="w-4 h-4 text-slate-950" />
-                    Connect via Google OAuth (Production Sync)
-                  </button>
+                <div className="space-y-2.5 pt-1">
+                  <div className="p-2.5 rounded-lg bg-indigo-100/60 border border-indigo-200 text-[11px] text-indigo-900 leading-relaxed">
+                    <strong>Direct Brand Dispatch Sync:</strong> Connect Russel Gomes (<code className="font-mono text-indigo-950 font-bold">Russelgomes12@gmail.com</code>) or Shawn Salis (<code className="font-mono text-indigo-950 font-bold">Shawnsalis2007@gmail.com</code>) to automatically dispatch Lobo Travels fleet and driver bookings directly to their assigned Google Calendars.
+                  </div>
 
-                  <button
-                    type="button"
-                    disabled={connectingCalendar || !calendarClientId.trim()}
-                    onClick={() => {
-                      setConnectingCalendar(true);
-                      initGoogleCalendarAuth(calendarClientId.trim(), async (token) => {
-                        setPendingAccessToken(token);
-                        try {
-                          const cals = await listUserCalendars(token);
-                          setAvailableCalendars(cals);
-                          // Pre-select primary calendar if available
-                          const primary = cals.find((c) => c.primary);
-                          if (primary) setSelectedCalendarId(primary.id);
-                        } catch (err) {
-                          console.error('[calendar] listUserCalendars error:', err);
-                        } finally {
-                          setConnectingCalendar(false);
-                        }
-                      });
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-indigo-700 bg-white border border-indigo-300 hover:bg-indigo-50 disabled:opacity-50 rounded-lg transition"
-                  >
-                    {connectingCalendar ? (
-                      'Connecting…'
-                    ) : (
-                      <>
-                        <Wifi className="w-3.5 h-3.5" />
-                        Session Login (GIS)
-                      </>
-                    )}
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        openGoogleOAuthPopup('Russel Gomes — Lobo Travels', (account) => {
+                          setFormData((prev) => {
+                            const existing = (prev.connectedCalendars ?? []).filter(
+                              (c) => c.googleEmail !== account.googleEmail && c.calendarId !== account.calendarId
+                            );
+                            if (existing.length === 0) account.isDefault = true;
+                            const updated = [...existing, account];
+                            onSaveSettings({ ...prev, connectedCalendars: updated });
+                            return { ...prev, connectedCalendars: updated };
+                          });
+                          setShowCalendarConnect(false);
+                          setSaveSuccess(true);
+                          setTimeout(() => setSaveSuccess(false), 3000);
+                        }, 'Russelgomes12@gmail.com', 'brand-lobo-travels');
+                      }}
+                      className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 rounded-lg shadow-sm transition active:scale-95"
+                    >
+                      <Globe className="w-4 h-4 text-slate-950" />
+                      Connect Russel Gomes (Russelgomes12@gmail.com)
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        openGoogleOAuthPopup('Shawn Salis — Lobo Travels', (account) => {
+                          setFormData((prev) => {
+                            const existing = (prev.connectedCalendars ?? []).filter(
+                              (c) => c.googleEmail !== account.googleEmail && c.calendarId !== account.calendarId
+                            );
+                            if (existing.length === 0) account.isDefault = true;
+                            const updated = [...existing, account];
+                            onSaveSettings({ ...prev, connectedCalendars: updated });
+                            return { ...prev, connectedCalendars: updated };
+                          });
+                          setShowCalendarConnect(false);
+                          setSaveSuccess(true);
+                          setTimeout(() => setSaveSuccess(false), 3000);
+                        }, 'Shawnsalis2007@gmail.com', 'brand-lobo-travels');
+                      }}
+                      className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-lg shadow-sm transition active:scale-95"
+                    >
+                      <Globe className="w-4 h-4 text-amber-400" />
+                      Connect Shawn Salis (Shawnsalis2007@gmail.com)
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        openGoogleOAuthPopup(calendarConnectLabel || 'Google Calendar', (account) => {
+                          setFormData((prev) => {
+                            const existing = (prev.connectedCalendars ?? []).filter(
+                              (c) => c.googleEmail !== account.googleEmail && c.calendarId !== account.calendarId
+                            );
+                            if (existing.length === 0) account.isDefault = true;
+                            const updated = [...existing, account];
+                            onSaveSettings({ ...prev, connectedCalendars: updated });
+                            return { ...prev, connectedCalendars: updated };
+                          });
+                          setShowCalendarConnect(false);
+                          setSaveSuccess(true);
+                          setTimeout(() => setSaveSuccess(false), 3000);
+                        });
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg shadow-sm transition active:scale-95"
+                    >
+                      <Globe className="w-3.5 h-3.5 text-slate-500" />
+                      Other Google Account
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={connectingCalendar || !calendarClientId.trim()}
+                      onClick={() => {
+                        setConnectingCalendar(true);
+                        initGoogleCalendarAuth(calendarClientId.trim(), async (token) => {
+                          setPendingAccessToken(token);
+                          try {
+                            const cals = await listUserCalendars(token);
+                            setAvailableCalendars(cals);
+                            const primary = cals.find((c) => c.primary);
+                            if (primary) setSelectedCalendarId(primary.id);
+                          } catch (err) {
+                            console.error('[calendar] listUserCalendars error:', err);
+                          } finally {
+                            setConnectingCalendar(false);
+                          }
+                        });
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-indigo-700 bg-white border border-indigo-300 hover:bg-indigo-50 disabled:opacity-50 rounded-lg transition"
+                    >
+                      {connectingCalendar ? (
+                        'Connecting…'
+                      ) : (
+                        <>
+                          <Wifi className="w-3.5 h-3.5" />
+                          Session GIS
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               )}
 

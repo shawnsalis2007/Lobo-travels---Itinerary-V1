@@ -71,14 +71,22 @@ export function initGoogleCalendarAuth(
  */
 export function openGoogleOAuthPopup(
   label: string,
-  onConnected: (account: any) => void
+  onConnected: (account: any) => void,
+  emailHint?: string,
+  brandId?: string
 ): void {
   const width = 500;
   const height = 650;
   const left = window.screenX + (window.outerWidth - width) / 2;
   const top = window.screenY + (window.outerHeight - height) / 2;
 
-  const url = `/api/auth/google?label=${encodeURIComponent(label || 'Google Calendar')}`;
+  const params = new URLSearchParams({
+    label: label || 'Google Calendar',
+  });
+  if (emailHint) params.set('email', emailHint);
+  if (brandId) params.set('brandId', brandId);
+
+  const url = `/api/auth/google?${params.toString()}`;
   const popup = window.open(
     url,
     'GoogleCalendarOAuth',
@@ -95,8 +103,13 @@ export function openGoogleOAuthPopup(
   window.addEventListener('message', handleMessage);
 }
 
-export function startGoogleOAuthRedirect(label: string): void {
-  window.location.href = `/api/auth/google?label=${encodeURIComponent(label || 'Google Calendar')}`;
+export function startGoogleOAuthRedirect(label: string, emailHint?: string, brandId?: string): void {
+  const params = new URLSearchParams({
+    label: label || 'Google Calendar',
+  });
+  if (emailHint) params.set('email', emailHint);
+  if (brandId) params.set('brandId', brandId);
+  window.location.href = `/api/auth/google?${params.toString()}`;
 }
 
 /**
@@ -263,7 +276,8 @@ export async function deleteCalendarEvent(
  * Triggers batch synchronization of existing itineraries and operational booking reminders to Google Calendar.
  */
 export async function syncAllItinerariesToCalendar(payload: {
-  calendarAccount: GoogleCalendarAccount;
+  calendarAccount?: GoogleCalendarAccount;
+  calendarAccounts?: GoogleCalendarAccount[];
   itineraries: Itinerary[];
   bookings: OperationalBooking[];
 }): Promise<{

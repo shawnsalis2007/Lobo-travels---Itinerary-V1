@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { GoogleCalendarAccount } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,10 +71,14 @@ export async function GET(req: NextRequest) {
   }
 
   let label = 'Google Calendar';
+  let stateBrandId = 'brand-lobo-travels';
+  let stateEmail: string | undefined = undefined;
   try {
     if (stateRaw) {
       const decoded = JSON.parse(Buffer.from(stateRaw, 'base64url').toString('utf8'));
       if (decoded.label) label = decoded.label;
+      if (decoded.brandId) stateBrandId = decoded.brandId;
+      if (decoded.email) stateEmail = decoded.email;
     }
   } catch {
     // ignore parse error
@@ -153,8 +158,32 @@ export async function GET(req: NextRequest) {
       // fallback to primary
     }
 
+    // Apply environment mappings for brand admins (Russel & Shawn)
+    const lowerEmail = userEmail.toLowerCase();
+    if (lowerEmail.includes('russel') || lowerEmail === 'russelgomes12@gmail.com') {
+      calendarId =
+        process.env.GOOGLE_CALENDAR_ID_RUSSEL ||
+        process.env.GOOGLE_CALENDAR_ID_RUSSELGOMES ||
+        process.env.GOOGLE_CALENDAR_ID ||
+        calendarId;
+      if (!label || label === 'Google Calendar') {
+        label = 'Russel Gomes — Lobo Travels';
+      }
+    } else if (lowerEmail.includes('shawn') || lowerEmail === 'shawnsalis2007@gmail.com') {
+      calendarId =
+        process.env.GOOGLE_CALENDAR_ID_SHAWN ||
+        process.env.GOOGLE_CALENDAR_ID_SHAWNSALIS ||
+        process.env.GOOGLE_CALENDAR_ID ||
+        calendarId;
+      if (!label || label === 'Google Calendar') {
+        label = 'Shawn Salis — Lobo Travels';
+      }
+    } else if (process.env.GOOGLE_CALENDAR_ID && calendarId === 'primary') {
+      calendarId = process.env.GOOGLE_CALENDAR_ID;
+    }
+
     // 4. Construct GoogleCalendarAccount payload
-    const accountPayload = {
+    const accountPayload: GoogleCalendarAccount = {
       id: `gcal-${Date.now()}`,
       label,
       googleEmail: userEmail,
@@ -166,7 +195,27 @@ export async function GET(req: NextRequest) {
       tokenExpiresAt,
     };
 
-    // 5. Render auto-saving bridge page for popup or direct redirect
+    // 5. Persist connected account to PostgreSQL database so all sessions have access
+    try {
+      const { getDbSettings, saveDbSettings, DEFAULT_BRAND_ID } = await import('@/lib/db');
+      const targetBrandId = stateBrandId || DEFAULT_BRAND_ID;
+      const currentSettings = await getDbSettings(targetBrandId);
+      const existingCals = (currentSettings.connectedCalendars || []).filter(
+        (c) => c && c.googleEmail !== accountPayload.googleEmail && c.calendarId !== accountPayload.calendarId
+      );
+      if (existingCals.length === 0) {
+        accountPayload.isDefault = true;
+      }
+      const updatedSettings = {
+        ...currentSettings,
+        connectedCalendars: [...existingCals, accountPayload],
+      };
+      await saveDbSettings(updatedSettings, targetBrandId);
+    } catch (dbErr) {
+      console.warn('[google-callback] Failed to persist connected calendar to DB:', dbErr);
+    }
+
+    // 6. Render auto-saving bridge page for popup or direct redirect
     const serializedPayload = JSON.stringify(accountPayload).replace(/</g, '\\u003c');
 
     return new Response(

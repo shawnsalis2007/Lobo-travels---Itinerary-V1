@@ -26,7 +26,7 @@ import {
   OperationalBooking,
   GoogleCalendarAccount
 } from '@/types';
-import { saveOperationalBooking } from '@/lib/storage';
+import { saveOperationalBooking, saveOperationalBookingAsync } from '@/lib/storage';
 
 interface DirectBookingModalProps {
   isOpen: boolean;
@@ -90,15 +90,47 @@ export default function DirectBookingModal({
   const [vendorDriverName, setVendorDriverName] = useState('');
   const [vendorDriverPhone, setVendorDriverPhone] = useState('');
 
-  // Google Calendar Integration
-  const connectedCalendar: GoogleCalendarAccount | undefined = useMemo(() => {
-    return settings?.connectedCalendars?.find((c) => c.isDefault) || settings?.connectedCalendars?.[0];
+  // Assigned Dispatcher / Admin (Russel Gomes, Shawn Salis, Venson Lobo)
+  const [assignedTo, setAssignedTo] = useState('Russel Gomes (russelgomes12@gmail.com)');
+
+  // Google Calendar Integration (Multi-Calendar Support)
+  const connectedCalendars: GoogleCalendarAccount[] = useMemo(() => {
+    return settings?.connectedCalendars || [];
   }, [settings?.connectedCalendars]);
 
-  const [syncToCalendar, setSyncToCalendar] = useState<boolean>(!!connectedCalendar);
+  const [selectedCalendarIds, setSelectedCalendarIds] = useState<Set<string>>(() => {
+    const ids = new Set<string>();
+    (settings?.connectedCalendars || []).forEach((c) => {
+      const email = (c.googleEmail || '').toLowerCase();
+      if (c.isDefault || email.includes('russel')) {
+        ids.add(c.id);
+      }
+    });
+    return ids;
+  });
+
+  const [syncToCalendar, setSyncToCalendar] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [calendarSyncStatus, setCalendarSyncStatus] = useState<string | null>(null);
+
+  const handleAssignedToChange = (val: string) => {
+    setAssignedTo(val);
+    const lower = val.toLowerCase();
+    setSelectedCalendarIds((prev) => {
+      const next = new Set(prev);
+      connectedCalendars.forEach((c) => {
+        const cEmail = (c.googleEmail || '').toLowerCase();
+        const cLabel = (c.label || '').toLowerCase();
+        if (lower.includes('russel') && (cEmail.includes('russel') || cLabel.includes('russel'))) {
+          next.add(c.id);
+        } else if (lower.includes('shawn') && (cEmail.includes('shawn') || cLabel.includes('shawn'))) {
+          next.add(c.id);
+        }
+      });
+      return next;
+    });
+  };
 
   // Initialize or reset when initial props change
   useEffect(() => {
@@ -249,6 +281,11 @@ export default function DirectBookingModal({
         vehicleSource: bookingType === 'internal' ? 'own' : 'outsourced',
         ownVehicleId: bookingType === 'internal' ? selectedVehicleId || undefined : undefined,
         ownDriverId: bookingType === 'internal' ? selectedDriverId || undefined : undefined,
+        assignedTo,
+        notes: notes.trim() || undefined,
+        pickupLocation: pickupLocation.trim() || undefined,
+        dropLocation: dropLocation.trim() || undefined,
+        pickupTime: pickupTime || undefined,
         outsourced:
           bookingType === 'external'
             ? {
@@ -271,47 +308,45 @@ export default function DirectBookingModal({
             id: 'rem-' + Math.random().toString(36).substring(2, 9),
             type: 'offset',
             offsetDays: 1,
-            calendarAccountIds: connectedCalendar ? [connectedCalendar.id] : [],
+            calendarAccountIds: Array.from(selectedCalendarIds),
             status: 'scheduled',
           },
         ],
         calendarEventIds: [],
-        calendarAccountIds: connectedCalendar && syncToCalendar ? [connectedCalendar.id] : [],
+        calendarAccountIds: Array.from(selectedCalendarIds),
         status: 'scheduled',
         createdAt: nowIso,
         updatedAt: nowIso,
       };
 
-      // 4. Save Operational Booking locally and to database
-      saveOperationalBooking(newBooking);
-
-      // 5. Google Calendar Sync
-      if (syncToCalendar && connectedCalendar) {
+      // 4. Multi-Account Google Calendar Sync
+      const targetCalendars = connectedCalendars.filter((c) => selectedCalendarIds.has(c.id));
+      if (syncToCalendar && targetCalendars.length > 0) {
         setCalendarSyncStatus('Syncing booking into Google Calendar…');
         try {
           const calRes = await fetch('/api/calendar/sync-all', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              calendarAccount: connectedCalendar,
+              calendarAccounts: targetCalendars,
               bookings: [newBooking],
               itineraries: [],
             }),
           });
           const calData = await calRes.json().catch(() => ({}));
-          if (calRes.ok && calData.success) {
-            if (Array.isArray(calData.syncedBookings) && calData.syncedBookings.length > 0) {
-              const synced = calData.syncedBookings.find((sb: any) => sb.id === newBooking.id);
-              if (synced?.calendarEventIds) {
-                newBooking.calendarEventIds = synced.calendarEventIds;
-                saveOperationalBooking(newBooking);
-              }
+          if (calRes.ok && calData.success && Array.isArray(calData.syncedBookings)) {
+            const synced = calData.syncedBookings.find((sb: any) => sb.id === newBooking.id);
+            if (synced?.calendarEventIds) {
+              newBooking.calendarEventIds = synced.calendarEventIds;
             }
           }
         } catch (calErr: any) {
-          console.warn('Direct Booking Google Calendar sync failed:', calErr);
+          console.warn('Direct Booking Google Calendar sync warning:', calErr);
         }
       }
+
+      // 5. Save Operational Booking directly to cloud PostgreSQL database
+      await saveOperationalBookingAsync(newBooking);
 
       onBookingCreated?.(newBooking);
       onClose();
@@ -416,6 +451,23 @@ export default function DirectBookingModal({
                 className="w-full px-3 py-2 text-xs bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
               />
             </div>
+          </div>
+
+          {/* Assigned Dispatcher / Admin */}
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1">
+              Assigned Brand Admin / Operations Lead
+            </label>
+            <select
+              value={assignedTo}
+              onChange={(e) => handleAssignedToChange(e.target.value)}
+              className="w-full px-3 py-2 text-xs bg-[#26214F]/60 border border-[#26214F] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+            >
+              <option value="Russel Gomes (russelgomes12@gmail.com)">Russel Gomes (russelgomes12@gmail.com) — Brand Admin</option>
+              <option value="Shawn Salis (shawnsalis2007@gmail.com)">Shawn Salis (shawnsalis2007@gmail.com) — Brand Admin</option>
+              <option value="Lobo Travels Dispatch (General)">Lobo Travels Dispatch (General)</option>
+              <option value="Venson Lobo (vlobo99@outlook.com)">Venson Lobo (Super Admin)</option>
+            </select>
           </div>
 
           {/* Client Details */}
@@ -652,21 +704,18 @@ export default function DirectBookingModal({
             </div>
           )}
 
-          {/* Google Calendar Sync Section */}
-          <div className="p-3 bg-[#1e1e2d] border border-[#26214F] rounded-xl flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <CalendarCheck className="w-5 h-5 text-amber-400 shrink-0" />
-              <div>
-                <p className="text-xs font-semibold text-white">Google Calendar Sync</p>
-                <p className="text-[11px] text-[#9899A1]">
-                  {connectedCalendar
-                    ? `Connected Account: ${connectedCalendar.googleEmail} (${connectedCalendar.label || 'Primary'})`
-                    : 'No Google Calendar connected. Connect in Settings to enable direct calendar dispatch.'}
-                </p>
+          {/* Google Calendar Multi-Sync Section */}
+          <div className="p-3.5 bg-[#1e1e2d] border border-[#26214F] rounded-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <CalendarCheck className="w-5 h-5 text-amber-400 shrink-0" />
+                <div>
+                  <p className="text-xs font-semibold text-white">Google Calendar Multi-Sync</p>
+                  <p className="text-[11px] text-[#9899A1]">
+                    Automatically dispatches confirmed booking events to assigned calendars.
+                  </p>
+                </div>
               </div>
-            </div>
-
-            {connectedCalendar && (
               <label className="flex items-center gap-2 cursor-pointer shrink-0">
                 <input
                   type="checkbox"
@@ -674,8 +723,70 @@ export default function DirectBookingModal({
                   onChange={(e) => setSyncToCalendar(e.target.checked)}
                   className="rounded text-amber-500 focus:ring-amber-400 bg-[#151521] border-[#26214F] w-4 h-4"
                 />
-                <span className="text-xs font-medium text-amber-300">Sync Event</span>
+                <span className="text-xs font-medium text-amber-300">Sync Calendar</span>
               </label>
+            </div>
+
+            {syncToCalendar && (
+              <div className="pt-2 border-t border-[#26214F]/60 space-y-2">
+                {connectedCalendars.length === 0 ? (
+                  <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200 leading-relaxed">
+                    No Google Calendar accounts connected in Settings yet. You can connect <strong>Russelgomes12@gmail.com</strong> or your brand calendar in Settings to sync automatically.
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold text-slate-300">Select Calendars to Receive Booking Event:</p>
+                    {connectedCalendars.map((cal) => {
+                      const isRussel = cal.googleEmail?.toLowerCase().includes('russel') || cal.label?.toLowerCase().includes('russel');
+                      const isShawn = cal.googleEmail?.toLowerCase().includes('shawn') || cal.label?.toLowerCase().includes('shawn');
+                      const isChecked = selectedCalendarIds.has(cal.id);
+
+                      return (
+                        <label
+                          key={cal.id}
+                          className={`flex items-center justify-between p-2 rounded-lg border text-xs cursor-pointer transition ${
+                            isChecked
+                              ? 'bg-amber-500/10 border-amber-500/40 text-white'
+                              : 'bg-[#151521]/60 border-[#26214F] text-slate-400 hover:border-slate-500'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                setSelectedCalendarIds((prev) => {
+                                  const next = new Set(prev);
+                                  if (e.target.checked) next.add(cal.id);
+                                  else next.delete(cal.id);
+                                  return next;
+                                });
+                              }}
+                              className="rounded text-amber-500 focus:ring-amber-400 bg-[#151521] border-[#26214F] w-4 h-4"
+                            />
+                            <div>
+                              <span className="font-semibold text-slate-200">{cal.label || cal.googleEmail}</span>
+                              <span className="text-[10px] text-slate-400 block font-mono">
+                                {cal.googleEmail} {cal.calendarId && cal.calendarId !== 'primary' ? `(${cal.calendarId})` : ''}
+                              </span>
+                            </div>
+                          </div>
+                          {isRussel && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                              Russel Gomes
+                            </span>
+                          )}
+                          {isShawn && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                              Shawn Salis
+                            </span>
+                          )}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

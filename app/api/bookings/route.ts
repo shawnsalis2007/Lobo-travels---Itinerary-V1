@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDbBookings, saveDbBooking, deleteDbBooking, ensurePostgresTables, DEFAULT_BRAND_ID } from '@/lib/db';
 import { getAuthContext } from '@/lib/auth';
 import { OperationalBooking } from '@/types';
+import { syncBookingToGoogleCalendarServer } from '@/lib/calendar-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,10 +36,23 @@ export async function POST(req: NextRequest) {
     const auth = await getAuthContext(req);
     const brandId = auth ? (auth.isViewingAs ? auth.activeBrandId : auth.user.brandId) : (booking.brandId || DEFAULT_BRAND_ID);
 
-    const saved = await saveDbBooking({
+    let saved = await saveDbBooking({
       ...booking,
       brandId
     }, auth?.user.id);
+
+    // Automatically trigger Google Calendar sync when confirmed under Lobo Travels or assigned to Russel/Shawn
+    try {
+      const syncResult = await syncBookingToGoogleCalendarServer(saved, brandId);
+      if (syncResult.success && syncResult.eventRefs.length > 0) {
+        saved = {
+          ...saved,
+          calendarEventIds: syncResult.eventRefs,
+        };
+      }
+    } catch (calSyncErr) {
+      console.warn('[api/bookings] Auto calendar sync warning:', calSyncErr);
+    }
 
     return NextResponse.json({ success: true, booking: saved }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {

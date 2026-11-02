@@ -18,7 +18,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { Itinerary, AppSettings, OperationalBooking, BookingDayLocation, GoogleCalendarAccount } from '@/types';
-import { saveOperationalBooking } from '@/lib/storage';
+import { saveOperationalBooking, saveOperationalBookingAsync } from '@/lib/storage';
 import { formatDateDMY } from '@/lib/utils';
 import { getValidAccessToken } from '@/lib/calendar';
 
@@ -228,6 +228,7 @@ export default function BookingCreationModal({
     };
 
     saveOperationalBooking(newBooking);
+    saveOperationalBookingAsync(newBooking).catch((e) => console.warn('[BookingModal] Cloud save warning:', e));
     setBooking(newBooking);
     setStep(1);
   }
@@ -249,9 +250,10 @@ export default function BookingCreationModal({
       const activeToken = await getValidAccessToken(calAccount);
       if (!activeToken) continue;
       try {
+        const targetCalId = calAccount.calendarId || 'primary';
         const eventId = await createCalendarEvent(
           activeToken,
-          calAccount.calendarId,
+          targetCalId,
           {
             summary: `[${voucherNo}] ${itinerary.tourName} — ${itinerary.clientName}`,
             description: [
@@ -278,6 +280,7 @@ export default function BookingCreationModal({
     }
 
     saveOperationalBooking(updatedBooking);
+    await saveOperationalBookingAsync(updatedBooking);
     setBooking(updatedBooking);
     setIsSyncing(false);
     setSyncErrors(errors);
