@@ -26,7 +26,30 @@ const STORAGE_KEYS = {
   BOOKINGS: 'lobo_bookings_v1',
   DELETED_DESTS: 'lobo_deleted_destinations_v1',
   DELETED_ATTS: 'lobo_deleted_attractions_v1',
+  DELETED_FLEET: 'lobo_deleted_fleet_v1',
 };
+
+export function getDeletedFleet(): Set<string> {
+  const list = getStorageItem<string[]>(STORAGE_KEYS.DELETED_FLEET, []);
+  return new Set(Array.isArray(list) ? list.map(s => s.toLowerCase().trim()) : []);
+}
+
+export function recordDeletedFleet(id: string): void {
+  const set = getDeletedFleet();
+  set.add(id.toLowerCase().trim());
+  try {
+    localStorage.setItem(STORAGE_KEYS.DELETED_FLEET, JSON.stringify(Array.from(set)));
+  } catch (_) {}
+}
+
+export function unrecordDeletedFleet(id: string): void {
+  const set = getDeletedFleet();
+  if (set.delete(id.toLowerCase().trim())) {
+    try {
+      localStorage.setItem(STORAGE_KEYS.DELETED_FLEET, JSON.stringify(Array.from(set)));
+    } catch (_) {}
+  }
+}
 
 export function getDeletedDestinations(): Set<string> {
   const list = getStorageItem<string[]>(STORAGE_KEYS.DELETED_DESTS, []);
@@ -282,7 +305,9 @@ function refreshAllCaches(): void {
     try {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settingsCache));
     } catch (_) {}
-    fleetCache = getStorageItem<FleetVehicle[]>(STORAGE_KEYS.FLEET, INITIAL_FLEET);
+    const deletedFleet = getDeletedFleet();
+    const rawFleet = getStorageItem<FleetVehicle[]>(STORAGE_KEYS.FLEET, INITIAL_FLEET);
+    fleetCache = Array.isArray(rawFleet) ? rawFleet.filter(v => !deletedFleet.has(v.id.toLowerCase().trim())) : [];
     driversCache = getStorageItem<Driver[]>(STORAGE_KEYS.DRIVERS, INITIAL_DRIVERS);
     bookingsCache = getStorageItem<OperationalBooking[]>(STORAGE_KEYS.BOOKINGS, INITIAL_OPERATIONAL_BOOKINGS);
     isInitialized = true;
@@ -917,8 +942,10 @@ export async function syncFromCloudDatabase(): Promise<boolean> {
 
     // 5. Sync Fleet
     if (fleetRes?.success && Array.isArray(fleetRes.fleet)) {
-      fleetCache = fleetRes.fleet;
-      localStorage.setItem(STORAGE_KEYS.FLEET, JSON.stringify(fleetRes.fleet));
+      const deletedFleet = getDeletedFleet();
+      const cleanFleet = fleetRes.fleet.filter((v: FleetVehicle) => !deletedFleet.has(v.id.toLowerCase().trim()) && !v.isDeleted);
+      fleetCache = cleanFleet;
+      localStorage.setItem(STORAGE_KEYS.FLEET, JSON.stringify(cleanFleet));
       hasUpdates = true;
     }
 
@@ -1332,6 +1359,7 @@ export function saveFleetVehicle(vehicle: FleetVehicle): void {
     isActive: vehicle.isActive !== false && vehicle.status !== 'inactive'
   };
 
+  unrecordDeletedFleet(sanitizedVehicle.id);
   const current = getFleet();
   const index = current.findIndex(v => v.id === sanitizedVehicle.id);
   let updated: FleetVehicle[];
@@ -1359,6 +1387,7 @@ export function deleteFleetVehicle(id: string): void {
   if (referenced) {
     throw new Error('Cannot delete vehicle: it is referenced by one or more active bookings. Cancel the bookings first.');
   }
+  recordDeletedFleet(id);
   const current = getFleet();
   setStorageItem(STORAGE_KEYS.FLEET, current.filter(v => v.id !== id));
 
@@ -1387,6 +1416,8 @@ export async function saveFleetVehicleAsync(vehicle: FleetVehicle): Promise<{ su
     fuelType,
     isActive: vehicle.isActive !== false && vehicle.status !== 'inactive'
   };
+
+  unrecordDeletedFleet(sanitizedVehicle.id);
 
   try {
     notifySyncStatus('syncing');
@@ -1427,6 +1458,8 @@ export async function deleteFleetVehicleAsync(id: string): Promise<{ success: bo
   if (referenced) {
     throw new Error('Cannot delete vehicle: it is referenced by one or more active bookings. Cancel the bookings first.');
   }
+
+  recordDeletedFleet(id);
 
   try {
     notifySyncStatus('syncing');

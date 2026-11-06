@@ -12,6 +12,7 @@ import {
   Car,
   Phone,
   Calendar,
+  CalendarCheck,
 } from 'lucide-react';
 import { Driver, FleetVehicle, AppSettings, OperationalBooking } from '@/types';
 import DirectBookingModal from './DirectBookingModal';
@@ -24,6 +25,7 @@ interface DriversManagerProps {
   onDeleteDriver: (id: string) => void;
   onSaveVehicle?: (v: FleetVehicle) => void;
   onBookingCreated?: (b: OperationalBooking) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -56,6 +58,7 @@ export default function DriversManager({
   onDeleteDriver,
   onSaveVehicle,
   onBookingCreated,
+  onNavigateTab,
 }: DriversManagerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | Driver['status']>('all');
@@ -168,7 +171,16 @@ export default function DriversManager({
             Manage chauffeurs and their vehicle assignments for Lobo's Travel Wizard operations.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('direct-bookings')}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition shadow-2xs active:scale-95"
+            >
+              <CalendarCheck className="w-4 h-4 text-slate-500" />
+              <span>View Direct Bookings</span>
+            </button>
+          )}
           <button
             onClick={() => { setBookingDriverId(undefined); setIsDirectBookingOpen(true); }}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#26214F] hover:bg-[#26214F]/80 text-amber-300 border border-amber-500/30 text-xs font-bold transition shadow-sm active:scale-95"

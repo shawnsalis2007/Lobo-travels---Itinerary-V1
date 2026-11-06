@@ -23,6 +23,7 @@ import {
   Calendar,
   Users,
   Car,
+  CalendarCheck,
   RefreshCw
 } from 'lucide-react';
 import { Itinerary, BookingStatus, Destination, Attraction, Hotel, VehicleOption, AppSettings } from '@/types';
@@ -188,26 +189,26 @@ export default function Dashboard({
   return (
     <div className="space-y-8 pb-12">
       {/* Top Banner / Welcome */}
-      <div className="bg-gradient-to-r from-[#151521] via-[#26214F] to-[#151521] rounded-2xl p-6 sm:p-8 text-white shadow-lg border border-[#26214F] relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#151521] via-[#26214F] to-[#151521] rounded-2xl p-4 sm:p-6 md:p-8 text-white shadow-lg border border-[#26214F] relative overflow-hidden">
         <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-xs font-medium mb-3 backdrop-blur-sm border border-white/10">
+          <div className="inline-flex flex-wrap items-center gap-1.5 sm:gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 text-[11px] sm:text-xs font-medium mb-3 backdrop-blur-sm border border-white/10 max-w-full">
             <span>Official Lobo's Travel Wizard Tour Platform</span>
-            <span>·</span>
-            <span>Mandir Marg, New Delhi</span>
+            <span className="hidden sm:inline">·</span>
+            <span className="hidden sm:inline">Mandir Marg, New Delhi</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white mb-2 break-words">
             Itinerary & Fleet Operations
           </h1>
-          <p className="text-slate-300 text-sm leading-relaxed mb-5">
+          <p className="text-slate-300 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-5">
             Handcraft high-converting multi-day client travel brochures, automatically compute transfers, coordinate contracted hotels, and generate instant operations vouchers.
           </p>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
             <button
               onClick={onNewItinerary}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs tracking-wide shadow-md transition transform active:scale-95"
+              className="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs tracking-wide shadow-md transition transform active:scale-95 w-full sm:w-auto"
             >
               <PlusCircle className="w-4 h-4 text-slate-950" />
-              Create New Itinerary
+              <span>Create New Itinerary</span>
             </button>
             <button
               onClick={() => {
@@ -215,15 +216,24 @@ export default function Dashboard({
                 const el = document.getElementById('itinerary-table-section');
                 el?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium text-xs border border-white/20 transition backdrop-blur-sm"
+              className="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium text-xs border border-white/20 transition backdrop-blur-sm w-full sm:w-auto"
             >
               <Ticket className="w-4 h-4 text-amber-300" />
-              Confirmed Bookings ({confirmedCount})
+              <span>Confirmed Bookings ({confirmedCount})</span>
             </button>
+            {onNavigateTab && (
+              <button
+                onClick={() => onNavigateTab('direct-bookings')}
+                className="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium text-xs border border-white/20 transition backdrop-blur-sm w-full sm:w-auto"
+              >
+                <CalendarCheck className="w-4 h-4 text-amber-300" />
+                <span>Direct Bookings</span>
+              </button>
+            )}
             <button
               onClick={handleSyncDatabase}
               disabled={isSyncing || syncStatus.state === 'syncing'}
-              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium text-xs border border-white/20 transition backdrop-blur-sm active:scale-95 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium text-xs border border-white/20 transition backdrop-blur-sm active:scale-95 disabled:opacity-50 w-full sm:w-auto"
               title="Refresh and sync data with cloud database"
             >
               <RefreshCw className={`w-3.5 h-3.5 text-amber-300 ${isSyncing || syncStatus.state === 'syncing' ? 'animate-spin' : ''}`} />
@@ -231,86 +241,86 @@ export default function Dashboard({
             </button>
           </div>
         </div>
-        <div className="absolute right-0 bottom-0 translate-x-12 translate-y-8 opacity-10 pointer-events-none">
+        <div className="absolute right-0 bottom-0 translate-x-12 translate-y-8 opacity-10 pointer-events-none hidden md:block">
           <Car className="w-96 h-96 text-white" />
         </div>
       </div>
 
 
       {/* Top Statistics Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 lg:gap-4">
         {/* Total */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 transition">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-medium">Total Tours</span>
-            <FileCheck2 className="w-4 h-4 text-slate-400" />
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 transition min-w-0">
+          <div className="flex items-center justify-between text-slate-500 mb-1.5 sm:mb-2">
+            <span className="text-[11px] sm:text-xs font-medium truncate">Total Tours</span>
+            <FileCheck2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-slate-900">{totalCount}</p>
-          <span className="text-[11px] text-slate-400">All registered records</span>
+          <p className="text-xl sm:text-2xl font-bold text-slate-900 truncate">{totalCount}</p>
+          <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">All registered records</span>
         </div>
 
         {/* Drafts */}
         <div 
           onClick={() => setStatusFilter('draft')}
-          className="bg-white p-4 rounded-xl border border-amber-200/80 shadow-sm hover:border-amber-400 transition cursor-pointer"
+          className="bg-white p-3 sm:p-4 rounded-xl border border-amber-200/80 shadow-sm hover:border-amber-400 transition cursor-pointer min-w-0"
         >
-          <div className="flex items-center justify-between text-amber-700 mb-2">
-            <span className="text-xs font-medium">Drafts</span>
-            <Clock className="w-4 h-4 text-amber-500" />
+          <div className="flex items-center justify-between text-amber-700 mb-1.5 sm:mb-2">
+            <span className="text-[11px] sm:text-xs font-medium truncate">Drafts</span>
+            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-amber-900">{draftCount}</p>
-          <span className="text-[11px] text-amber-600">In preparation</span>
+          <p className="text-xl sm:text-2xl font-bold text-amber-900 truncate">{draftCount}</p>
+          <span className="text-[10px] sm:text-[11px] text-amber-600 block truncate">In preparation</span>
         </div>
 
         {/* Sent / Generated */}
         <div 
           onClick={() => setStatusFilter('generated')}
-          className="bg-white p-4 rounded-xl border border-blue-200/80 shadow-sm hover:border-blue-400 transition cursor-pointer"
+          className="bg-white p-3 sm:p-4 rounded-xl border border-blue-200/80 shadow-sm hover:border-blue-400 transition cursor-pointer min-w-0"
         >
-          <div className="flex items-center justify-between text-blue-700 mb-2">
-            <span className="text-xs font-medium">Generated / Sent</span>
-            <FileCheck2 className="w-4 h-4 text-blue-500" />
+          <div className="flex items-center justify-between text-blue-700 mb-1.5 sm:mb-2">
+            <span className="text-[11px] sm:text-xs font-medium truncate">Generated</span>
+            <FileCheck2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500 shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-blue-900">{sentOrGenCount}</p>
-          <span className="text-[11px] text-blue-600">Client proposals</span>
+          <p className="text-xl sm:text-2xl font-bold text-blue-900 truncate">{sentOrGenCount}</p>
+          <span className="text-[10px] sm:text-[11px] text-blue-600 block truncate">Client proposals</span>
         </div>
 
         {/* Confirmed */}
         <div 
           onClick={() => setStatusFilter('confirmed')}
-          className="bg-white p-4 rounded-xl border border-emerald-200/80 shadow-sm hover:border-emerald-400 transition cursor-pointer"
+          className="bg-white p-3 sm:p-4 rounded-xl border border-emerald-200/80 shadow-sm hover:border-emerald-400 transition cursor-pointer min-w-0"
         >
-          <div className="flex items-center justify-between text-emerald-700 mb-2">
-            <span className="text-xs font-medium">Confirmed</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          <div className="flex items-center justify-between text-emerald-700 mb-1.5 sm:mb-2">
+            <span className="text-[11px] sm:text-xs font-medium truncate">Confirmed</span>
+            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-emerald-900">{confirmedCount}</p>
-          <span className="text-[11px] text-emerald-600">Vouchers available</span>
+          <p className="text-xl sm:text-2xl font-bold text-emerald-900 truncate">{confirmedCount}</p>
+          <span className="text-[10px] sm:text-[11px] text-emerald-600 block truncate">Vouchers ready</span>
         </div>
 
         {/* Cancelled */}
         <div 
           onClick={() => setStatusFilter('cancelled')}
-          className="bg-white p-4 rounded-xl border border-rose-200/80 shadow-sm hover:border-rose-400 transition cursor-pointer"
+          className="bg-white p-3 sm:p-4 rounded-xl border border-rose-200/80 shadow-sm hover:border-rose-400 transition cursor-pointer min-w-0"
         >
-          <div className="flex items-center justify-between text-rose-700 mb-2">
-            <span className="text-xs font-medium">Cancelled</span>
-            <XCircle className="w-4 h-4 text-rose-500" />
+          <div className="flex items-center justify-between text-rose-700 mb-1.5 sm:mb-2">
+            <span className="text-[11px] sm:text-xs font-medium truncate">Cancelled</span>
+            <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500 shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-rose-900">{cancelledCount}</p>
-          <span className="text-[11px] text-rose-600">Void / Archived</span>
+          <p className="text-xl sm:text-2xl font-bold text-rose-900 truncate">{cancelledCount}</p>
+          <span className="text-[10px] sm:text-[11px] text-rose-600 block truncate">Void / Archived</span>
         </div>
 
         {/* Total Value */}
-        <div className="bg-gradient-to-br from-[#151521] to-[#26214F] p-4 rounded-xl border border-[#26214F] text-white shadow-sm">
-          <div className="flex items-center justify-between text-amber-300 mb-2">
-            <span className="text-xs font-medium">Tour Value</span>
-            <IndianRupee className="w-4 h-4 text-amber-300" />
+        <div className="bg-gradient-to-br from-[#151521] to-[#26214F] p-3 sm:p-4 rounded-xl border border-[#26214F] text-white shadow-sm min-w-0">
+          <div className="flex items-center justify-between text-amber-300 mb-1.5 sm:mb-2">
+            <span className="text-[11px] sm:text-xs font-medium truncate">Tour Value</span>
+            <IndianRupee className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
           </div>
-          <p className="text-xl font-extrabold text-white truncate">
+          <p className="text-lg sm:text-xl font-extrabold text-white truncate">
             ₹{totalTourValue.toLocaleString('en-IN')}
           </p>
-          <span className="text-[11px] text-slate-300">Active portfolio</span>
+          <span className="text-[10px] sm:text-[11px] text-slate-300 block truncate">Active portfolio</span>
         </div>
       </div>
 
@@ -411,13 +421,13 @@ export default function Dashboard({
       <div id="itinerary-table-section" className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         
         {/* Table Header & Filter Bar */}
-        <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h2 className="text-base font-bold text-slate-900">
+        <div className="p-3.5 sm:p-5 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
+              <h2 className="text-base font-bold text-slate-900 truncate">
                 {showRecycleBin ? 'Recycle Bin (Deleted Itineraries)' : 'Recent Tour Itineraries'}
               </h2>
-              <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200 text-xs">
+              <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200 text-xs shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowRecycleBin(false)}
@@ -444,9 +454,9 @@ export default function Dashboard({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 w-full lg:w-auto">
             {/* Search Input */}
-            <div className="relative min-w-[200px]">
+            <div className="relative w-full sm:w-auto sm:min-w-[210px] flex-1 sm:flex-initial">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
@@ -465,38 +475,40 @@ export default function Dashboard({
               )}
             </div>
 
-            {/* Status Filter Tabs */}
-            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg text-xs font-medium">
-              {[
-                { id: 'all', label: 'All' },
-                { id: 'confirmed', label: 'Confirmed' },
-                { id: 'draft', label: 'Draft' },
-                { id: 'generated', label: 'Generated' },
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setStatusFilter(tab.id)}
-                  className={`px-2.5 py-1 rounded-md transition ${
-                    statusFilter === tab.id
-                      ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+            {/* Status Filter Tabs & Sync Button */}
+            <div className="flex items-center justify-between sm:justify-start gap-2 max-w-full overflow-x-auto">
+              <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg text-xs font-medium shrink-0">
+                {[
+                  { id: 'all', label: 'All' },
+                  { id: 'confirmed', label: 'Confirmed' },
+                  { id: 'draft', label: 'Draft' },
+                  { id: 'generated', label: 'Generated' },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setStatusFilter(tab.id)}
+                    className={`px-2.5 py-1 rounded-md transition ${
+                      statusFilter === tab.id
+                        ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
 
-            {/* Cloud Sync Button */}
-            <button
-              onClick={handleSyncDatabase}
-              disabled={isSyncing || syncStatus.state === 'syncing'}
-              title="Sync itineraries from cloud PostgreSQL database"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition active:scale-95 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 text-indigo-600 ${isSyncing || syncStatus.state === 'syncing' ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Sync Cloud</span>
-            </button>
+              {/* Cloud Sync Button */}
+              <button
+                onClick={handleSyncDatabase}
+                disabled={isSyncing || syncStatus.state === 'syncing'}
+                title="Sync itineraries from cloud PostgreSQL database"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition active:scale-95 disabled:opacity-50 shrink-0"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-indigo-600 ${isSyncing || syncStatus.state === 'syncing' ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Sync Cloud</span>
+              </button>
+            </div>
           </div>
         </div>
 

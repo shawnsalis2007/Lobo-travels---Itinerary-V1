@@ -835,7 +835,13 @@ export default function ItineraryPreview({
                 {itinerary.hotelTiersEnabled && (
                   <div className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-lg text-[10px]">
                     <span className="text-slate-300">Quote Tier:</span>
-                    {(['3_star', '4_star', '5_star'] as HotelStarTier[]).map(t => (
+                    {(['3_star', '4_star', '5_star'] as HotelStarTier[]).filter(t => {
+                      const enabled = itinerary.enabledHotelTiers || { star3: true, star4: true, star5: true };
+                      if (t === '3_star') return enabled.star3 !== false;
+                      if (t === '4_star') return enabled.star4 !== false;
+                      if (t === '5_star') return enabled.star5 !== false;
+                      return true;
+                    }).map(t => (
                       <button
                         key={t}
                         type="button"
@@ -1293,33 +1299,39 @@ export default function ItineraryPreview({
                           >
                             All Tiers Matrix
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => { setHotelMatrixView('3_star'); handleSwitchTier('3_star'); }}
-                            className={`px-2 py-0.5 rounded font-bold transition ${
-                              hotelMatrixView === '3_star' ? 'bg-amber-500 text-slate-950 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                          >
-                            3★ Comfort
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => { setHotelMatrixView('4_star'); handleSwitchTier('4_star'); }}
-                            className={`px-2 py-0.5 rounded font-bold transition ${
-                              hotelMatrixView === '4_star' ? 'bg-blue-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                          >
-                            4★ Deluxe
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => { setHotelMatrixView('5_star'); handleSwitchTier('5_star'); }}
-                            className={`px-2 py-0.5 rounded font-bold transition ${
-                              hotelMatrixView === '5_star' ? 'bg-purple-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                          >
-                            5★ Luxury
-                          </button>
+                          {itinerary.enabledHotelTiers?.star3 !== false && (
+                            <button
+                              type="button"
+                              onClick={() => { setHotelMatrixView('3_star'); handleSwitchTier('3_star'); }}
+                              className={`px-2 py-0.5 rounded font-bold transition ${
+                                hotelMatrixView === '3_star' ? 'bg-amber-500 text-slate-950 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                              }`}
+                            >
+                              3★ Comfort
+                            </button>
+                          )}
+                          {itinerary.enabledHotelTiers?.star4 !== false && (
+                            <button
+                              type="button"
+                              onClick={() => { setHotelMatrixView('4_star'); handleSwitchTier('4_star'); }}
+                              className={`px-2 py-0.5 rounded font-bold transition ${
+                                hotelMatrixView === '4_star' ? 'bg-blue-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                              }`}
+                            >
+                              4★ Deluxe
+                            </button>
+                          )}
+                          {itinerary.enabledHotelTiers?.star5 !== false && (
+                            <button
+                              type="button"
+                              onClick={() => { setHotelMatrixView('5_star'); handleSwitchTier('5_star'); }}
+                              className={`px-2 py-0.5 rounded font-bold transition ${
+                                hotelMatrixView === '5_star' ? 'bg-purple-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                              }`}
+                            >
+                              5★ Luxury
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -1333,23 +1345,37 @@ export default function ItineraryPreview({
                           <tr>
                             <th className="py-2 px-2.5">Day / Night</th>
                             <th className="py-2 px-2.5">Destination</th>
-                            <th className={`py-2 px-2.5 ${itinerary.selectedHotelTier === '3_star' ? 'bg-amber-500/20 text-amber-200' : ''}`}>
-                              3-Star (Comfort)
-                            </th>
-                            <th className={`py-2 px-2.5 ${itinerary.selectedHotelTier === '4_star' ? 'bg-blue-500/20 text-blue-200' : ''}`}>
-                              4-Star (Deluxe)
-                            </th>
-                            <th className={`py-2 px-2.5 ${itinerary.selectedHotelTier === '5_star' ? 'bg-purple-500/20 text-purple-200' : ''}`}>
-                              5-Star (Luxury)
-                            </th>
+                            {itinerary.enabledHotelTiers?.star3 !== false && (
+                              <th className={`py-2 px-2.5 ${itinerary.selectedHotelTier === '3_star' ? 'bg-amber-500/20 text-amber-200' : ''}`}>
+                                3-Star (Comfort)
+                              </th>
+                            )}
+                            {itinerary.enabledHotelTiers?.star4 !== false && (
+                              <th className={`py-2 px-2.5 ${itinerary.selectedHotelTier === '4_star' ? 'bg-blue-500/20 text-blue-200' : ''}`}>
+                                4-Star (Deluxe)
+                              </th>
+                            )}
+                            {itinerary.enabledHotelTiers?.star5 !== false && (
+                              <th className={`py-2 px-2.5 ${itinerary.selectedHotelTier === '5_star' ? 'bg-purple-500/20 text-purple-200' : ''}`}>
+                                5-Star (Luxury)
+                              </th>
+                            )}
                             <th className="py-2 px-2.5">Meal Plan</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700 text-[11px]">
                           {itinerary.days.filter((day) => !day.departureDetails?.enabled && !day.excludeHotel).map((day) => {
-                            const t3 = day.hotelTiers?.threeStar;
-                            const t4 = day.hotelTiers?.fourStar;
-                            const t5 = day.hotelTiers?.fiveStar;
+                            const isCategoryWise = itinerary.hotelConfigMode === 'category_wise';
+                            const t3Options = day.categoryWiseHotels?.threeStar && day.categoryWiseHotels.threeStar.length > 0
+                              ? day.categoryWiseHotels.threeStar
+                              : (day.hotelTiers?.threeStar ? [day.hotelTiers.threeStar] : []);
+                            const t4Options = day.categoryWiseHotels?.fourStar && day.categoryWiseHotels.fourStar.length > 0
+                              ? day.categoryWiseHotels.fourStar
+                              : (day.hotelTiers?.fourStar ? [day.hotelTiers.fourStar] : (day.hotel ? [day.hotel] : []));
+                            const t5Options = day.categoryWiseHotels?.fiveStar && day.categoryWiseHotels.fiveStar.length > 0
+                              ? day.categoryWiseHotels.fiveStar
+                              : (day.hotelTiers?.fiveStar ? [day.hotelTiers.fiveStar] : []);
+
                             return (
                               <tr key={day.id} className="hover:bg-slate-50/50">
                                 <td className="py-1.5 px-2.5 font-semibold text-slate-900 whitespace-nowrap">
@@ -1361,20 +1387,84 @@ export default function ItineraryPreview({
                                   )}
                                 </td>
                                 <td className="py-1.5 px-2.5 whitespace-nowrap">{day.overnightLocation}</td>
-                                <td className={`py-1.5 px-2.5 ${itinerary.selectedHotelTier === '3_star' ? 'bg-amber-50/60 font-semibold' : ''}`}>
-                                  <div className="font-bold text-slate-900">{t3?.name || `3★ Partner Hotel (${day.overnightLocation})`}</div>
-                                  <div className="text-[10px] text-slate-500">{t3?.roomCategory || 'Standard / Deluxe'}</div>
-                                </td>
-                                <td className={`py-1.5 px-2.5 ${itinerary.selectedHotelTier === '4_star' ? 'bg-blue-50/60 font-semibold' : ''}`}>
-                                  <div className="font-bold text-slate-900">{t4?.name || day.hotel?.name || `4★ Deluxe Hotel (${day.overnightLocation})`}</div>
-                                  <div className="text-[10px] text-slate-500">{t4?.roomCategory || day.hotel?.roomCategory || 'Deluxe Room'}</div>
-                                </td>
-                                <td className={`py-1.5 px-2.5 ${itinerary.selectedHotelTier === '5_star' ? 'bg-purple-50/60 font-semibold' : ''}`}>
-                                  <div className="font-bold text-slate-900">{t5?.name || `5★ Luxury Palace Hotel (${day.overnightLocation})`}</div>
-                                  <div className="text-[10px] text-slate-500">{t5?.roomCategory || 'Luxury Suite'}</div>
-                                </td>
+                                
+                                {itinerary.enabledHotelTiers?.star3 !== false && (
+                                  <td className={`py-1.5 px-2.5 ${itinerary.selectedHotelTier === '3_star' ? 'bg-amber-50/60 font-semibold' : ''}`}>
+                                    {t3Options.length > 0 ? (
+                                      <div className="space-y-1">
+                                        {t3Options.map((opt, optIdx) => (
+                                          <div key={optIdx} className={optIdx > 0 ? "pt-1 border-t border-slate-100" : ""}>
+                                            <div className="font-bold text-slate-900">
+                                              {isCategoryWise && t3Options.length > 1 && (
+                                                <span className="text-[9px] font-black text-amber-800 uppercase mr-1">Opt {optIdx + 1}:</span>
+                                              )}
+                                              {opt.name || `3★ Partner Hotel (${day.overnightLocation})`}
+                                            </div>
+                                            <div className="text-[10px] text-slate-500">{opt.roomCategory || 'Standard / Deluxe'}</div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        <div className="font-bold text-slate-900">{`3★ Partner Hotel (${day.overnightLocation})`}</div>
+                                        <div className="text-[10px] text-slate-500">Standard Room</div>
+                                      </div>
+                                    )}
+                                  </td>
+                                )}
+
+                                {itinerary.enabledHotelTiers?.star4 !== false && (
+                                  <td className={`py-1.5 px-2.5 ${itinerary.selectedHotelTier === '4_star' ? 'bg-blue-50/60 font-semibold' : ''}`}>
+                                    {t4Options.length > 0 ? (
+                                      <div className="space-y-1">
+                                        {t4Options.map((opt, optIdx) => (
+                                          <div key={optIdx} className={optIdx > 0 ? "pt-1 border-t border-slate-100" : ""}>
+                                            <div className="font-bold text-slate-900">
+                                              {isCategoryWise && t4Options.length > 1 && (
+                                                <span className="text-[9px] font-black text-blue-800 uppercase mr-1">Opt {optIdx + 1}:</span>
+                                              )}
+                                              {opt.name || `4★ Deluxe Hotel (${day.overnightLocation})`}
+                                            </div>
+                                            <div className="text-[10px] text-slate-500">{opt.roomCategory || 'Deluxe Room'}</div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        <div className="font-bold text-slate-900">{`4★ Deluxe Hotel (${day.overnightLocation})`}</div>
+                                        <div className="text-[10px] text-slate-500">Deluxe Room</div>
+                                      </div>
+                                    )}
+                                  </td>
+                                )}
+
+                                {itinerary.enabledHotelTiers?.star5 !== false && (
+                                  <td className={`py-1.5 px-2.5 ${itinerary.selectedHotelTier === '5_star' ? 'bg-purple-50/60 font-semibold' : ''}`}>
+                                    {t5Options.length > 0 ? (
+                                      <div className="space-y-1">
+                                        {t5Options.map((opt, optIdx) => (
+                                          <div key={optIdx} className={optIdx > 0 ? "pt-1 border-t border-slate-100" : ""}>
+                                            <div className="font-bold text-slate-900">
+                                              {isCategoryWise && t5Options.length > 1 && (
+                                                <span className="text-[9px] font-black text-purple-800 uppercase mr-1">Opt {optIdx + 1}:</span>
+                                              )}
+                                              {opt.name || `5★ Luxury Palace Hotel (${day.overnightLocation})`}
+                                            </div>
+                                            <div className="text-[10px] text-slate-500">{opt.roomCategory || 'Luxury Suite'}</div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        <div className="font-bold text-slate-900">{`5★ Luxury Palace Hotel (${day.overnightLocation})`}</div>
+                                        <div className="text-[10px] text-slate-500">Luxury Suite</div>
+                                      </div>
+                                    )}
+                                  </td>
+                                )}
+
                                 <td className="py-1.5 px-2.5 text-slate-600 whitespace-nowrap">
-                                  {t4?.mealPlan || day.hotel?.mealPlan || 'Breakfast (CP)'}
+                                  {day.hotelTiers?.fourStar?.mealPlan || day.hotel?.mealPlan || 'Breakfast (CP)'}
                                 </td>
                               </tr>
                             );
@@ -1443,126 +1533,132 @@ export default function ItineraryPreview({
                   </div>
 
                   {/* Multi-Tiered Comparative Pricing Cards */}
-                  {itinerary.hotelTiersEnabled && (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-                      {/* 3-Star Option Card */}
-                      {(() => {
-                        const tCost = itinerary.pricingTiers?.threeStar?.totalCost || Math.round(itinerary.totalCost * 0.85);
-                        const trans = itinerary.pricingTiers?.threeStar?.transportCost ?? itinerary.transportRate ?? Math.round(tCost * 0.4);
-                        const accom = itinerary.pricingTiers?.threeStar?.accommodationCost ?? (tCost - trans);
-                        const isSelected = itinerary.selectedHotelTier === '3_star';
-                        return (
-                          <div
-                            onClick={() => handleSwitchTier('3_star')}
-                            className={`cursor-pointer p-2.5 rounded-xl border transition ${
-                              isSelected
-                                ? 'bg-amber-50/80 border-amber-400 ring-2 ring-amber-400/50 shadow-sm'
-                                : 'bg-white border-slate-200 hover:border-amber-300'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-black text-[11px] text-amber-900 flex items-center gap-1">
-                                <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                                3★ Comfort
-                              </span>
-                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                                isSelected ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 text-slate-600'
-                              }`}>
-                                {isSelected ? 'Selected' : 'Select'}
-                              </span>
-                            </div>
-                            <div className="text-sm font-black text-slate-900">
-                              {itinerary.currencySymbol}{tCost.toLocaleString('en-IN')}
-                            </div>
-                            {itinerary.itemizedPriceSplit && (
-                              <div className="text-[9px] text-slate-500 mt-1 border-t border-slate-100 pt-1 space-y-0.5">
-                                <div>Transport: ₹{trans.toLocaleString('en-IN')}</div>
-                                <div>Hotels: ₹{accom.toLocaleString('en-IN')}</div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
+                  {itinerary.hotelTiersEnabled && (() => {
+                    const enabledTiers = itinerary.enabledHotelTiers || { star3: true, star4: true, star5: true };
+                    const enabledCount = (enabledTiers.star3 !== false ? 1 : 0) + (enabledTiers.star4 !== false ? 1 : 0) + (enabledTiers.star5 !== false ? 1 : 0);
+                    const gridClass = enabledCount === 1 ? 'grid-cols-1' : enabledCount === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3';
 
-                      {/* 4-Star Option Card */}
-                      {(() => {
-                        const tCost = itinerary.pricingTiers?.fourStar?.totalCost || itinerary.totalCost;
-                        const trans = itinerary.pricingTiers?.fourStar?.transportCost ?? itinerary.transportRate ?? Math.round(tCost * 0.4);
-                        const accom = itinerary.pricingTiers?.fourStar?.accommodationCost ?? (tCost - trans);
-                        const isSelected = itinerary.selectedHotelTier === '4_star';
-                        return (
-                          <div
-                            onClick={() => handleSwitchTier('4_star')}
-                            className={`cursor-pointer p-2.5 rounded-xl border transition ${
-                              isSelected
-                                ? 'bg-blue-50/80 border-blue-400 ring-2 ring-blue-400/50 shadow-sm'
-                                : 'bg-white border-slate-200 hover:border-blue-300'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-black text-[11px] text-blue-900 flex items-center gap-1">
-                                <Star className="w-3 h-3 text-blue-500 fill-blue-500" />
-                                4★ Deluxe
-                              </span>
-                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                                isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
-                              }`}>
-                                {isSelected ? 'Selected' : 'Select'}
-                              </span>
-                            </div>
-                            <div className="text-sm font-black text-slate-900">
-                              {itinerary.currencySymbol}{tCost.toLocaleString('en-IN')}
-                            </div>
-                            {itinerary.itemizedPriceSplit && (
-                              <div className="text-[9px] text-slate-500 mt-1 border-t border-slate-100 pt-1 space-y-0.5">
-                                <div>Transport: ₹{trans.toLocaleString('en-IN')}</div>
-                                <div>Hotels: ₹{accom.toLocaleString('en-IN')}</div>
+                    return (
+                      <div className={`grid ${gridClass} gap-2.5 pt-1`}>
+                        {/* 3-Star Option Card */}
+                        {enabledTiers.star3 !== false && (() => {
+                          const tCost = itinerary.pricingTiers?.threeStar?.totalCost || Math.round(itinerary.totalCost * 0.85);
+                          const trans = itinerary.pricingTiers?.threeStar?.transportCost ?? itinerary.transportRate ?? Math.round(tCost * 0.4);
+                          const accom = itinerary.pricingTiers?.threeStar?.accommodationCost ?? (tCost - trans);
+                          const isSelected = itinerary.selectedHotelTier === '3_star';
+                          return (
+                            <div
+                              onClick={() => handleSwitchTier('3_star')}
+                              className={`cursor-pointer p-2.5 rounded-xl border transition ${
+                                isSelected
+                                  ? 'bg-amber-50/80 border-amber-400 ring-2 ring-amber-400/50 shadow-sm'
+                                  : 'bg-white border-slate-200 hover:border-amber-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-black text-[11px] text-amber-900 flex items-center gap-1">
+                                  <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                                  3★ Comfort
+                                </span>
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                  isSelected ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 text-slate-600'
+                                }`}>
+                                  {isSelected ? 'Selected' : 'Select'}
+                                </span>
                               </div>
-                            )}
-                          </div>
-                        );
-                      })()}
+                              <div className="text-sm font-black text-slate-900">
+                                {itinerary.currencySymbol}{tCost.toLocaleString('en-IN')}
+                              </div>
+                              {itinerary.itemizedPriceSplit && (
+                                <div className="text-[9px] text-slate-500 mt-1 border-t border-slate-100 pt-1 space-y-0.5">
+                                  <div>Transport: ₹{trans.toLocaleString('en-IN')}</div>
+                                  <div>Hotels: ₹{accom.toLocaleString('en-IN')}</div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
 
-                      {/* 5-Star Option Card */}
-                      {(() => {
-                        const tCost = itinerary.pricingTiers?.fiveStar?.totalCost || Math.round(itinerary.totalCost * 1.3);
-                        const trans = itinerary.pricingTiers?.fiveStar?.transportCost ?? itinerary.transportRate ?? Math.round(tCost * 0.4);
-                        const accom = itinerary.pricingTiers?.fiveStar?.accommodationCost ?? (tCost - trans);
-                        const isSelected = itinerary.selectedHotelTier === '5_star';
-                        return (
-                          <div
-                            onClick={() => handleSwitchTier('5_star')}
-                            className={`cursor-pointer p-2.5 rounded-xl border transition ${
-                              isSelected
-                                ? 'bg-purple-50/80 border-purple-400 ring-2 ring-purple-400/50 shadow-sm'
-                                : 'bg-white border-slate-200 hover:border-purple-300'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="font-black text-[11px] text-purple-900 flex items-center gap-1">
-                                <Star className="w-3 h-3 text-purple-500 fill-purple-500" />
-                                5★ Luxury
-                              </span>
-                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                                isSelected ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600'
-                              }`}>
-                                {isSelected ? 'Selected' : 'Select'}
-                              </span>
-                            </div>
-                            <div className="text-sm font-black text-slate-900">
-                              {itinerary.currencySymbol}{tCost.toLocaleString('en-IN')}
-                            </div>
-                            {itinerary.itemizedPriceSplit && (
-                              <div className="text-[9px] text-slate-500 mt-1 border-t border-slate-100 pt-1 space-y-0.5">
-                                <div>Transport: ₹{trans.toLocaleString('en-IN')}</div>
-                                <div>Hotels: ₹{accom.toLocaleString('en-IN')}</div>
+                        {/* 4-Star Option Card */}
+                        {enabledTiers.star4 !== false && (() => {
+                          const tCost = itinerary.pricingTiers?.fourStar?.totalCost || itinerary.totalCost;
+                          const trans = itinerary.pricingTiers?.fourStar?.transportCost ?? itinerary.transportRate ?? Math.round(tCost * 0.4);
+                          const accom = itinerary.pricingTiers?.fourStar?.accommodationCost ?? (tCost - trans);
+                          const isSelected = itinerary.selectedHotelTier === '4_star';
+                          return (
+                            <div
+                              onClick={() => handleSwitchTier('4_star')}
+                              className={`cursor-pointer p-2.5 rounded-xl border transition ${
+                                isSelected
+                                  ? 'bg-blue-50/80 border-blue-400 ring-2 ring-blue-400/50 shadow-sm'
+                                  : 'bg-white border-slate-200 hover:border-blue-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-black text-[11px] text-blue-900 flex items-center gap-1">
+                                  <Star className="w-3 h-3 text-blue-500 fill-blue-500" />
+                                  4★ Deluxe
+                                </span>
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                  isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
+                                }`}>
+                                  {isSelected ? 'Selected' : 'Select'}
+                                </span>
                               </div>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  )}
+                              <div className="text-sm font-black text-slate-900">
+                                {itinerary.currencySymbol}{tCost.toLocaleString('en-IN')}
+                              </div>
+                              {itinerary.itemizedPriceSplit && (
+                                <div className="text-[9px] text-slate-500 mt-1 border-t border-slate-100 pt-1 space-y-0.5">
+                                  <div>Transport: ₹{trans.toLocaleString('en-IN')}</div>
+                                  <div>Hotels: ₹{accom.toLocaleString('en-IN')}</div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+
+                        {/* 5-Star Option Card */}
+                        {enabledTiers.star5 !== false && (() => {
+                          const tCost = itinerary.pricingTiers?.fiveStar?.totalCost || Math.round(itinerary.totalCost * 1.3);
+                          const trans = itinerary.pricingTiers?.fiveStar?.transportCost ?? itinerary.transportRate ?? Math.round(tCost * 0.4);
+                          const accom = itinerary.pricingTiers?.fiveStar?.accommodationCost ?? (tCost - trans);
+                          const isSelected = itinerary.selectedHotelTier === '5_star';
+                          return (
+                            <div
+                              onClick={() => handleSwitchTier('5_star')}
+                              className={`cursor-pointer p-2.5 rounded-xl border transition ${
+                                isSelected
+                                  ? 'bg-purple-50/80 border-purple-400 ring-2 ring-purple-400/50 shadow-sm'
+                                  : 'bg-white border-slate-200 hover:border-purple-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-black text-[11px] text-purple-900 flex items-center gap-1">
+                                  <Star className="w-3 h-3 text-purple-500 fill-purple-500" />
+                                  5★ Luxury
+                                </span>
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                  isSelected ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600'
+                                }`}>
+                                  {isSelected ? 'Selected' : 'Select'}
+                                </span>
+                              </div>
+                              <div className="text-sm font-black text-slate-900">
+                                {itinerary.currencySymbol}{tCost.toLocaleString('en-IN')}
+                              </div>
+                              {itinerary.itemizedPriceSplit && (
+                                <div className="text-[9px] text-slate-500 mt-1 border-t border-slate-100 pt-1 space-y-0.5">
+                                  <div>Transport: ₹{trans.toLocaleString('en-IN')}</div>
+                                  <div>Hotels: ₹{accom.toLocaleString('en-IN')}</div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    );
+                  })()}
 
                   {/* Itemized Line-by-Line Rate Split */}
                   {itinerary.itemizedPriceSplit && (

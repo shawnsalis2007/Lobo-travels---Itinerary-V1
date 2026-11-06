@@ -159,10 +159,24 @@ export interface CitySightseeing {
 
 export type HotelStarTier = '3_star' | '4_star' | '5_star';
 
+export type HotelConfigMode = 'multi_tier' | 'category_wise';
+
+export interface EnabledHotelTiers {
+  star3: boolean;
+  star4: boolean;
+  star5: boolean;
+}
+
 export interface DayHotelTiers {
   threeStar?: DayHotelSelection;
   fourStar?: DayHotelSelection;
   fiveStar?: DayHotelSelection;
+}
+
+export interface CategoryWiseHotelOptions {
+  threeStar?: DayHotelSelection[];
+  fourStar?: DayHotelSelection[];
+  fiveStar?: DayHotelSelection[];
 }
 
 export interface TierPricingData {
@@ -192,6 +206,7 @@ export interface ItineraryDay {
   meals: DayMealPlan;
   hotel?: DayHotelSelection;
   hotelTiers?: DayHotelTiers;
+  categoryWiseHotels?: CategoryWiseHotelOptions;
   excludeHotel?: boolean; // When true, completely exclude/hide hotel for this day
   images: string[];
   notes?: string;
@@ -273,6 +288,8 @@ export interface Itinerary {
   days: ItineraryDay[];
   includeHotels?: boolean;
   hotelTiersEnabled?: boolean;
+  hotelConfigMode?: HotelConfigMode;
+  enabledHotelTiers?: EnabledHotelTiers;
   selectedHotelTier?: HotelStarTier;
   pricingTiers?: PricingTiers;
   itemizedPriceSplit?: boolean;

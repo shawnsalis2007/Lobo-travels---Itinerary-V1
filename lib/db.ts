@@ -1009,58 +1009,61 @@ export async function ensurePostgresTables(forceSeed: boolean = false) {
       }
     }
 
-    // Ensure all 7 seed fleet vehicles are present and explicitly have model_name
-    console.log('[Neon Postgres] Ensuring 7 initial fleet vehicles are seeded...');
-    for (const v of INITIAL_FLEET) {
-      const modelName = v.modelName || (v.brand && v.model ? `${v.brand} ${v.model}` : '') || v.model || v.brand || 'Toyota Innova Crysta';
-      const regNumber = v.registrationNumber || v.plateNumber || 'DL 1ZA ' + Math.floor(1000 + Math.random() * 9000);
-      const category = v.category || v.type || 'MUV';
-      const capacity = Number(v.capacity || v.seats || 7);
-      const fuelType = v.fuelType || 'Diesel';
-      const isActive = v.isActive !== false && v.status !== 'inactive';
+    // Seed fleet if empty
+    const fleetCountRes = await sql`SELECT count(*)::int as cnt FROM fleet`;
+    if (fleetCountRes[0]?.cnt === 0 || forceSeed) {
+      console.log('[Neon Postgres] Seeding initial fleet...');
+      for (const v of INITIAL_FLEET) {
+        const modelName = v.modelName || (v.brand && v.model ? `${v.brand} ${v.model}` : '') || v.model || v.brand || 'Toyota Innova Crysta';
+        const regNumber = v.registrationNumber || v.plateNumber || 'DL 1ZA ' + Math.floor(1000 + Math.random() * 9000);
+        const category = v.category || v.type || 'MUV';
+        const capacity = Number(v.capacity || v.seats || 7);
+        const fuelType = v.fuelType || 'Diesel';
+        const isActive = v.isActive !== false && v.status !== 'inactive';
 
-      const fleetPayload: FleetVehicle = {
-        ...v,
-        brandId: DEFAULT_BRAND_ID,
-        modelName,
-        model: v.model || modelName,
-        brand: v.brand || modelName.split(' ')[0] || 'Toyota',
-        registrationNumber: regNumber,
-        plateNumber: v.plateNumber || regNumber,
-        category,
-        type: v.type || category,
-        capacity,
-        seats: v.seats || capacity,
-        fuelType,
-        isActive,
-        status: v.status || (isActive ? 'active' : 'inactive')
-      };
+        const fleetPayload: FleetVehicle = {
+          ...v,
+          brandId: DEFAULT_BRAND_ID,
+          modelName,
+          model: v.model || modelName,
+          brand: v.brand || modelName.split(' ')[0] || 'Toyota',
+          registrationNumber: regNumber,
+          plateNumber: v.plateNumber || regNumber,
+          category,
+          type: v.type || category,
+          capacity,
+          seats: v.seats || capacity,
+          fuelType,
+          isActive,
+          status: v.status || (isActive ? 'active' : 'inactive')
+        };
 
-      await sql`
-        INSERT INTO fleet (id, brand_id, model_name, registration_number, category, capacity, fuel_type, is_active, data, created_at, updated_at)
-        VALUES (
-          ${v.id},
-          ${DEFAULT_BRAND_ID},
-          ${modelName},
-          ${regNumber},
-          ${category},
-          ${capacity},
-          ${fuelType},
-          ${isActive},
-          ${JSON.stringify(fleetPayload)},
-          NOW(),
-          NOW()
-        )
-        ON CONFLICT (id) DO UPDATE SET
-          model_name = EXCLUDED.model_name,
-          registration_number = EXCLUDED.registration_number,
-          category = EXCLUDED.category,
-          capacity = EXCLUDED.capacity,
-          fuel_type = EXCLUDED.fuel_type,
-          is_active = EXCLUDED.is_active,
-          data = EXCLUDED.data,
-          updated_at = NOW()
-      `;
+        await sql`
+          INSERT INTO fleet (id, brand_id, model_name, registration_number, category, capacity, fuel_type, is_active, data, created_at, updated_at)
+          VALUES (
+            ${v.id},
+            ${DEFAULT_BRAND_ID},
+            ${modelName},
+            ${regNumber},
+            ${category},
+            ${capacity},
+            ${fuelType},
+            ${isActive},
+            ${JSON.stringify(fleetPayload)},
+            NOW(),
+            NOW()
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            model_name = EXCLUDED.model_name,
+            registration_number = EXCLUDED.registration_number,
+            category = EXCLUDED.category,
+            capacity = EXCLUDED.capacity,
+            fuel_type = EXCLUDED.fuel_type,
+            is_active = EXCLUDED.is_active,
+            data = EXCLUDED.data,
+            updated_at = NOW()
+        `;
+      }
     }
 
     // Seed drivers if empty
@@ -2940,7 +2943,7 @@ export async function getDbFleet(brandId?: string): Promise<FleetVehicle[]> {
   }
 
   const local = readLocalStore();
-  let fleet = local.fleet || INITIAL_FLEET;
+  let fleet = Array.isArray(local.fleet) ? local.fleet : INITIAL_FLEET;
   if (brandId && brandId !== DEFAULT_BRAND_ID) {
     fleet = fleet.filter(f => !f.brandId || f.brandId === brandId);
   }
@@ -3030,6 +3033,7 @@ export async function deleteDbFleetVehicle(id: string, actorUserId?: string): Pr
       await ensurePostgresTables();
       const sql = await getPostgresClient();
       if (sql) {
+        await sql`UPDATE fleet SET is_deleted = true, deleted_at = NOW() WHERE id = ${id}`;
         await sql`DELETE FROM fleet WHERE id = ${id}`;
       }
     } catch (err) {

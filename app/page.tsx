@@ -14,6 +14,7 @@ import FleetManager from '@/components/FleetManager';
 import DriversManager from '@/components/DriversManager';
 import ReportsDashboard from '@/components/ReportsDashboard';
 import RemindersScheduling from '@/components/RemindersScheduling';
+import DirectBookingsManager from '@/components/DirectBookingsManager';
 import BrandsManager from '@/components/BrandsManager';
 import UsersManager from '@/components/UsersManager';
 import LoginModal from '@/components/LoginModal';
@@ -664,6 +665,24 @@ export default function Home() {
           />
         )}
 
+        {/* DIRECT BOOKINGS TAB */}
+        {activeTab === 'direct-bookings' && (
+          <DirectBookingsManager
+            bookings={operationalBookings}
+            fleet={fleet}
+            drivers={drivers}
+            settings={settings}
+            onSaveBooking={async (b) => {
+              await saveOperationalBookingAsync(b);
+              await syncFromCloudDatabase();
+            }}
+            onDeleteBooking={async (id) => {
+              await deleteOperationalBookingAsync(id);
+              await syncFromCloudDatabase();
+            }}
+          />
+        )}
+
         {/* REMINDERS TAB */}
         {activeTab === 'reminders' && (
           <RemindersScheduling
@@ -705,6 +724,11 @@ export default function Home() {
               await saveDriverAsync(d);
               await syncFromCloudDatabase();
             }}
+            onBookingCreated={async (b) => {
+              await saveOperationalBookingAsync(b);
+              await syncFromCloudDatabase();
+            }}
+            onNavigateTab={setActiveTab}
           />
         )}
 
@@ -723,6 +747,11 @@ export default function Home() {
               await saveFleetVehicleAsync(v);
               await syncFromCloudDatabase();
             }}
+            onBookingCreated={async (b) => {
+              await saveOperationalBookingAsync(b);
+              await syncFromCloudDatabase();
+            }}
+            onNavigateTab={setActiveTab}
           />
         )}
 

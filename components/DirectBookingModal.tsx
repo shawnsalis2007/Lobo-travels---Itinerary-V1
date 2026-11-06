@@ -36,6 +36,7 @@ interface DirectBookingModalProps {
   settings?: AppSettings;
   initialVehicleId?: string;
   initialDriverId?: string;
+  existingBooking?: OperationalBooking | null;
   onSaveVehicle?: (v: FleetVehicle) => void;
   onSaveDriver?: (d: Driver) => void;
   onBookingCreated?: (booking: OperationalBooking) => void;
@@ -49,6 +50,7 @@ export default function DirectBookingModal({
   settings,
   initialVehicleId,
   initialDriverId,
+  existingBooking,
   onSaveVehicle,
   onSaveDriver,
   onBookingCreated
@@ -132,26 +134,54 @@ export default function DirectBookingModal({
     });
   };
 
-  // Initialize or reset when initial props change
+  // Initialize or reset when initial props change or existing booking is passed
   useEffect(() => {
-    if (initialVehicleId) {
-      setSelectedVehicleId(initialVehicleId);
-      const v = fleet.find((item) => item.id === initialVehicleId);
-      if (v?.defaultDriverId) {
-        setSelectedDriverId(v.defaultDriverId);
+    if (existingBooking) {
+      setBookingType(existingBooking.vehicleSource === 'own' ? 'internal' : 'external');
+      setPackageName(existingBooking.tourPackageName || '');
+      setTourCost(existingBooking.tourCost ? String(existingBooking.tourCost) : '');
+      setNotes(existingBooking.notes || '');
+      setClientName(existingBooking.client.name || '');
+      setClientPhone(existingBooking.client.phone || '');
+      setClientEmail(existingBooking.client.email || '');
+      setStartDate(existingBooking.startDate || todayStr);
+      setEndDate(existingBooking.endDate || todayStr);
+      setPickupLocation(existingBooking.pickupLocation || '');
+      setDropLocation(existingBooking.dropLocation || '');
+      setPickupTime(existingBooking.pickupTime || '09:00');
+      setSelectedVehicleId(existingBooking.ownVehicleId || '');
+      setSelectedDriverId(existingBooking.ownDriverId || '');
+      if (existingBooking.outsourced) {
+        setVendorCompanyName(existingBooking.outsourced.vendorCompanyName || '');
+        setVendorContactPerson(existingBooking.outsourced.vendorContactPerson || '');
+        setVendorPhone(existingBooking.outsourced.vendorContactNumber || '');
+        setVendorCost(existingBooking.outsourced.rate ? String(existingBooking.outsourced.rate) : '');
+        setVendorVehicleDesc(existingBooking.outsourced.vehicleDescription || '');
+        setVendorDriverName(existingBooking.outsourced.driverName || '');
+        setVendorDriverPhone(existingBooking.outsourced.driverPhone || '');
+      }
+      if (existingBooking.assignedTo) {
+        setAssignedTo(existingBooking.assignedTo);
+      }
+      if (existingBooking.calendarAccountIds && existingBooking.calendarAccountIds.length > 0) {
+        setSelectedCalendarIds(new Set(existingBooking.calendarAccountIds));
+      }
+    } else if (isOpen) {
+      if (initialVehicleId) {
+        setSelectedVehicleId(initialVehicleId);
+        const v = fleet.find((item) => item.id === initialVehicleId);
+        if (v?.defaultDriverId) {
+          setSelectedDriverId(v.defaultDriverId);
+        }
+      } else if (initialDriverId) {
+        setSelectedDriverId(initialDriverId);
+        const d = drivers.find((item) => item.id === initialDriverId);
+        if (d?.defaultVehicleId) {
+          setSelectedVehicleId(d.defaultVehicleId);
+        }
       }
     }
-  }, [initialVehicleId, fleet]);
-
-  useEffect(() => {
-    if (initialDriverId) {
-      setSelectedDriverId(initialDriverId);
-      const d = drivers.find((item) => item.id === initialDriverId);
-      if (d?.defaultVehicleId) {
-        setSelectedVehicleId(d.defaultVehicleId);
-      }
-    }
-  }, [initialDriverId, drivers]);
+  }, [existingBooking, isOpen, initialVehicleId, initialDriverId, fleet, drivers, todayStr]);
 
   // Handle vehicle selection with bidirectional auto-selection
   const handleVehicleChange = (vId: string) => {
@@ -243,8 +273,8 @@ export default function DirectBookingModal({
       const nowIso = new Date().toISOString();
       const currentYear = new Date().getFullYear();
       const randomSeq = Math.floor(1000 + Math.random() * 9000);
-      const voucherNo = `DIR-${currentYear}-${randomSeq}`;
-      const bookingId = `ob-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const voucherNo = existingBooking?.voucherNo || `DIR-${currentYear}-${randomSeq}`;
+      const bookingId = existingBooking?.id || `ob-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
       const vehicleDisplay =
         bookingType === 'internal'
@@ -314,8 +344,8 @@ export default function DirectBookingModal({
         ],
         calendarEventIds: [],
         calendarAccountIds: Array.from(selectedCalendarIds),
-        status: 'scheduled',
-        createdAt: nowIso,
+        status: existingBooking?.status || 'scheduled',
+        createdAt: existingBooking?.createdAt || nowIso,
         updatedAt: nowIso,
       };
 
@@ -367,9 +397,11 @@ export default function DirectBookingModal({
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white tracking-tight">Create Standalone Booking</h2>
+              <h2 className="text-lg font-bold text-white tracking-tight">
+                {existingBooking ? `Edit Standalone Booking (${existingBooking.voucherNo})` : 'Create Standalone Booking'}
+              </h2>
               <p className="text-xs text-[#9899A1]">
-                Assign fleet vehicles and chauffeurs directly without requiring a full tour itinerary.
+                {existingBooking ? 'Update details, reassign vehicle/chauffeur, or modify vendor and calendar links.' : 'Assign fleet vehicles and chauffeurs directly without requiring a full tour itinerary.'}
               </p>
             </div>
           </div>
@@ -808,12 +840,12 @@ export default function DirectBookingModal({
               {submitting ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>{calendarSyncStatus || 'Confirming Booking…'}</span>
+                  <span>{calendarSyncStatus || (existingBooking ? 'Saving Changes…' : 'Confirming Booking…')}</span>
                 </>
               ) : (
                 <>
                   <Calendar className="w-3.5 h-3.5" />
-                  <span>Confirm Direct Booking</span>
+                  <span>{existingBooking ? 'Save Changes & Sync' : 'Confirm Direct Booking'}</span>
                 </>
               )}
             </button>
