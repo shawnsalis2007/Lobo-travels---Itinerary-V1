@@ -27,26 +27,25 @@
   .itinerary-day-card .day-description,
   .itinerary-day-card .day-description p,
   .itinerary-day-card .bullet-point,
-  .itinerary-day-card .bullet-point span,
   .itinerary-day-card .sub-bullet-point,
-  .itinerary-day-card .sub-bullet-point span,
   .destination-overview-card,
   .destination-overview-card p,
   .destination-description,
   .sightseeing-item-card,
   .sightseeing-item-card p,
-  .sightseeing-description {
+  .sightseeing-description,
+  .sightseeing-description-text {
     font-weight: 400 !important;
   }
-  .itinerary-day-card .day-description strong,
-  .itinerary-day-card .day-description b,
-  .itinerary-day-card .bullet-point strong,
-  .itinerary-day-card .bullet-point b,
-  .destination-description strong,
-  .destination-description b,
-  .sightseeing-description strong,
-  .sightseeing-description b {
-    font-weight: 400 !important;
+
+  /* Explicit strong bold for place and sightseeing titles (font-weight: 700) */
+  .sightseeing-place-title,
+  .itinerary-day-card .sightseeing-place-title,
+  .itinerary-day-card .sub-bullet-point strong,
+  .itinerary-day-card .sub-bullet-point .sightseeing-place-title,
+  .sub-bullet-point strong {
+    font-weight: 700 !important;
+    color: #0f172a !important;
   }
 
   .monument-photo-card,
@@ -115,28 +114,28 @@
     widows: 3 !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    font-weight: 400 !important;
   }
 
   .day-description,
   .day-description p,
-  .bullet-point span,
-  .sub-bullet-point span,
   .destination-overview-card,
   .destination-overview-card p,
   .destination-description,
   .sightseeing-item-card,
   .sightseeing-item-card p,
   .sightseeing-description,
-  .day-description strong,
-  .day-description b,
-  .bullet-point strong,
-  .bullet-point b,
-  .destination-description strong,
-  .destination-description b,
-  .sightseeing-description strong,
-  .sightseeing-description b {
+  .sightseeing-description-text {
     font-weight: 400 !important;
+  }
+
+  /* Place/Sightseeing titles strongly bolded in print (font-weight: 700) */
+  .sightseeing-place-title,
+  .itinerary-day-card .sightseeing-place-title,
+  .itinerary-day-card .sub-bullet-point strong,
+  .itinerary-day-card .sub-bullet-point .sightseeing-place-title,
+  .sub-bullet-point strong {
+    font-weight: 700 !important;
+    color: #0f172a !important;
   }
 
   /* Fixed Footer Across All Pages in Print */

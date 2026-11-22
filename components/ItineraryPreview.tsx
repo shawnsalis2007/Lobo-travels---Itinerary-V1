@@ -470,14 +470,27 @@ export default function ItineraryPreview({
       <div key={key} className="sub-bullet-point ml-5 flex items-start gap-1.5 text-slate-700 font-normal">
         <span className="text-amber-600 font-bold text-[11px] leading-tight select-none flex-shrink-0">•</span>
         <div className="flex-1 text-xs text-slate-700 leading-relaxed font-normal">
-          <strong className="font-bold text-slate-900">{sight.name}</strong>
+          <strong 
+            className="sightseeing-place-title font-bold text-slate-900" 
+            style={{ fontWeight: 700 }}
+          >
+            {sight.name}
+          </strong>
           {sight.unesco && (
-            <span className="ml-1.5 text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 align-middle">
+            <span 
+              className="ml-1.5 text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 align-middle inline-block"
+              style={{ fontWeight: 800 }}
+            >
               UNESCO
             </span>
           )}
           {sight.description ? (
-            <span className="font-normal text-slate-700"> – {stripBoldFormatting(sight.description)}</span>
+            <span 
+              className="sightseeing-description-text font-normal text-slate-700" 
+              style={{ fontWeight: 400 }}
+            >
+              {' '}– {stripBoldFormatting(sight.description)}
+            </span>
           ) : null}
         </div>
       </div>
