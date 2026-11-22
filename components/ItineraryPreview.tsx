@@ -113,13 +113,27 @@ export default function ItineraryPreview({
 
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
-  // Dynamic lookup catalogues
+  // Dynamic lookup catalogues (merges custom items with comprehensive catalogues to prevent shadowing)
   const activeAttractions = React.useMemo(() => {
-    return (attractions && attractions.length > 0) ? attractions : COMPREHENSIVE_ATTRACTIONS;
+    const custom = Array.isArray(attractions) ? attractions : [];
+    const merged = [...custom];
+    COMPREHENSIVE_ATTRACTIONS.forEach(a => {
+      if (!merged.some(m => m.id === a.id || m.name.toLowerCase() === a.name.toLowerCase())) {
+        merged.push(a);
+      }
+    });
+    return merged;
   }, [attractions]);
 
   const activeDestinations = React.useMemo(() => {
-    return (destinations && destinations.length > 0) ? destinations : COMPREHENSIVE_DESTINATIONS;
+    const custom = Array.isArray(destinations) ? destinations : [];
+    const merged = [...custom];
+    COMPREHENSIVE_DESTINATIONS.forEach(d => {
+      if (!merged.some(m => m.id === d.id || m.name.toLowerCase() === d.name.toLowerCase())) {
+        merged.push(d);
+      }
+    });
+    return merged;
   }, [destinations]);
 
   // Derived route subtitle
@@ -221,6 +235,132 @@ export default function ItineraryPreview({
       });
     }
     return sights;
+  };
+
+  // Helper to retrieve all destination details (with descriptions) for a day
+  const getDayDestinationDetails = (day: ItineraryDay): { id?: string; name: string; state?: string; description?: string }[] => {
+    const destList: { id?: string; name: string; state?: string; description?: string }[] = [];
+    const seenNames = new Set<string>();
+
+    const addDest = (name?: string, explicitDesc?: string) => {
+      if (!name || !name.trim()) return;
+      const trimmed = name.trim();
+      const lower = trimmed.toLowerCase();
+      if (seenNames.has(lower)) return;
+      seenNames.add(lower);
+
+      const found = activeDestinations.find(d => d.name.toLowerCase() === lower || d.id.toLowerCase() === lower)
+        || COMPREHENSIVE_DESTINATIONS.find(d => d.name.toLowerCase() === lower || d.id.toLowerCase() === lower);
+
+      const desc = explicitDesc?.trim() 
+        || (found as any)?.shortDescription?.trim() 
+        || (found as any)?.detailedDescription?.trim() 
+        || (found as any)?.description?.trim() 
+        || '';
+
+      destList.push({
+        id: found?.id || trimmed,
+        name: found?.name || trimmed,
+        state: found?.state,
+        description: desc
+      });
+    };
+
+    if (day.isMultiCity && day.cities && day.cities.length > 0) {
+      day.cities.forEach(c => {
+        addDest(c.destination, c.destinationDescription);
+      });
+    } else {
+      addDest(day.destination, day.destinationDescription);
+    }
+
+    return destList;
+  };
+
+  // Helper to retrieve detailed sightseeing spots (with descriptions, unesco, category, duration) for a day
+  const getDaySightseeingDetails = (day: ItineraryDay): {
+    id: string;
+    name: string;
+    category?: string;
+    duration?: string;
+    unesco?: boolean;
+    description?: string;
+  }[] => {
+    const list: {
+      id: string;
+      name: string;
+      category?: string;
+      duration?: string;
+      unesco?: boolean;
+      description?: string;
+    }[] = [];
+    const seenNames = new Set<string>();
+
+    const processItem = (idOrName: string, explicitDesc?: string) => {
+      if (!idOrName || !idOrName.trim()) return;
+      const trimmed = idOrName.trim();
+      const lower = trimmed.toLowerCase();
+
+      // Find in activeAttractions or COMPREHENSIVE_ATTRACTIONS
+      const found = activeAttractions.find(a => a.id.toLowerCase() === lower || a.name.toLowerCase() === lower)
+        || COMPREHENSIVE_ATTRACTIONS.find(a => a.id.toLowerCase() === lower || a.name.toLowerCase() === lower);
+
+      const name = found?.name || trimmed;
+      if (seenNames.has(name.toLowerCase())) return;
+      seenNames.add(name.toLowerCase());
+
+      const desc = explicitDesc?.trim()
+        || (day.attractionDescriptions && (day.attractionDescriptions[found?.id || ''] || day.attractionDescriptions[name] || day.attractionDescriptions[trimmed]))
+        || (found as any)?.detailedDescription?.trim()
+        || (found as any)?.shortDescription?.trim()
+        || (found as any)?.description?.trim()
+        || '';
+
+      list.push({
+        id: found?.id || trimmed,
+        name,
+        category: found?.category,
+        duration: found?.duration || (found as any)?.estimatedDuration,
+        unesco: found?.unesco,
+        description: desc
+      });
+    };
+
+    // 1. Process from day.attractionIds
+    if (day.attractionIds && day.attractionIds.length > 0) {
+      day.attractionIds.forEach(id => {
+        const desc = day.attractionDescriptions?.[id];
+        processItem(id, desc);
+      });
+    }
+
+    // 2. Process from day.attractionNames
+    if (day.attractionNames && day.attractionNames.length > 0) {
+      day.attractionNames.forEach(name => {
+        const desc = day.attractionDescriptions?.[name];
+        processItem(name, desc);
+      });
+    }
+
+    // 3. Process multi-city circuits
+    if (day.isMultiCity && day.cities && day.cities.length > 0) {
+      day.cities.forEach(city => {
+        if (city.attractionIds && city.attractionIds.length > 0) {
+          city.attractionIds.forEach(id => {
+            const desc = city.attractionDescriptions?.[id] || day.attractionDescriptions?.[id];
+            processItem(id, desc);
+          });
+        }
+        if (city.attractionNames && city.attractionNames.length > 0) {
+          city.attractionNames.forEach(name => {
+            const desc = city.attractionDescriptions?.[name] || day.attractionDescriptions?.[name];
+            processItem(name, desc);
+          });
+        }
+      });
+    }
+
+    return list;
   };
 
   // Strip bold tags and markdown asterisks from description text so it always renders in normal weight (400)
@@ -1263,6 +1403,34 @@ export default function ItineraryPreview({
                       </div>
                     )}
 
+                    {/* Destination Overview Cards with Description */}
+                    {(() => {
+                      const dests = getDayDestinationDetails(day);
+                      if (dests.length === 0) return null;
+                      const destsWithDesc = dests.filter(d => Boolean(d.description && d.description.trim()));
+                      if (destsWithDesc.length === 0) return null;
+
+                      return (
+                        <div className="destination-descriptions-container space-y-1.5" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                          {destsWithDesc.map((dest, idx) => (
+                            <div 
+                              key={dest.id || idx} 
+                              className="destination-overview-card p-2.5 rounded-lg bg-amber-50/50 border border-amber-200/80 text-xs"
+                              style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+                            >
+                              <div className="flex items-center gap-1.5 font-bold text-amber-950 text-[11px] mb-1">
+                                <MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                <span>Destination Overview: {dest.name}{dest.state ? ` (${dest.state})` : ''}</span>
+                              </div>
+                              <p className="destination-description font-normal text-slate-700 leading-relaxed text-[11px]">
+                                {stripBoldFormatting(dest.description || '')}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+
                     {/* Sights Covered Badges */}
                     {(() => {
                       const daySights = getDayAttractionNames(day);
@@ -1299,6 +1467,67 @@ export default function ItineraryPreview({
                       <span className="font-bold text-slate-900">Meals Included:</span>{' '}
                       <span className="font-medium text-slate-700">{formatMealsIncluded(day.meals)}</span>
                     </div>
+
+                    {/* Sightseeing Activities & Spots Breakdown with Descriptions */}
+                    {(() => {
+                      const sights = getDaySightseeingDetails(day);
+                      if (sights.length === 0) return null;
+
+                      return (
+                        <div className="sightseeing-activities-section space-y-2 pt-1" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                          <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                              <Compass className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              Sightseeing Activities & Highlights:
+                            </span>
+                            <span className="text-[9px] font-semibold text-slate-400">
+                              {sights.length} {sights.length === 1 ? 'Attraction' : 'Attractions'} Covered
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-2">
+                            {sights.map((sight, sIdx) => (
+                              <div 
+                                key={sight.id || sIdx}
+                                className="sightseeing-item-card p-2.5 rounded-lg bg-slate-50/80 border border-slate-200/90 text-xs space-y-1"
+                                style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+                              >
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                    <span className="text-slate-950 font-bold">{sight.name}</span>
+                                    {sight.unesco && (
+                                      <span className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 leading-tight">
+                                        UNESCO
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-[10px] text-slate-500 font-normal">
+                                    {sight.category && (
+                                      <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600 font-normal">
+                                        {sight.category}
+                                      </span>
+                                    )}
+                                    {sight.duration && (
+                                      <span className="flex items-center gap-1 text-slate-500 font-normal">
+                                        <Clock className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                                        <span>{sight.duration}</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {sight.description ? (
+                                  <p className="sightseeing-description font-normal text-slate-700 leading-relaxed text-xs pl-2.5 border-l-2 border-amber-400/80 mt-1">
+                                    {stripBoldFormatting(sight.description)}
+                                  </p>
+                                ) : null}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Key Highlight Attractions & Monuments Photos Grid (Strictly Square 1:1 Images) */}
                     {(() => {

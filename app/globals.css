@@ -29,17 +29,29 @@
   .itinerary-day-card .bullet-point,
   .itinerary-day-card .bullet-point span,
   .itinerary-day-card .sub-bullet-point,
-  .itinerary-day-card .sub-bullet-point span {
+  .itinerary-day-card .sub-bullet-point span,
+  .destination-overview-card,
+  .destination-overview-card p,
+  .destination-description,
+  .sightseeing-item-card,
+  .sightseeing-item-card p,
+  .sightseeing-description {
     font-weight: 400 !important;
   }
   .itinerary-day-card .day-description strong,
   .itinerary-day-card .day-description b,
   .itinerary-day-card .bullet-point strong,
-  .itinerary-day-card .bullet-point b {
+  .itinerary-day-card .bullet-point b,
+  .destination-description strong,
+  .destination-description b,
+  .sightseeing-description strong,
+  .sightseeing-description b {
     font-weight: 400 !important;
   }
 
   .monument-photo-card,
+  .destination-overview-card,
+  .sightseeing-item-card,
   .page-break-inside-avoid,
   .break-inside-avoid {
     page-break-inside: avoid;
@@ -89,7 +101,9 @@
     break-after: avoid !important;
   }
 
-  .monument-photo-card {
+  .monument-photo-card,
+  .destination-overview-card,
+  .sightseeing-item-card {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     -webkit-column-break-inside: avoid !important;
@@ -108,10 +122,20 @@
   .day-description p,
   .bullet-point span,
   .sub-bullet-point span,
+  .destination-overview-card,
+  .destination-overview-card p,
+  .destination-description,
+  .sightseeing-item-card,
+  .sightseeing-item-card p,
+  .sightseeing-description,
   .day-description strong,
   .day-description b,
   .bullet-point strong,
-  .bullet-point b {
+  .bullet-point b,
+  .destination-description strong,
+  .destination-description b,
+  .sightseeing-description strong,
+  .sightseeing-description b {
     font-weight: 400 !important;
   }
 

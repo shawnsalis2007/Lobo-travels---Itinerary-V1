@@ -1476,6 +1476,13 @@ export default function ItineraryBuilder({
       if (field === 'destination') {
         dest = value;
         targetDay.destination = value;
+        const matchingDest = destinations.find(d => 
+          d.name.toLowerCase() === (value || '').toLowerCase() || 
+          d.id.toLowerCase() === (value || '').toLowerCase()
+        );
+        if (matchingDest) {
+          targetDay.destinationDescription = matchingDest.shortDescription || matchingDest.detailedDescription;
+        }
         if (targetDay.isOvernightSameLocation) {
           overLoc = value;
           targetDay.overnightLocation = value;
@@ -2309,11 +2316,24 @@ export default function ItineraryBuilder({
       .map(id => localAttractions.find(a => a.id === id)?.name || id)
       .filter(Boolean);
 
+    const updatedDescriptions = { ...(day.attractionDescriptions || {}) };
+    if (exists) {
+      delete updatedDescriptions[attraction.id];
+      delete updatedDescriptions[attraction.name];
+    } else {
+      const desc = attraction.detailedDescription || attraction.shortDescription;
+      if (desc) {
+        updatedDescriptions[attraction.id] = desc;
+        updatedDescriptions[attraction.name] = desc;
+      }
+    }
+
     const updatedDays = [...itinerary.days];
     const updatedDay: ItineraryDay = {
       ...day,
       attractionIds: updatedIds,
       attractionNames: updatedNames,
+      attractionDescriptions: updatedDescriptions,
       images: updatedImages
     };
 
@@ -2414,9 +2434,15 @@ export default function ItineraryBuilder({
     }
 
     const isDepDay = Boolean(targetDay.departureDetails?.enabled);
+    const matchingCityDest = destinations.find(d => 
+      d.name.toLowerCase() === (newCityName || '').toLowerCase() || 
+      d.id.toLowerCase() === (newCityName || '').toLowerCase()
+    );
+
     currentCities.push({
       id: 'c-' + Date.now(),
       destination: newCityName,
+      destinationDescription: matchingCityDest ? (matchingCityDest.shortDescription || matchingCityDest.detailedDescription) : undefined,
       attractionIds: [],
       attractionNames: [],
       checkOut: false,
@@ -2441,6 +2467,13 @@ export default function ItineraryBuilder({
 
       if ('destination' in patch && patch.destination) {
         const newDest = patch.destination;
+        const matchingCityDest = destinations.find(d => 
+          d.name.toLowerCase() === newDest.toLowerCase() || 
+          d.id.toLowerCase() === newDest.toLowerCase()
+        );
+        if (matchingCityDest) {
+          targetCity.destinationDescription = matchingCityDest.shortDescription || matchingCityDest.detailedDescription;
+        }
         // Recalculate route if destination changed
         if (cityIndex > 0 && currentCities[cityIndex - 1]?.driveToNext) {
           const prevCity = currentCities[cityIndex - 1];
@@ -2503,20 +2536,37 @@ export default function ItineraryBuilder({
       .map(id => localAttractions.find(a => a.id === id)?.name || id)
       .filter(Boolean);
 
+    const updatedCityDescriptions = { ...(targetCity.attractionDescriptions || {}) };
+    if (exists) {
+      delete updatedCityDescriptions[attraction.id];
+      delete updatedCityDescriptions[attraction.name];
+    } else {
+      const desc = attraction.detailedDescription || attraction.shortDescription;
+      if (desc) {
+        updatedCityDescriptions[attraction.id] = desc;
+        updatedCityDescriptions[attraction.name] = desc;
+      }
+    }
+    targetCity.attractionDescriptions = updatedCityDescriptions;
+
     currentCities[cityIndex] = targetCity;
     targetDay.cities = currentCities;
 
-    // Collect all attraction names & images
+    // Collect all attraction names & images & descriptions
     const allAttractionNames: string[] = [];
     const allImages: string[] = [];
+    const allAttractionDescriptions: Record<string, string> = { ...(targetDay.attractionDescriptions || {}) };
+
     currentCities.forEach(c => {
       if (c.attractionNames) allAttractionNames.push(...c.attractionNames);
+      if (c.attractionDescriptions) Object.assign(allAttractionDescriptions, c.attractionDescriptions);
       c.attractionIds.forEach(id => {
         const att = localAttractions.find(a => a.id === id);
         if (att?.image && !allImages.includes(att.image)) allImages.push(att.image);
       });
     });
     targetDay.attractionNames = allAttractionNames;
+    targetDay.attractionDescriptions = allAttractionDescriptions;
     targetDay.images = allImages.length > 0 ? allImages : targetDay.images;
 
     targetDay.description = generateAutoDayDescription(targetDay, dayIndex, itinerary.days.length, itinerary.includeHotels);

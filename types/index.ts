@@ -136,8 +136,10 @@ export interface InterCitySeaplaneDetails {
 export interface CitySightseeing {
   id: string;
   destination: string;
+  destinationDescription?: string;
   attractionIds: string[];
   attractionNames: string[];
+  attractionDescriptions?: Record<string, string>;
   checkIn?: boolean;
   checkOut?: boolean;
   skipSightseeing?: boolean; // Proceed to next destination without sightseeing in this city
@@ -204,8 +206,10 @@ export interface ItineraryDay {
   date?: string;
   title: string;
   destination: string;
+  destinationDescription?: string;
   attractionIds: string[];
   attractionNames: string[];
+  attractionDescriptions?: Record<string, string>;
   description: string;
   isOvernightSameLocation: boolean;
   overnightLocation: string;
