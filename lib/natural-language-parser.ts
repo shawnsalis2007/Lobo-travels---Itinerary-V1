@@ -803,6 +803,12 @@ export function generateItineraryFromPrompt(
     itemizedPriceSplit: false,
     transportRate,
     accommodationRate,
+    flightRate: 0,
+    lumpSumComponents: {
+      hotel: includeHotels,
+      car: true,
+      flight: false,
+    },
     showCostInItinerary: true,
     costDisplayType: 'total_only',
     currency: 'INR',

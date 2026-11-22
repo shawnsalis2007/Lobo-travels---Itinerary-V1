@@ -1789,37 +1789,60 @@ export default function ItineraryPreview({
                   })()}
 
                   {/* Itemized Line-by-Line Rate Split */}
-                  {itinerary.itemizedPriceSplit && (
-                    <div className="p-2.5 rounded-lg bg-white border border-slate-200 space-y-1.5 text-[11px]">
-                      <span className="font-bold text-slate-800 uppercase tracking-wider text-[10px] block">
-                        Itemized Pricing Component Breakdown
-                      </span>
-                      <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                        <span className="text-slate-600 flex items-center gap-1.5">
-                          <Car className="w-3.5 h-3.5 text-blue-600" />
-                          <span><strong>Transport & Logistics Rate:</strong> Private Chauffeur, Fuel, Tolls, Intercity Transfers & Sightseeing</span>
+                  {itinerary.itemizedPriceSplit && (() => {
+                    const comps = {
+                      hotel: itinerary.lumpSumComponents?.hotel !== false,
+                      car: itinerary.lumpSumComponents?.car !== false,
+                      flight: itinerary.lumpSumComponents?.flight ?? Boolean(itinerary.flightRate && itinerary.flightRate > 0),
+                    };
+
+                    return (
+                      <div className="p-2.5 rounded-lg bg-white border border-slate-200 space-y-1.5 text-[11px]">
+                        <span className="font-bold text-slate-800 uppercase tracking-wider text-[10px] block">
+                          Itemized Pricing Component Breakdown
                         </span>
-                        <span className="font-bold text-slate-900 whitespace-nowrap ml-2">
-                          {itinerary.currencySymbol}{(itinerary.transportRate || 0).toLocaleString('en-IN')}
-                        </span>
+                        {comps.car && (
+                          <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                            <span className="text-slate-600 flex items-center gap-1.5">
+                              <Car className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                              <span><strong>Transport & Logistics Rate:</strong> Private Chauffeur, Fuel, Tolls, Intercity Transfers & Sightseeing</span>
+                            </span>
+                            <span className="font-bold text-slate-900 whitespace-nowrap ml-2">
+                              {itinerary.currencySymbol}{(itinerary.transportRate || 0).toLocaleString('en-IN')}
+                            </span>
+                          </div>
+                        )}
+                        {comps.hotel && (
+                          <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                            <span className="text-slate-600 flex items-center gap-1.5">
+                              <Building2 className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                              <span><strong>Accommodation Rate:</strong> Hotel Stays & Confirmed Meal Plan</span>
+                            </span>
+                            <span className="font-bold text-slate-900 whitespace-nowrap ml-2">
+                              {itinerary.currencySymbol}{(itinerary.accommodationRate || 0).toLocaleString('en-IN')}
+                            </span>
+                          </div>
+                        )}
+                        {comps.flight && (itinerary.flightRate !== undefined && itinerary.flightRate > 0) && (
+                          <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                            <span className="text-slate-600 flex items-center gap-1.5">
+                              <Plane className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                              <span><strong>Flight & Airfare Rate:</strong> Confirmed Air Tickets & Airline Logistics</span>
+                            </span>
+                            <span className="font-bold text-slate-900 whitespace-nowrap ml-2">
+                              {itinerary.currencySymbol}{(itinerary.flightRate || 0).toLocaleString('en-IN')}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between pt-1 font-semibold text-slate-900">
+                          <span>Total Package Commercial Value:</span>
+                          <span className="font-black text-slate-950">
+                            {itinerary.currencySymbol}{itinerary.totalCost.toLocaleString('en-IN')}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between py-1 border-b border-slate-100">
-                        <span className="text-slate-600 flex items-center gap-1.5">
-                          <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                          <span><strong>Accommodation Rate:</strong> Hotel Stays & Confirmed Meal Plan</span>
-                        </span>
-                        <span className="font-bold text-slate-900 whitespace-nowrap ml-2">
-                          {itinerary.currencySymbol}{(itinerary.accommodationRate || 0).toLocaleString('en-IN')}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between pt-1 font-semibold text-slate-900">
-                        <span>Total Package Commercial Value:</span>
-                        <span className="font-black text-slate-950">
-                          {itinerary.currencySymbol}{itinerary.totalCost.toLocaleString('en-IN')}
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Financial Ledger (Total, Advance, Balance) */}
                   <div className="grid grid-cols-3 gap-2 text-[11px]">

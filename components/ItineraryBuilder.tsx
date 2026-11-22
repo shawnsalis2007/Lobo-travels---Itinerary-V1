@@ -44,7 +44,8 @@ import {
   Ship,
   Sailboat,
   TrainTrack,
-  PlaneTakeoff
+  PlaneTakeoff,
+  Calculator
 } from 'lucide-react';
 import { 
   Itinerary, 
@@ -74,7 +75,8 @@ import {
   DayHotelTiers,
   TierPricingData,
   PricingTiers,
-  DayHotelSelection
+  DayHotelSelection,
+  LumpSumPricingComponents
 } from '@/types';
 import { PRESET_ROUTES } from '@/lib/mock-data';
 import { INTERCITY_ROUTES } from '@/lib/catalog-data';
@@ -317,6 +319,14 @@ export default function ItineraryBuilder({
       if (copy.itemizedPriceSplit === undefined) copy.itemizedPriceSplit = false;
       if (copy.transportRate === undefined) copy.transportRate = Math.round((copy.totalCost || 45000) * 0.4);
       if (copy.accommodationRate === undefined) copy.accommodationRate = (copy.totalCost || 45000) - (copy.transportRate || 0);
+      if (copy.flightRate === undefined) copy.flightRate = 0;
+      if (!copy.lumpSumComponents) {
+        copy.lumpSumComponents = {
+          hotel: copy.includeHotels !== false,
+          car: true,
+          flight: Boolean(copy.flightRate && copy.flightRate > 0)
+        };
+      }
       return copy;
     }
 
@@ -392,6 +402,12 @@ export default function ItineraryBuilder({
       itemizedPriceSplit: false,
       transportRate: 18000,
       accommodationRate: 27000,
+      flightRate: 0,
+      lumpSumComponents: {
+        hotel: true,
+        car: true,
+        flight: false
+      },
       days: [defaultDay],
       showCostInItinerary: true,
       costDisplayType: 'total_only',
@@ -727,10 +743,15 @@ export default function ItineraryBuilder({
           }
         };
       }
+      const comps = prev.lumpSumComponents || { hotel: true, car: true, flight: Boolean(prev.flightRate && prev.flightRate > 0) };
+      const currentFlight = comps.flight ? (prev.flightRate || 0) : 0;
+      const currentTrans = comps.car !== false ? (prev.transportRate || 0) : 0;
+      const newAccom = comps.hotel !== false ? Math.max(0, val - currentTrans - currentFlight) : prev.accommodationRate;
+
       return {
         ...prev,
         totalCost: val,
-        accommodationRate: prev.transportRate !== undefined ? Math.max(0, val - prev.transportRate) : prev.accommodationRate,
+        accommodationRate: newAccom,
         pricingTiers: updatedPricingTiers,
         ...payment
       };
@@ -1154,27 +1175,74 @@ export default function ItineraryBuilder({
     });
   };
 
+  const computeLumpSumTotalCost = (
+    trans: number,
+    accom: number,
+    flight: number,
+    comps?: LumpSumPricingComponents
+  ): number => {
+    let total = 0;
+    if (comps?.car !== false) total += Math.max(0, trans || 0);
+    if (comps?.hotel !== false) total += Math.max(0, accom || 0);
+    if (comps?.flight) total += Math.max(0, flight || 0);
+    return total;
+  };
+
+  const handleToggleLumpSumComponent = (component: 'hotel' | 'car' | 'flight', enabled: boolean) => {
+    setItinerary(prev => {
+      const currentComps: LumpSumPricingComponents = {
+        hotel: prev.lumpSumComponents?.hotel !== false,
+        car: prev.lumpSumComponents?.car !== false,
+        flight: prev.lumpSumComponents?.flight ?? Boolean(prev.flightRate && prev.flightRate > 0),
+      };
+      const updatedComps: LumpSumPricingComponents = {
+        ...currentComps,
+        [component]: enabled
+      };
+      const newTotal = computeLumpSumTotalCost(
+        prev.transportRate ?? 0,
+        prev.accommodationRate ?? 0,
+        prev.flightRate ?? 0,
+        updatedComps
+      );
+      const payment = computePayment(newTotal, prev.advancePaid);
+      return {
+        ...prev,
+        lumpSumComponents: updatedComps,
+        totalCost: newTotal,
+        ...payment
+      };
+    });
+  };
+
   const handleToggleItemizedSplit = (enabled: boolean) => {
     setItinerary(prev => {
       let tRate = prev.transportRate;
       let aRate = prev.accommodationRate;
+      let fRate = prev.flightRate ?? 0;
       if (tRate === undefined || aRate === undefined) {
         tRate = Math.round(prev.totalCost * 0.4);
-        aRate = prev.totalCost - tRate;
+        aRate = Math.max(0, prev.totalCost - tRate - fRate);
       }
       return {
         ...prev,
         itemizedPriceSplit: enabled,
         costDisplayType: enabled ? 'itemized_split' : 'total_only',
         transportRate: tRate,
-        accommodationRate: aRate
+        accommodationRate: aRate,
+        flightRate: fRate
       };
     });
   };
 
   const handleTransportRateChange = (val: number) => {
     setItinerary(prev => {
-      const newTotal = val + (prev.accommodationRate || 0);
+      const newTotal = computeLumpSumTotalCost(
+        val,
+        prev.accommodationRate ?? 0,
+        prev.flightRate ?? 0,
+        prev.lumpSumComponents
+      );
       const payment = computePayment(newTotal, prev.advancePaid);
       return {
         ...prev,
@@ -1187,11 +1255,34 @@ export default function ItineraryBuilder({
 
   const handleAccommodationRateChange = (val: number) => {
     setItinerary(prev => {
-      const newTotal = (prev.transportRate || 0) + val;
+      const newTotal = computeLumpSumTotalCost(
+        prev.transportRate ?? 0,
+        val,
+        prev.flightRate ?? 0,
+        prev.lumpSumComponents
+      );
       const payment = computePayment(newTotal, prev.advancePaid);
       return {
         ...prev,
         accommodationRate: val,
+        totalCost: newTotal,
+        ...payment
+      };
+    });
+  };
+
+  const handleFlightRateChange = (val: number) => {
+    setItinerary(prev => {
+      const newTotal = computeLumpSumTotalCost(
+        prev.transportRate ?? 0,
+        prev.accommodationRate ?? 0,
+        val,
+        prev.lumpSumComponents
+      );
+      const payment = computePayment(newTotal, prev.advancePaid);
+      return {
+        ...prev,
+        flightRate: val,
         totalCost: newTotal,
         ...payment
       };
@@ -7296,14 +7387,14 @@ export default function ItineraryBuilder({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-900">
-                      Itemized Component Price Split
+                      Itemized Component Price Split in Proposal
                     </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-                      Transport & Logistics vs Accommodation
+                      Hotel + Car + Flight
                     </span>
                   </div>
                   <span className="text-[11px] text-slate-500">
-                    Separate rates line-by-line: Transport & Logistics (car, chauffeur, transfers, sightseeing) and Accommodation (hotels).
+                    When enabled, the client proposal displays a line-by-line itemized breakdown of enabled components (Hotel, Car/Vehicle, Flight).
                   </span>
                 </div>
                 <label className="inline-flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-slate-200">
@@ -7314,7 +7405,7 @@ export default function ItineraryBuilder({
                     className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-xs font-semibold text-slate-800">
-                    {itinerary.itemizedPriceSplit ? 'Itemized Split On' : 'Lump Sum Total'}
+                    {itinerary.itemizedPriceSplit ? 'Itemized Split On' : 'Lump Sum Only'}
                   </span>
                 </label>
               </div>
@@ -7598,51 +7689,199 @@ export default function ItineraryBuilder({
                 );
               })()}
 
-              {/* Single Tier Itemized Split Inputs (If NOT multi-tier but itemized split enabled) */}
-              {!itinerary.hotelTiersEnabled && itinerary.itemizedPriceSplit && (
-                <div className="p-4 rounded-xl bg-blue-50/50 border border-blue-200 space-y-3">
-                  <span className="text-xs font-bold text-blue-950 block">
-                    Itemized Cost Split Breakdown
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Transport & Logistics Rate (INR)
-                      </label>
-                      <p className="text-[10px] text-slate-500 mb-1">Car, chauffeur, fuel, toll, intercity transfers & sightseeing</p>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2 font-bold text-slate-400">₹</span>
-                        <input
-                          type="number"
-                          min="0"
-                          step="500"
-                          value={itinerary.transportRate ?? 0}
-                          onChange={(e) => handleTransportRateChange(parseFloat(e.target.value) || 0)}
-                          className="w-full pl-8 pr-3 py-2 text-sm font-bold bg-white border border-slate-200 rounded-lg text-slate-900"
-                        />
+              {/* Lump Sum Pricing / Cost Calculation Components (Hotel, Car/Vehicle, Flight) */}
+              {!itinerary.hotelTiersEnabled && (() => {
+                const comps: LumpSumPricingComponents = {
+                  hotel: itinerary.lumpSumComponents?.hotel !== false,
+                  car: itinerary.lumpSumComponents?.car !== false,
+                  flight: itinerary.lumpSumComponents?.flight ?? Boolean(itinerary.flightRate && itinerary.flightRate > 0),
+                };
+
+                const activeCount = (comps.hotel ? 1 : 0) + (comps.car ? 1 : 0) + (comps.flight ? 1 : 0);
+
+                return (
+                  <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Calculator className="w-4 h-4 text-amber-500" />
+                          <h4 className="text-sm font-black text-slate-900">
+                            Lump Sum Cost Calculation Components
+                          </h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                            {activeCount} of 3 Included
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Toggle components on or off to include or exclude each item from the total package calculation and client proposal.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1 rounded-xl self-start sm:self-auto">
+                        <span className="text-[10px] uppercase tracking-wider text-slate-400">Included:</span>
+                        <span className="text-slate-800">
+                          {[
+                            comps.hotel ? 'Hotel' : null,
+                            comps.car ? 'Car' : null,
+                            comps.flight ? 'Flight' : null
+                          ].filter(Boolean).join(' + ') || 'None'}
+                        </span>
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Accommodation Rate (INR)
-                      </label>
-                      <p className="text-[10px] text-slate-500 mb-1">Hotels & lodging total cost</p>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2 font-bold text-slate-400">₹</span>
-                        <input
-                          type="number"
-                          min="0"
-                          step="500"
-                          value={itinerary.accommodationRate ?? 0}
-                          onChange={(e) => handleAccommodationRateChange(parseFloat(e.target.value) || 0)}
-                          className="w-full pl-8 pr-3 py-2 text-sm font-bold bg-white border border-slate-200 rounded-lg text-slate-900"
-                        />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* HOTEL COMPONENT */}
+                      <div className={`p-4 rounded-xl border transition-all ${
+                        comps.hotel
+                          ? 'bg-indigo-50/30 border-indigo-200 ring-1 ring-indigo-400/30'
+                          : 'bg-slate-50/70 border-slate-200 opacity-75'
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={comps.hotel}
+                              onChange={(e) => handleToggleLumpSumComponent('hotel', e.target.checked)}
+                              className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            />
+                            <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                              <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                              Hotel
+                            </span>
+                          </label>
+                          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                            comps.hotel ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-200 text-slate-600'
+                          }`}>
+                            {comps.hotel ? 'Included' : 'Excluded'}
+                          </span>
+                        </div>
+
+                        <p className="text-[10px] text-slate-500 mb-2">
+                          Hotel lodging, room stays & meal plans
+                        </p>
+
+                        {comps.hotel ? (
+                          <div className="relative">
+                            <span className="absolute left-3 top-2 font-bold text-slate-400">₹</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="500"
+                              value={itinerary.accommodationRate ?? 0}
+                              onChange={(e) => handleAccommodationRateChange(parseFloat(e.target.value) || 0)}
+                              className="w-full pl-8 pr-3 py-2 text-sm font-bold bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              placeholder="0"
+                            />
+                          </div>
+                        ) : (
+                          <div className="py-2 px-3 rounded-lg bg-slate-100 border border-dashed border-slate-300 text-center text-xs font-semibold text-slate-400">
+                            Excluded from total (₹0)
+                          </div>
+                        )}
+                      </div>
+
+                      {/* CAR / VEHICLE COMPONENT */}
+                      <div className={`p-4 rounded-xl border transition-all ${
+                        comps.car
+                          ? 'bg-blue-50/30 border-blue-200 ring-1 ring-blue-400/30'
+                          : 'bg-slate-50/70 border-slate-200 opacity-75'
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={comps.car}
+                              onChange={(e) => handleToggleLumpSumComponent('car', e.target.checked)}
+                              className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            />
+                            <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                              <Car className="w-3.5 h-3.5 text-blue-600" />
+                              Car / Vehicle
+                            </span>
+                          </label>
+                          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                            comps.car ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-600'
+                          }`}>
+                            {comps.car ? 'Included' : 'Excluded'}
+                          </span>
+                        </div>
+
+                        <p className="text-[10px] text-slate-500 mb-2">
+                          Private cab, chauffeur, fuel, toll & sightseeing
+                        </p>
+
+                        {comps.car ? (
+                          <div className="relative">
+                            <span className="absolute left-3 top-2 font-bold text-slate-400">₹</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="500"
+                              value={itinerary.transportRate ?? 0}
+                              onChange={(e) => handleTransportRateChange(parseFloat(e.target.value) || 0)}
+                              className="w-full pl-8 pr-3 py-2 text-sm font-bold bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="0"
+                            />
+                          </div>
+                        ) : (
+                          <div className="py-2 px-3 rounded-lg bg-slate-100 border border-dashed border-slate-300 text-center text-xs font-semibold text-slate-400">
+                            Excluded from total (₹0)
+                          </div>
+                        )}
+                      </div>
+
+                      {/* FLIGHT COMPONENT */}
+                      <div className={`p-4 rounded-xl border transition-all ${
+                        comps.flight
+                          ? 'bg-sky-50/30 border-sky-200 ring-1 ring-sky-400/30'
+                          : 'bg-slate-50/70 border-slate-200 opacity-75'
+                      }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={comps.flight}
+                              onChange={(e) => handleToggleLumpSumComponent('flight', e.target.checked)}
+                              className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
+                            />
+                            <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                              <Plane className="w-3.5 h-3.5 text-sky-600" />
+                              Flight
+                            </span>
+                          </label>
+                          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                            comps.flight ? 'bg-sky-100 text-sky-800' : 'bg-slate-200 text-slate-600'
+                          }`}>
+                            {comps.flight ? 'Included' : 'Excluded'}
+                          </span>
+                        </div>
+
+                        <p className="text-[10px] text-slate-500 mb-2">
+                          Flight tickets, air taxes & flight bookings
+                        </p>
+
+                        {comps.flight ? (
+                          <div className="relative">
+                            <span className="absolute left-3 top-2 font-bold text-slate-400">₹</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="500"
+                              value={itinerary.flightRate ?? 0}
+                              onChange={(e) => handleFlightRateChange(parseFloat(e.target.value) || 0)}
+                              className="w-full pl-8 pr-3 py-2 text-sm font-bold bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                              placeholder="0"
+                            />
+                          </div>
+                        ) : (
+                          <div className="py-2 px-3 rounded-lg bg-slate-100 border border-dashed border-slate-300 text-center text-xs font-semibold text-slate-400">
+                            Excluded from total (₹0)
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Active Financial Inputs & Payment Ledger */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -183,6 +183,13 @@ export interface TierPricingData {
   totalCost: number;
   transportCost?: number;
   accommodationCost?: number;
+  flightCost?: number;
+}
+
+export interface LumpSumPricingComponents {
+  hotel: boolean;
+  car: boolean;
+  flight: boolean;
 }
 
 export interface PricingTiers {
@@ -295,6 +302,8 @@ export interface Itinerary {
   itemizedPriceSplit?: boolean;
   transportRate?: number;
   accommodationRate?: number;
+  flightRate?: number;
+  lumpSumComponents?: LumpSumPricingComponents;
   showCostInItinerary: boolean;
   costDisplayType: CostDisplayType;
   currency: string;
