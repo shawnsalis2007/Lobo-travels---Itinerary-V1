@@ -9,6 +9,7 @@ import {
   Copy, 
   Ticket, 
   CheckCircle2, 
+  Check,
   MapPin, 
   Calendar, 
   Users, 
@@ -78,10 +79,40 @@ export default function ItineraryPreview({
     setItinerary(initialItinerary);
   }, [initialItinerary]);
   const [isInlineEditMode, setIsInlineEditMode] = useState<boolean>(false);
+  const [editingDayTitleId, setEditingDayTitleId] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [saveSuccessNotice, setSaveSuccessNotice] = useState<boolean>(false);
   const [hotelMatrixView, setHotelMatrixView] = useState<'matrix' | '3_star' | '4_star' | '5_star'>('matrix');
+
+  // Helper to determine if any accommodations are present
+  const hasAccommodations = React.useMemo(() => {
+    if (itinerary.includeHotels === false) return false;
+    return itinerary.days.some(day => 
+      !day.departureDetails?.enabled && 
+      !day.excludeHotel && 
+      (
+        Boolean(day.hotel?.name && day.hotel.name.trim()) ||
+        Boolean(day.hotelTiers?.fourStar?.name && day.hotelTiers.fourStar.name.trim()) ||
+        Boolean(day.hotelTiers?.threeStar?.name && day.hotelTiers.threeStar.name.trim()) ||
+        Boolean(day.hotelTiers?.fiveStar?.name && day.hotelTiers.fiveStar.name.trim())
+      )
+    );
+  }, [itinerary.includeHotels, itinerary.days]);
+
+  const handleUpdateDayTitle = (dayIndex: number, newTitle: string) => {
+    const updatedDays = [...itinerary.days];
+    updatedDays[dayIndex] = {
+      ...updatedDays[dayIndex],
+      title: newTitle,
+    };
+    const updatedItinerary = {
+      ...itinerary,
+      days: updatedDays,
+    };
+    setItinerary(updatedItinerary);
+    return updatedItinerary;
+  };
 
   const handleSwitchTier = (tier: HotelStarTier) => {
     const tierKey = tier === '3_star' ? 'threeStar' : tier === '5_star' ? 'fiveStar' : 'fourStar';
@@ -885,7 +916,7 @@ export default function ItineraryPreview({
               {/* Tour Titles */}
               <div className="space-y-2 mb-6">
                 <div className="inline-block px-2.5 py-0.5 rounded bg-[#26214F] text-amber-300 font-bold text-[10px] uppercase tracking-widest">
-                  Custom Tailored Travel Proposal
+                  Custom Tailored Itinerary
                 </div>
 
                 {isInlineEditMode ? (
@@ -904,28 +935,6 @@ export default function ItineraryPreview({
                 <p className="text-xs font-semibold tracking-wider text-[#26214F] uppercase">
                   {routeSubtitle}
                 </p>
-
-                {tourDestinations.length > 0 && (
-                  <div className="space-y-1.5 pt-1.5">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                      Destinations:
-                    </span>
-                    <div className="space-y-1.5 pl-0.5">
-                      {tourDestinations.map((dest, dIdx) => {
-                        const desc = getDestinationDescription(dest);
-                        return (
-                          <div key={dIdx} className="text-xs text-slate-700 leading-relaxed font-normal">
-                            <strong className="font-bold text-slate-900">{dest}</strong>
-                            {desc ? (
-                              <span className="font-normal text-slate-700"> - {stripBoldFormatting(desc)}</span>
-                            ) : null}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Cover Hero Image - Dynamically selected from tour sights or starting destination */}
@@ -1206,7 +1215,7 @@ export default function ItineraryPreview({
 
               {/* Day Cards */}
               <div className="space-y-4 pb-2">
-                {itinerary.days.map((day) => (
+                {itinerary.days.map((day, dayIndex) => (
                   <div 
                     key={day.id} 
                     className="itinerary-day-card rounded-xl border border-slate-200 p-4 space-y-3 bg-white shadow-2xs"
@@ -1236,9 +1245,65 @@ export default function ItineraryPreview({
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-black text-sm text-slate-900 leading-tight">
-                            {getDayMainHeading(day)}
-                          </h4>
+                          {isInlineEditMode || editingDayTitleId === day.id ? (
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="text"
+                                value={day.title !== undefined ? day.title : getDayMainHeading(day)}
+                                onChange={(e) => handleUpdateDayTitle(dayIndex, e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    const updated = handleUpdateDayTitle(dayIndex, (e.target as HTMLInputElement).value);
+                                    onSave(updated);
+                                    setEditingDayTitleId(null);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingDayTitleId(null);
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  if (editingDayTitleId === day.id) {
+                                    const updated = handleUpdateDayTitle(dayIndex, e.target.value);
+                                    onSave(updated);
+                                    setEditingDayTitleId(null);
+                                  }
+                                }}
+                                autoFocus={editingDayTitleId === day.id}
+                                className="font-black text-sm text-slate-900 leading-tight w-full bg-amber-50 border-b-2 border-amber-500 px-1.5 py-0.5 rounded focus:outline-none"
+                                placeholder={getDayMainHeading(day)}
+                              />
+                              {editingDayTitleId === day.id && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    onSave(itinerary);
+                                    setEditingDayTitleId(null);
+                                  }}
+                                  className="no-print p-1 rounded bg-amber-500 text-slate-950 hover:bg-amber-400 text-[10px] font-bold cursor-pointer"
+                                  title="Save day title"
+                                >
+                                  <Check className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 group/daytitle">
+                              <h4 
+                                onClick={() => setEditingDayTitleId(day.id)}
+                                className="font-black text-sm text-slate-900 leading-tight cursor-pointer hover:text-amber-800 transition"
+                                title="Click to edit day title"
+                              >
+                                {getDayMainHeading(day)}
+                              </h4>
+                              <button
+                                type="button"
+                                onClick={() => setEditingDayTitleId(day.id)}
+                                className="no-print opacity-0 group-hover/daytitle:opacity-100 p-0.5 text-slate-400 hover:text-amber-600 rounded transition cursor-pointer"
+                                title="Edit Day Title"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
                           {(() => {
                             const isDepartureActive = Boolean(day.departureDetails?.enabled);
                             const dep = day.departureDetails;
@@ -1252,7 +1317,7 @@ export default function ItineraryPreview({
 
                             return (
                               <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[10px]">
-                                {!isDepartureActive && day.overnightLocation && itinerary.includeHotels !== false && !day.excludeHotel && (
+                                {!isDepartureActive && day.overnightLocation && hasAccommodations && !day.excludeHotel && (
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">
                                     <Building2 className="w-3 h-3 text-slate-500 flex-shrink-0" />
                                     <span>Overnight: {day.overnightLocation}</span>
@@ -1453,24 +1518,32 @@ export default function ItineraryPreview({
                       </div>
                     )}
 
-                    {/* Sights Covered Badges */}
+                    {/* Sights Covered with Descriptions (Bold Name - Normal Description) */}
                     {(() => {
-                      const daySights = getDayAttractionNames(day);
-                      if (daySights.length === 0) return null;
+                      const sights = getDaySightseeingDetails(day);
+                      if (sights.length === 0) return null;
                       return (
-                        <div className="space-y-1 pt-0.5">
+                        <div className="space-y-1.5 pt-0.5">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1">
                             <Compass className="w-3 h-3 text-amber-600" />
                             Sightseeing Spots & Attractions:
                           </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {daySights.map((name, i) => (
-                              <span 
-                                key={i} 
-                                className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[10px] font-normal border border-slate-200 flex items-center gap-1"
+                          <div className="space-y-1.5 pl-0.5">
+                            {sights.map((sight, i) => (
+                              <div 
+                                key={sight.id || i} 
+                                className="text-xs text-slate-700 leading-relaxed font-normal"
                               >
-                                <span className="text-amber-600 font-bold">✓</span> {name}
-                              </span>
+                                <strong className="font-bold text-slate-900">{sight.name}</strong>
+                                {sight.unesco && (
+                                  <span className="ml-1.5 text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 align-middle">
+                                    UNESCO
+                                  </span>
+                                )}
+                                {sight.description ? (
+                                  <span className="font-normal text-slate-700"> – {stripBoldFormatting(sight.description)}</span>
+                                ) : null}
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -1489,67 +1562,6 @@ export default function ItineraryPreview({
                       <span className="font-bold text-slate-900">Meals Included:</span>{' '}
                       <span className="font-medium text-slate-700">{formatMealsIncluded(day.meals)}</span>
                     </div>
-
-                    {/* Sightseeing Activities & Spots Breakdown with Descriptions */}
-                    {(() => {
-                      const sights = getDaySightseeingDetails(day);
-                      if (sights.length === 0) return null;
-
-                      return (
-                        <div className="sightseeing-activities-section space-y-2 pt-1" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                          <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-                              <Compass className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                              Sightseeing Activities & Highlights:
-                            </span>
-                            <span className="text-[9px] font-semibold text-slate-400">
-                              {sights.length} {sights.length === 1 ? 'Attraction' : 'Attractions'} Covered
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-1 gap-2">
-                            {sights.map((sight, sIdx) => (
-                              <div 
-                                key={sight.id || sIdx}
-                                className="sightseeing-item-card p-2.5 rounded-lg bg-slate-50/80 border border-slate-200/90 text-xs space-y-1"
-                                style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
-                              >
-                                <div className="flex items-center justify-between gap-2 flex-wrap">
-                                  <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                                    <span className="text-slate-950 font-bold">{sight.name}</span>
-                                    {sight.unesco && (
-                                      <span className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 leading-tight">
-                                        UNESCO
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-2 text-[10px] text-slate-500 font-normal">
-                                    {sight.category && (
-                                      <span className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600 font-normal">
-                                        {sight.category}
-                                      </span>
-                                    )}
-                                    {sight.duration && (
-                                      <span className="flex items-center gap-1 text-slate-500 font-normal">
-                                        <Clock className="w-2.5 h-2.5 text-slate-400 shrink-0" />
-                                        <span>{sight.duration}</span>
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-
-                                {sight.description ? (
-                                  <p className="sightseeing-description font-normal text-slate-700 leading-relaxed text-xs pl-2.5 border-l-2 border-amber-400/80 mt-1">
-                                    {stripBoldFormatting(sight.description)}
-                                  </p>
-                                ) : null}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })()}
 
                     {/* Key Highlight Attractions & Monuments Photos Grid (Strictly Square 1:1 Images) */}
                     {(() => {
@@ -1617,8 +1629,8 @@ export default function ItineraryPreview({
                       );
                     })()}
 
-                    {/* Hotel & Night Stay (Completely omitted when Departure is active or Hotel is Excluded) */}
-                    {itinerary.includeHotels !== false && !day.departureDetails?.enabled && !day.excludeHotel && (
+                    {/* Hotel & Night Stay (Completely omitted when Departure is active or Hotel is Excluded or No Accommodations Added) */}
+                    {hasAccommodations && !day.departureDetails?.enabled && !day.excludeHotel && (
                       <div className="p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px] flex items-center justify-between text-slate-700">
                         <div className="flex items-center gap-1.5">
                           <Building2 className="w-3.5 h-3.5 text-indigo-600" />
@@ -1644,10 +1656,10 @@ export default function ItineraryPreview({
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div>
                   <h3 className="text-sm font-black tracking-tight text-[#151521] uppercase">
-                    {itinerary.includeHotels === false ? 'Commercials, Inclusions & Tour Guidelines' : 'Accommodations, Inclusions & Tour Guidelines'}
+                    {!hasAccommodations ? 'Inclusions, Commercials & Tour Guidelines' : 'Accommodations, Inclusions & Tour Guidelines'}
                   </h3>
                   <p className="text-[10px] text-slate-500">
-                    {itinerary.includeHotels === false ? 'Comprehensive commercial terms and contractual inclusions' : 'Comprehensive commercial terms, hotel schedule, and contractual inclusions'}
+                    {!hasAccommodations ? 'Comprehensive commercial terms and contractual inclusions' : 'Comprehensive commercial terms, hotel schedule, and contractual inclusions'}
                   </p>
                 </div>
                 <div className="text-right">
@@ -1658,7 +1670,7 @@ export default function ItineraryPreview({
               </div>
 
               {/* Confirmed Hotels Matrix Table */}
-              {itinerary.includeHotels !== false && (
+              {hasAccommodations && (
                 <div className="space-y-1.5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                     <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">

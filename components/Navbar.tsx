@@ -65,18 +65,18 @@ export default function Navbar({
   const desktopMoreRef = useRef<HTMLDivElement>(null);
   const syncStatus = useSyncStatus();
 
-  // Close desktop "More" dropdown when clicking outside
+  // Close desktop "More" pop-up modal when pressing Escape
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (desktopMoreRef.current && !desktopMoreRef.current.contains(event.target as Node)) {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
         setDesktopMoreOpen(false);
       }
     };
     if (desktopMoreOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('keydown', handleKeyDown);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [desktopMoreOpen]);
 
@@ -281,33 +281,64 @@ export default function Navbar({
               </button>
 
               {desktopMoreOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[#151521] border border-[#26214F] shadow-2xl py-1.5 z-50 text-xs backdrop-blur-md">
-                  <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 border-b border-[#26214F]/60 tracking-wider">
-                    More Modules
-                  </div>
-                  <div className="py-1">
-                    {moreNavItems.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = activeTab === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => {
-                            setActiveTab(item.id);
-                            setDesktopMoreOpen(false);
-                          }}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left transition-colors cursor-pointer ${
-                            isActive
-                              ? 'bg-[#26214F] text-amber-300 border-l-2 border-amber-400 font-bold'
-                              : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                          }`}
-                        >
-                          <Icon className={`w-4 h-4 ${isActive ? 'text-amber-300' : 'text-[#9899A1]'}`} />
-                          <span>{item.label}</span>
-                        </button>
-                      );
-                    })}
+                <div 
+                  className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+                  onClick={() => setDesktopMoreOpen(false)}
+                >
+                  <div 
+                    className="bg-[#151521] border border-[#26214F] text-white rounded-2xl shadow-2xl w-full max-w-lg p-5 relative overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between border-b border-[#26214F]/80 pb-3 mb-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                          <Menu className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-white">Operations & Extra Modules</h3>
+                          <p className="text-[11px] text-slate-400">Select a management or reporting module to navigate</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setDesktopMoreOpen(false)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                        aria-label="Close modal"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[65vh] overflow-y-auto pr-1">
+                      {moreNavItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = activeTab === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              setActiveTab(item.id);
+                              setDesktopMoreOpen(false);
+                            }}
+                            className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all cursor-pointer group ${
+                              isActive
+                                ? 'bg-[#26214F] text-amber-300 border-amber-400/40 shadow-sm'
+                                : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:text-white hover:border-white/15'
+                            }`}
+                          >
+                            <div className={`p-2 rounded-lg transition-colors ${
+                              isActive ? 'bg-amber-400/20 text-amber-300' : 'bg-white/5 text-slate-400 group-hover:text-amber-400 group-hover:bg-amber-400/10'
+                            }`}>
+                              <Icon className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs font-semibold">{item.label}</div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
