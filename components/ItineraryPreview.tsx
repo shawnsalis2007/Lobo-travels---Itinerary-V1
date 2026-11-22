@@ -437,49 +437,159 @@ export default function ItineraryPreview({
   };
 
   // Helper to render clean bullet points and indented sub-bullet attractions with normal font-weight (400)
-  const renderFormattedDescription = (text: string) => {
-    if (!text || !text.trim()) return null;
-    const cleanText = stripBoldFormatting(text);
+  const renderFormattedDescription = (text: string, day?: ItineraryDay) => {
+    const daySights = day ? getDaySightseeingDetails(day) : [];
+    const renderedSightIds = new Set<string>();
+
+    const normalizeStr = (s: string) =>
+      s.toLowerCase().replace(/['’]/g, '').replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
+
+    const matchSight = (str: string) => {
+      const clean = normalizeStr(str);
+      if (!clean) return null;
+
+      for (const s of daySights) {
+        if (renderedSightIds.has(s.id)) continue;
+        const sName = normalizeStr(s.name);
+        if (clean === sName || sName === clean) return s;
+
+        // Base name without parentheses e.g. "Amber Fort & Palace (Amer Fort)" -> "Amber Fort & Palace"
+        const sBase = normalizeStr(s.name.replace(/\s*\([^)]*\)/g, ''));
+        if (sBase && (clean.includes(sBase) || sBase.includes(clean))) return s;
+
+        // First part before & or /
+        const firstPart = sBase.split(/[&/]/)[0].trim();
+        if (firstPart && firstPart.length > 3 && (clean.includes(firstPart) || firstPart.includes(clean))) return s;
+
+        if (s.id && clean.includes(normalizeStr(s.id))) return s;
+      }
+      return null;
+    };
+
+    const renderSightSubpoint = (sight: { id: string; name: string; unesco?: boolean; description?: string }, key: string | number) => (
+      <div key={key} className="sub-bullet-point ml-5 flex items-start gap-1.5 text-slate-700 font-normal">
+        <span className="text-amber-600 font-bold text-[11px] leading-tight select-none flex-shrink-0">•</span>
+        <div className="flex-1 text-xs text-slate-700 leading-relaxed font-normal">
+          <strong className="font-bold text-slate-900">{sight.name}</strong>
+          {sight.unesco && (
+            <span className="ml-1.5 text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 align-middle">
+              UNESCO
+            </span>
+          )}
+          {sight.description ? (
+            <span className="font-normal text-slate-700"> – {stripBoldFormatting(sight.description)}</span>
+          ) : null}
+        </div>
+      </div>
+    );
+
+    const cleanText = stripBoldFormatting(text || '');
     const lines = cleanText.split('\n').map(l => l.trimEnd()).filter(Boolean);
+
+    // If text is empty or has no content, but day has sights, render standard tour bullet with sights indented
+    if (lines.length === 0) {
+      if (daySights.length === 0) return null;
+      return (
+        <div className="space-y-1 font-normal">
+          <div className="bullet-point flex items-start gap-1.5 text-slate-700 font-normal">
+            <span className="text-amber-500 font-bold text-sm leading-tight select-none flex-shrink-0">•</span>
+            <span className="flex-1 font-normal text-slate-700 leading-relaxed">
+              Proceed for a comprehensive sightseeing tour of {day?.destination || 'the destination'}, visiting prominent landmarks:
+            </span>
+          </div>
+          {daySights.map((s, idx) => {
+            renderedSightIds.add(s.id);
+            return renderSightSubpoint(s, `empty-sight-${idx}`);
+          })}
+        </div>
+      );
+    }
+
     const hasBullets = lines.some(l => l.trimStart().startsWith('•') || l.trimStart().startsWith('-') || l.trimStart().startsWith('*'));
 
     if (!hasBullets) {
-      return <p className="whitespace-pre-line font-normal text-slate-700 leading-relaxed">{cleanText}</p>;
+      return (
+        <div className="space-y-1.5 font-normal">
+          <p className="whitespace-pre-line font-normal text-slate-700 leading-relaxed">{cleanText}</p>
+          {daySights.length > 0 && (
+            <div className="space-y-1 font-normal pt-0.5">
+              {daySights.map((s, idx) => {
+                renderedSightIds.add(s.id);
+                return renderSightSubpoint(s, `para-sight-${idx}`);
+              })}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const renderedNodes: React.ReactNode[] = [];
+    const isOvernight = (str: string) => /overnight\s+stay/i.test(str);
+
+    lines.forEach((line, idx) => {
+      const trimmed = line.trimStart();
+      const isSubBullet = line.startsWith('  -') || line.startsWith('    -') || line.startsWith('\t-') || (trimmed.startsWith('- ') && !line.startsWith('•'));
+      const isMainBullet = trimmed.startsWith('• ') || trimmed.startsWith('•') || trimmed.startsWith('* ');
+
+      if (isSubBullet) {
+        const content = trimmed.replace(/^[-*]\s*/, '');
+        const matched = matchSight(content);
+
+        if (matched) {
+          renderedSightIds.add(matched.id);
+          renderedNodes.push(renderSightSubpoint(matched, `sight-${matched.id}-${idx}`));
+        } else {
+          renderedNodes.push(
+            <div key={`sub-${idx}`} className="sub-bullet-point ml-5 flex items-start gap-1.5 text-slate-600 font-normal">
+              <span className="text-amber-600 font-bold text-[11px] leading-tight select-none flex-shrink-0">•</span>
+              <span className="flex-1 font-normal text-slate-600 leading-relaxed">{content}</span>
+            </div>
+          );
+        }
+        return;
+      }
+
+      if (isMainBullet) {
+        // If this is the overnight stay line, render any remaining unrendered sights before it
+        if (isOvernight(trimmed)) {
+          const remaining = daySights.filter(s => !renderedSightIds.has(s.id));
+          if (remaining.length > 0) {
+            remaining.forEach((s, rIdx) => {
+              renderedSightIds.add(s.id);
+              renderedNodes.push(renderSightSubpoint(s, `remain-sight-${s.id}-${rIdx}`));
+            });
+          }
+        }
+
+        const content = trimmed.replace(/^[•*]\s*/, '');
+        renderedNodes.push(
+          <div key={`main-${idx}`} className="bullet-point flex items-start gap-1.5 text-slate-700 font-normal">
+            <span className="text-amber-500 font-bold text-sm leading-tight select-none flex-shrink-0">•</span>
+            <span className="flex-1 font-normal text-slate-700 leading-relaxed">{content}</span>
+          </div>
+        );
+        return;
+      }
+
+      renderedNodes.push(
+        <p key={`p-${idx}`} className="text-slate-700 font-normal leading-relaxed">
+          {line}
+        </p>
+      );
+    });
+
+    // If there are still any unrendered sights at the very end
+    const finalRemaining = daySights.filter(s => !renderedSightIds.has(s.id));
+    if (finalRemaining.length > 0) {
+      finalRemaining.forEach((s, fIdx) => {
+        renderedSightIds.add(s.id);
+        renderedNodes.push(renderSightSubpoint(s, `final-sight-${s.id}-${fIdx}`));
+      });
     }
 
     return (
       <div className="space-y-1 font-normal">
-        {lines.map((line, idx) => {
-          const trimmed = line.trimStart();
-          const isSubBullet = line.startsWith('  -') || line.startsWith('    -') || line.startsWith('\t-') || (trimmed.startsWith('- ') && !line.startsWith('•'));
-          const isMainBullet = trimmed.startsWith('• ') || trimmed.startsWith('•') || trimmed.startsWith('* ');
-
-          if (isSubBullet) {
-            const content = trimmed.replace(/^[-*]\s*/, '');
-            return (
-              <div key={idx} className="sub-bullet-point ml-5 flex items-start gap-1.5 text-slate-600 font-normal">
-                <span className="text-amber-600 font-bold text-[11px] leading-tight select-none flex-shrink-0">•</span>
-                <span className="flex-1 font-normal text-slate-600 leading-relaxed">{content}</span>
-              </div>
-            );
-          }
-
-          if (isMainBullet) {
-            const content = trimmed.replace(/^[•*]\s*/, '');
-            return (
-              <div key={idx} className="bullet-point flex items-start gap-1.5 text-slate-700 font-normal">
-                <span className="text-amber-500 font-bold text-sm leading-tight select-none flex-shrink-0">•</span>
-                <span className="flex-1 font-normal text-slate-700 leading-relaxed">{content}</span>
-              </div>
-            );
-          }
-
-          return (
-            <p key={idx} className="text-slate-700 font-normal leading-relaxed">
-              {line}
-            </p>
-          );
-        })}
+        {renderedNodes}
       </div>
     );
   };
@@ -1518,44 +1628,20 @@ export default function ItineraryPreview({
                       </div>
                     )}
 
-                    {/* Sights Covered with Descriptions (Bold Name - Normal Description) */}
-                    {(() => {
-                      const sights = getDaySightseeingDetails(day);
-                      if (sights.length === 0) return null;
-                      return (
-                        <div className="space-y-1.5 pt-0.5">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1">
-                            <Compass className="w-3 h-3 text-amber-600" />
-                            Sightseeing Spots & Attractions:
+                    {/* Unified Day Schedule & Activities (with merged sightseeing subpoints) */}
+                    {(Boolean(day.description && day.description.trim()) || getDaySightseeingDetails(day).length > 0) && (
+                      <div className="day-activities-section space-y-1.5 pt-0.5">
+                        <div className="flex items-center gap-1.5 border-b border-slate-100 pb-1">
+                          <Compass className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                            Day Schedule & Activities:
                           </span>
-                          <div className="space-y-1.5 pl-0.5">
-                            {sights.map((sight, i) => (
-                              <div 
-                                key={sight.id || i} 
-                                className="text-xs text-slate-700 leading-relaxed font-normal"
-                              >
-                                <strong className="font-bold text-slate-900">{sight.name}</strong>
-                                {sight.unesco && (
-                                  <span className="ml-1.5 text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 align-middle">
-                                    UNESCO
-                                  </span>
-                                )}
-                                {sight.description ? (
-                                  <span className="font-normal text-slate-700"> – {stripBoldFormatting(sight.description)}</span>
-                                ) : null}
-                              </div>
-                            ))}
-                          </div>
                         </div>
-                      );
-                    })()}
-
-                    {/* Sightseeing Narrative Description */}
-                    {day.description && day.description.trim() ? (
-                      <div className="day-description text-xs text-slate-700 leading-relaxed font-sans font-normal">
-                        {renderFormattedDescription(ensureOvernightStayText(day.description, day))}
+                        <div className="day-description text-xs text-slate-700 leading-relaxed font-sans font-normal">
+                          {renderFormattedDescription(ensureOvernightStayText(day.description || '', day), day)}
+                        </div>
                       </div>
-                    ) : null}
+                    )}
 
                     {/* Dedicated Meals Included Text Line */}
                     <div className="text-xs text-slate-800 font-sans">
