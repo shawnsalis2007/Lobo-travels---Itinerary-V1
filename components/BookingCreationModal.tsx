@@ -21,6 +21,7 @@ import { Itinerary, AppSettings, OperationalBooking, BookingDayLocation, GoogleC
 import { saveOperationalBooking, saveOperationalBookingAsync } from '@/lib/storage';
 import { formatDateDMY } from '@/lib/utils';
 import { getValidAccessToken } from '@/lib/calendar';
+import LoadingIndicator from './LoadingIndicator';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -315,6 +316,18 @@ export default function BookingCreationModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
       <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+        {/* Syncing Loading Overlay */}
+        {isSyncing && (
+          <div className="absolute inset-0 bg-[#151521]/90 backdrop-blur-sm z-30 flex items-center justify-center p-4">
+            <LoadingIndicator
+              size="md"
+              variant="dark"
+              message="Syncing with Google Calendar"
+              subtext="Pushing booking dates and itinerary details to connected accounts..."
+            />
+          </div>
+        )}
+        
         {/* Header */}
         <div className="bg-[#151521] px-4 sm:px-6 pt-5 pb-4 shrink-0">
           <div className="flex items-start justify-between gap-3">

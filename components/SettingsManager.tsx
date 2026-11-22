@@ -44,6 +44,7 @@ import {
   syncFromCloudDatabase,
   importBrowserDataNow
 } from '@/lib/storage';
+import LoadingIndicator from './LoadingIndicator';
 
 interface SettingsManagerProps {
   settings: AppSettings;
@@ -316,6 +317,16 @@ export default function SettingsManager({
 
   return (
     <div className="space-y-6 pb-20">
+      {/* Centered Loading Overlay for Backup Import or Calendar Sync */}
+      {(isImportingBackup || isSyncingAll) && (
+        <LoadingIndicator
+          fullScreen
+          size="lg"
+          variant="dark"
+          message={isImportingBackup ? 'Importing Full System Backup' : 'Syncing All Itineraries & Reminders'}
+          subtext={isImportingBackup ? 'Writing itineraries and configuration to cloud database...' : 'Updating events across connected Google Calendars...'}
+        />
+      )}
       
       {/* Top Header */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">

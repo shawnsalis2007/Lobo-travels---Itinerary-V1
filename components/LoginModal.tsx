@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Lock, Mail, Shield, AlertCircle, CheckCircle2, X, KeyRound, UserCheck, RefreshCw } from 'lucide-react';
 import { User, Brand } from '@/types';
+import LoadingIndicator from './LoadingIndicator';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -114,6 +115,17 @@ export default function LoginModal({ isOpen, canClose = true, onClose, onLoginSu
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
       <div className="relative w-full max-w-md bg-[#151521] border border-[#26214F] text-white rounded-2xl shadow-2xl p-6 overflow-hidden">
+        {/* Centered Loading Overlay */}
+        {(loading || changingPassword) && (
+          <div className="absolute inset-0 bg-[#151521]/85 backdrop-blur-sm z-30 flex items-center justify-center p-4">
+            <LoadingIndicator
+              size="md"
+              variant="dark"
+              message={changingPassword ? 'Updating Password...' : 'Authenticating...'}
+              subtext="Verifying credentials and security session tokens..."
+            />
+          </div>
+        )}
         
         {/* Close Button */}
         {canClose && (

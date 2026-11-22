@@ -18,6 +18,7 @@ import {
   Building
 } from 'lucide-react';
 import { User, UserRole, UserPermissions, DEFAULT_PERMISSIONS, Brand } from '@/types';
+import LoadingIndicator from './LoadingIndicator';
 
 interface UsersManagerProps {
   currentUser: User | null;
@@ -340,11 +341,32 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
         </div>
       )}
 
+      {/* Submitting Loading Overlay */}
+      {submitting && (
+        <LoadingIndicator
+          fullScreen
+          size="lg"
+          variant="dark"
+          message="Updating User Account"
+          subtext="Applying role & access permissions in database..."
+        />
+      )}
+
       {/* Users List Container */}
       <div className="bg-[#151521] border border-[#26214F] rounded-xl overflow-hidden shadow">
-        
-        {/* Mobile Card View (sm:hidden) */}
-        <div className="sm:hidden divide-y divide-[#26214F]/60">
+        {loading ? (
+          <div className="py-16">
+            <LoadingIndicator
+              size="lg"
+              variant="dark"
+              message="Loading Users & Roles"
+              subtext="Fetching user roster and role permissions..."
+            />
+          </div>
+        ) : (
+          <>
+            {/* Mobile Card View (sm:hidden) */}
+            <div className="sm:hidden divide-y divide-[#26214F]/60">
           {users.map((u) => {
             const isLocked = u.lockedUntil && new Date(u.lockedUntil).getTime() > Date.now();
             const userBrand = brands.find((b) => b.id === u.brandId);
@@ -562,6 +584,8 @@ export default function UsersManager({ currentUser, currentBrandId }: UsersManag
             </tbody>
           </table>
         </div>
+        </>
+        )}
       </div>
 
       {/* Add User Modal */}

@@ -19,6 +19,7 @@ import {
   Upload
 } from 'lucide-react';
 import { Brand } from '@/types';
+import LoadingIndicator from './LoadingIndicator';
 
 interface BrandsManagerProps {
   currentBrandId: string;
@@ -204,10 +205,31 @@ export default function BrandsManager({ currentBrandId, onViewAsBrand }: BrandsM
         </div>
       )}
 
-      {/* Brand Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {brands.map((b) => {
-          const isCurrent = currentBrandId === b.id;
+      {/* Submitting Loading Overlay */}
+      {submitting && (
+        <LoadingIndicator
+          fullScreen
+          size="lg"
+          variant="dark"
+          message="Saving Brand Configuration"
+          subtext="Writing brand parameters & preferences to database..."
+        />
+      )}
+
+      {/* Brand Cards Grid or Loading */}
+      {loading ? (
+        <div className="py-12">
+          <LoadingIndicator
+            size="lg"
+            variant="dark"
+            message="Loading Brand Workspaces"
+            subtext="Fetching registered brands & configurations..."
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {brands.map((b) => {
+            const isCurrent = currentBrandId === b.id;
           const isLobo = b.id === 'brand-lobo-travels';
 
           return (
@@ -307,6 +329,7 @@ export default function BrandsManager({ currentBrandId, onViewAsBrand }: BrandsM
           );
         })}
       </div>
+      )}
 
       {/* Create Brand Modal */}
       {isCreateOpen && (

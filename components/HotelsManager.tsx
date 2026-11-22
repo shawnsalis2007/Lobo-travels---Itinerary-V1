@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Hotel } from '@/types';
 import { SafeImage } from './SafeImage';
+import LoadingIndicator from './LoadingIndicator';
 
 interface HotelsManagerProps {
   hotels: Hotel[];
@@ -401,6 +402,18 @@ export default function HotelsManager({
                 </button>
               ))}
             </div>
+
+            {/* Google Searching Loading State */}
+            {googleSearching && (
+              <div className="py-6 border-t border-slate-100">
+                <LoadingIndicator
+                  size="md"
+                  variant="light"
+                  message="Searching Google Places"
+                  subtext={`Locating properties for "${googleQuery}" in ${googleCity || 'selected destination'}...`}
+                />
+              </div>
+            )}
 
             {/* Search Results */}
             {googleResults.length > 0 && (

@@ -88,6 +88,7 @@ import {
   syncFromCloudDatabase 
 } from '@/lib/storage';
 import { SafeImage } from './SafeImage';
+import LoadingIndicator from './LoadingIndicator';
 import { formatDayDate, getDayDateISO } from '@/lib/utils';
 import { 
   generateAutoDayDescription, 
@@ -3018,6 +3019,17 @@ export default function ItineraryBuilder({
 
   return (
     <div className="space-y-6 pb-20">
+      {/* Centered AI Polish Loading Overlay */}
+      {aiLoadingDayId && (
+        <LoadingIndicator
+          fullScreen
+          size="lg"
+          variant="dark"
+          message="AI Polish in Progress"
+          subtext="Google Gemini is generating an engaging day-by-day travel narrative..."
+        />
+      )}
+
       {/* Builder Header Bar */}
       <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

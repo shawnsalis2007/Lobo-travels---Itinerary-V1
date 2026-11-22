@@ -18,6 +18,8 @@ import DirectBookingsManager from '@/components/DirectBookingsManager';
 import BrandsManager from '@/components/BrandsManager';
 import UsersManager from '@/components/UsersManager';
 import LoginModal from '@/components/LoginModal';
+import LoadingIndicator from '@/components/LoadingIndicator';
+import { useLoading } from '@/context/LoadingContext';
 
 import {
   Itinerary,
@@ -74,6 +76,7 @@ import {
 } from '@/lib/storage';
 
 export default function Home() {
+  const { withLoading } = useLoading();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -165,21 +168,23 @@ export default function Home() {
   };
 
   const handleViewAsBrand = async (brandId: string) => {
-    try {
-      const res = await fetch('/api/brands/view-as', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ brandId })
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data.success) {
-        setIsViewingAs(data.isViewingAs);
-        setViewingAsBrand(data.brand);
-        await syncFromCloudDatabase();
+    await withLoading(async () => {
+      try {
+        const res = await fetch('/api/brands/view-as', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brandId })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          setIsViewingAs(data.isViewingAs);
+          setViewingAsBrand(data.brand);
+          await syncFromCloudDatabase();
+        }
+      } catch (e) {
+        alert('Failed to switch brand view');
       }
-    } catch (e) {
-      alert('Failed to switch brand view');
-    }
+    }, 'Switching Brand Workspace', 'Synchronizing brand catalogs & settings...');
   };
 
   const handleExitViewingAs = async () => {
@@ -199,29 +204,33 @@ export default function Home() {
 
   // Guarded delete handlers that surface storage errors to the user and persist to Neon Postgres
   const handleDeleteFleetVehicle = async (id: string) => {
-    try {
-      const res = await deleteFleetVehicleAsync(id);
-      if (!res.success) {
-        alert(res.error || 'Failed to delete vehicle');
-        return;
+    await withLoading(async () => {
+      try {
+        const res = await deleteFleetVehicleAsync(id);
+        if (!res.success) {
+          alert(res.error || 'Failed to delete vehicle');
+          return;
+        }
+        await syncFromCloudDatabase();
+      } catch (e: any) {
+        alert(e.message || e);
       }
-      await syncFromCloudDatabase();
-    } catch (e: any) {
-      alert(e.message || e);
-    }
+    }, 'Deleting Fleet Vehicle', 'Updating vehicle records in cloud database...');
   };
 
   const handleDeleteDriver = async (id: string) => {
-    try {
-      const res = await deleteDriverAsync(id);
-      if (!res.success) {
-        alert(res.error || 'Failed to delete driver');
-        return;
+    await withLoading(async () => {
+      try {
+        const res = await deleteDriverAsync(id);
+        if (!res.success) {
+          alert(res.error || 'Failed to delete driver');
+          return;
+        }
+        await syncFromCloudDatabase();
+      } catch (e: any) {
+        alert(e.message || e);
       }
-      await syncFromCloudDatabase();
-    } catch (e: any) {
-      alert(e.message || e);
-    }
+    }, 'Deleting Driver', 'Updating driver records in cloud database...');
   };
 
   // Active Itinerary for Builder, Preview, or Voucher
@@ -338,50 +347,56 @@ export default function Home() {
   };
 
   const handleDuplicate = async (id: string) => {
-    try {
-      const duplicated = await duplicateItineraryAsync(id);
-      if (duplicated) {
-        setSelectedItinerary(duplicated);
-        await syncFromCloudDatabase();
-        setActiveTab('preview');
+    await withLoading(async () => {
+      try {
+        const duplicated = await duplicateItineraryAsync(id);
+        if (duplicated) {
+          setSelectedItinerary(duplicated);
+          await syncFromCloudDatabase();
+          setActiveTab('preview');
+        }
+      } catch (err: any) {
+        alert(`Failed to duplicate itinerary: ${err?.message || err}`);
       }
-    } catch (err: any) {
-      alert(`Failed to duplicate itinerary: ${err?.message || err}`);
-    }
+    }, 'Duplicating Itinerary', 'Creating a new copy in cloud database...');
   };
 
   const handleDelete = async (id: string) => {
-    try {
-      const res = await deleteItineraryAsync(id);
-      if (!res.success) {
-        alert(res.error || 'Failed to delete itinerary from database.');
-        return;
+    await withLoading(async () => {
+      try {
+        const res = await deleteItineraryAsync(id);
+        if (!res.success) {
+          alert(res.error || 'Failed to delete itinerary from database.');
+          return;
+        }
+        if (selectedItinerary?.id === id) {
+          setSelectedItinerary(null);
+        }
+        await syncFromCloudDatabase();
+      } catch (err: any) {
+        alert(`Error deleting itinerary: ${err?.message || err}`);
       }
-      if (selectedItinerary?.id === id) {
-        setSelectedItinerary(null);
-      }
-      await syncFromCloudDatabase();
-    } catch (err: any) {
-      alert(`Error deleting itinerary: ${err?.message || err}`);
-    }
+    }, 'Deleting Itinerary', 'Removing record from cloud database...');
   };
 
   const handleConfirmBooking = async (id: string) => {
-    const item = getItineraryById(id);
-    if (item) {
-      const updated = {
-        ...item,
-        status: 'Confirmed' as const,
-        confirmedAt: new Date().toISOString()
-      };
-      const res = await saveItineraryAsync(updated);
-      if (res.success && res.itinerary) {
-        setSelectedItinerary(res.itinerary);
-        await syncFromCloudDatabase();
-      } else {
-        alert(res.error || 'Failed to confirm booking in cloud database.');
+    await withLoading(async () => {
+      const item = getItineraryById(id);
+      if (item) {
+        const updated = {
+          ...item,
+          status: 'Confirmed' as const,
+          confirmedAt: new Date().toISOString()
+        };
+        const res = await saveItineraryAsync(updated);
+        if (res.success && res.itinerary) {
+          setSelectedItinerary(res.itinerary);
+          await syncFromCloudDatabase();
+        } else {
+          alert(res.error || 'Failed to confirm booking in cloud database.');
+        }
       }
-    }
+    }, 'Confirming Booking', 'Updating status in cloud database...');
   };
 
   const handleGenerateVoucher = (id: string) => {
@@ -393,29 +408,33 @@ export default function Home() {
   };
 
   const handleSaveDraft = async (itn: Itinerary) => {
-    const res = await saveItineraryAsync(itn);
-    if (res.success && res.itinerary) {
-      setSelectedItinerary(res.itinerary);
-      await syncFromCloudDatabase();
-      alert(`Itinerary ${res.itinerary.referenceNumber} successfully saved to cloud database!`);
-    } else {
-      alert(`Error saving itinerary to cloud database: ${res.error || 'Unknown error'}`);
-    }
+    await withLoading(async () => {
+      const res = await saveItineraryAsync(itn);
+      if (res.success && res.itinerary) {
+        setSelectedItinerary(res.itinerary);
+        await syncFromCloudDatabase();
+        alert(`Itinerary ${res.itinerary.referenceNumber} successfully saved to cloud database!`);
+      } else {
+        alert(`Error saving itinerary to cloud database: ${res.error || 'Unknown error'}`);
+      }
+    }, 'Saving Itinerary Draft', 'Persisting updates to cloud database...');
   };
 
   const handleGeneratePreview = async (itn: Itinerary) => {
-    const toSave: Itinerary = {
-      ...itn,
-      status: itn.status === 'Draft' ? 'Generated' : itn.status
-    };
-    const res = await saveItineraryAsync(toSave);
-    if (res.success && res.itinerary) {
-      setSelectedItinerary(res.itinerary);
-      await syncFromCloudDatabase();
-      setActiveTab('preview');
-    } else {
-      alert(`Error saving itinerary to cloud database: ${res.error || 'Unknown error'}`);
-    }
+    await withLoading(async () => {
+      const toSave: Itinerary = {
+        ...itn,
+        status: itn.status === 'Draft' ? 'Generated' : itn.status
+      };
+      const res = await saveItineraryAsync(toSave);
+      if (res.success && res.itinerary) {
+        setSelectedItinerary(res.itinerary);
+        await syncFromCloudDatabase();
+        setActiveTab('preview');
+      } else {
+        alert(`Error saving itinerary to cloud database: ${res.error || 'Unknown error'}`);
+      }
+    }, 'Generating Proposal Preview', 'Compiling day schedules & pricing tiers...');
   };
 
   const handleAddNewHotelQuick = (data: Partial<Hotel>): Hotel => {
@@ -464,15 +483,13 @@ export default function Home() {
   // 1. Loading screen while checking authentication session
   if (isAuthChecking) {
     return (
-      <div className="min-h-screen bg-[#151521] flex flex-col items-center justify-center p-4 text-white">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-purple-600 p-3 shadow-2xl animate-pulse flex items-center justify-center mb-4 border border-amber-400/30">
-          <Shield className="w-8 h-8 text-white" />
-        </div>
-        <h1 className="text-xl font-bold tracking-tight text-white mb-2">Lobo's Travel Wizard Tour Operations</h1>
-        <p className="text-xs text-[#9899A1] flex items-center gap-2">
-          <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400" />
-          Verifying session credentials...
-        </p>
+      <div className="min-h-screen bg-[#151521] flex items-center justify-center p-4">
+        <LoadingIndicator
+          size="lg"
+          variant="dark"
+          message="Verifying Session Credentials"
+          subtext="Connecting to Lobo's Travel Wizard Tour Operations Portal..."
+        />
       </div>
     );
   }
@@ -602,13 +619,15 @@ export default function Home() {
             attractions={attractions}
             onEdit={() => setActiveTab('builder')}
             onSave={async (updated) => {
-              const res = await saveItineraryAsync(updated);
-              if (res.success && res.itinerary) {
-                setSelectedItinerary(res.itinerary);
-                await syncFromCloudDatabase();
-              } else {
-                alert(`Error saving itinerary changes: ${res.error || 'Failed to save'}`);
-              }
+              await withLoading(async () => {
+                const res = await saveItineraryAsync(updated);
+                if (res.success && res.itinerary) {
+                  setSelectedItinerary(res.itinerary);
+                  await syncFromCloudDatabase();
+                } else {
+                  alert(`Error saving itinerary changes: ${res.error || 'Failed to save'}`);
+                }
+              }, 'Saving Itinerary Changes', 'Persisting day schedules to cloud database...');
             }}
             onDuplicate={handleDuplicate}
             onConfirmBooking={handleConfirmBooking}
@@ -631,12 +650,16 @@ export default function Home() {
           <HotelsManager
             hotels={hotels}
             onSaveHotel={async (h) => {
-              await saveHotelAsync(h);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveHotelAsync(h);
+                await syncFromCloudDatabase();
+              }, 'Saving Hotel Partner', 'Updating hotel records in cloud database...');
             }}
             onDeleteHotel={async (id) => {
-              await deleteHotelAsync(id);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await deleteHotelAsync(id);
+                await syncFromCloudDatabase();
+              }, 'Deleting Hotel Partner', 'Updating hotel records in cloud database...');
             }}
           />
         )}
@@ -647,20 +670,28 @@ export default function Home() {
             destinations={destinations}
             attractions={attractions}
             onSaveDestination={async (d) => {
-              await saveDestinationAsync(d);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveDestinationAsync(d);
+                await syncFromCloudDatabase();
+              }, 'Saving Destination', 'Updating destination in cloud database...');
             }}
             onDeleteDestination={async (id) => {
-              await deleteDestinationAsync(id);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await deleteDestinationAsync(id);
+                await syncFromCloudDatabase();
+              }, 'Deleting Destination', 'Removing destination from cloud database...');
             }}
             onSaveAttraction={async (a) => {
-              await saveAttractionAsync(a);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveAttractionAsync(a);
+                await syncFromCloudDatabase();
+              }, 'Saving Sightseeing Attraction', 'Updating attraction in cloud database...');
             }}
             onDeleteAttraction={async (id) => {
-              await deleteAttractionAsync(id);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await deleteAttractionAsync(id);
+                await syncFromCloudDatabase();
+              }, 'Deleting Attraction', 'Removing attraction from cloud database...');
             }}
           />
         )}
@@ -673,12 +704,16 @@ export default function Home() {
             drivers={drivers}
             settings={settings}
             onSaveBooking={async (b) => {
-              await saveOperationalBookingAsync(b);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveOperationalBookingAsync(b);
+                await syncFromCloudDatabase();
+              }, 'Saving Direct Booking', 'Updating booking in cloud database...');
             }}
             onDeleteBooking={async (id) => {
-              await deleteOperationalBookingAsync(id);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await deleteOperationalBookingAsync(id);
+                await syncFromCloudDatabase();
+              }, 'Deleting Direct Booking', 'Removing booking from cloud database...');
             }}
           />
         )}
@@ -691,8 +726,10 @@ export default function Home() {
             drivers={drivers}
             settings={settings}
             onSaveBooking={async (b) => {
-              await saveOperationalBookingAsync(b);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveOperationalBookingAsync(b);
+                await syncFromCloudDatabase();
+              }, 'Saving Booking Details', 'Updating schedule and reminders in cloud database...');
             }}
             itineraries={itineraries}
             onViewVoucher={handleGenerateVoucher}
@@ -716,17 +753,23 @@ export default function Home() {
             fleet={fleet}
             settings={settings}
             onSaveVehicle={async (v) => {
-              await saveFleetVehicleAsync(v);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveFleetVehicleAsync(v);
+                await syncFromCloudDatabase();
+              }, 'Saving Fleet Vehicle', 'Updating vehicle in cloud database...');
             }}
             onDeleteVehicle={handleDeleteFleetVehicle}
             onSaveDriver={async (d) => {
-              await saveDriverAsync(d);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveDriverAsync(d);
+                await syncFromCloudDatabase();
+              }, 'Saving Driver Profile', 'Updating driver roster in cloud database...');
             }}
             onBookingCreated={async (b) => {
-              await saveOperationalBookingAsync(b);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveOperationalBookingAsync(b);
+                await syncFromCloudDatabase();
+              }, 'Creating Operational Booking', 'Saving booking to cloud database...');
             }}
             onNavigateTab={setActiveTab}
           />
@@ -739,17 +782,23 @@ export default function Home() {
             fleet={fleet}
             settings={settings}
             onSaveDriver={async (d) => {
-              await saveDriverAsync(d);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveDriverAsync(d);
+                await syncFromCloudDatabase();
+              }, 'Saving Driver Profile', 'Updating driver roster in cloud database...');
             }}
             onDeleteDriver={handleDeleteDriver}
             onSaveVehicle={async (v) => {
-              await saveFleetVehicleAsync(v);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveFleetVehicleAsync(v);
+                await syncFromCloudDatabase();
+              }, 'Saving Fleet Vehicle', 'Updating vehicle in cloud database...');
             }}
             onBookingCreated={async (b) => {
-              await saveOperationalBookingAsync(b);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveOperationalBookingAsync(b);
+                await syncFromCloudDatabase();
+              }, 'Creating Operational Booking', 'Saving booking to cloud database...');
             }}
             onNavigateTab={setActiveTab}
           />
@@ -762,8 +811,10 @@ export default function Home() {
             itineraries={itineraries}
             bookings={operationalBookings}
             onSaveSettings={async (st) => {
-              await saveSettingsAsync(st);
-              await syncFromCloudDatabase();
+              await withLoading(async () => {
+                await saveSettingsAsync(st);
+                await syncFromCloudDatabase();
+              }, 'Saving System Settings', 'Applying branding & operations configuration...');
             }}
             onResetDefaults={() => {
               resetAllToDefaults();

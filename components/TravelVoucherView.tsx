@@ -32,6 +32,7 @@ import { formatDateDMY, formatDayDate } from '@/lib/utils';
 import { getRouteSubtitle, getDayMainHeading } from '@/lib/narrative-generator';
 import { Itinerary, AppSettings, OperationalBooking } from '@/types';
 import BookingCreationModal from '@/components/BookingCreationModal';
+import LoadingIndicator from '@/components/LoadingIndicator';
 
 function cleanTransitText(text?: string): string {
   if (!text) return '';
@@ -110,6 +111,16 @@ export default function TravelVoucherView({
 
   return (
     <div className="space-y-6 pb-24">
+      {/* Centered Exporting Loading Overlay */}
+      {isExporting && (
+        <LoadingIndicator
+          fullScreen
+          size="lg"
+          variant="dark"
+          message="Generating Travel Voucher PDF"
+          subtext="Compiling guest voucher, transit vouchers & hotel vouchers. Please wait..."
+        />
+      )}
       
       {/* Top Floating Controls */}
       <div className="no-print sticky top-16 z-30 bg-[#151521]/95 backdrop-blur-md text-white p-3.5 sm:p-4 rounded-2xl shadow-xl border border-[#26214F] flex flex-wrap items-center justify-between gap-3">

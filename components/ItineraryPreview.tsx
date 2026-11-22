@@ -47,6 +47,7 @@ import { formatDateDMY, formatDayDate } from '@/lib/utils';
 import { ensureOvernightStayText, getRouteSubtitle, getDayMainHeading } from '@/lib/narrative-generator';
 import { Itinerary, AppSettings, ItineraryDay, DayMealPlan, Destination, Attraction, HotelStarTier, DayHotelTiers, TierPricingData, PricingTiers, DayHotelSelection } from '@/types';
 import { SafeImage } from './SafeImage';
+import LoadingIndicator from './LoadingIndicator';
 
 interface ItineraryPreviewProps {
   itinerary: Itinerary;
@@ -795,6 +796,16 @@ export default function ItineraryPreview({
 
   return (
     <div className="space-y-6 pb-24">
+      {/* Centered Exporting Loading Overlay */}
+      {isExporting && (
+        <LoadingIndicator
+          fullScreen
+          size="lg"
+          variant="dark"
+          message="Generating A4 PDF Proposal"
+          subtext="Formatting discrete A4 pages with high-resolution imagery. Please wait..."
+        />
+      )}
       
       {/* Top Floating Control Bar (Hidden in Print) */}
       <div className="no-print bg-[#151521] text-white p-4 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-4 border border-[#26214F]">

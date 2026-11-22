@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
+import { LoadingProvider } from '@/context/LoadingContext';
 import './globals.css'; // Global styles
 
 export const viewport: Viewport = {
@@ -29,7 +30,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <body suppressHydrationWarning className="overflow-x-hidden max-w-full">
         {/* Google Identity Services — required for Google Calendar OAuth */}
         <Script src="https://accounts.google.com/gsi/client" strategy="beforeInteractive" />
-        {children}
+        <LoadingProvider>
+          {children}
+        </LoadingProvider>
       </body>
     </html>
   );

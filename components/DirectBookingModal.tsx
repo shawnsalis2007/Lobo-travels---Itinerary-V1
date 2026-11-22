@@ -27,6 +27,7 @@ import {
   GoogleCalendarAccount
 } from '@/types';
 import { saveOperationalBooking, saveOperationalBookingAsync } from '@/lib/storage';
+import LoadingIndicator from './LoadingIndicator';
 
 interface DirectBookingModalProps {
   isOpen: boolean;
@@ -388,7 +389,18 @@ export default function DirectBookingModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-2xl bg-[#151521] border border-[#26214F] text-white rounded-2xl shadow-2xl p-4 sm:p-6 overflow-hidden max-h-[92vh] overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-[#151521] border border-[#26214F] text-white rounded-2xl shadow-2xl p-4 sm:p-6 overflow-hidden max-h-[92vh] overflow-y-auto">
+        {/* Centered Loading Overlay */}
+        {submitting && (
+          <div className="absolute inset-0 bg-[#151521]/90 backdrop-blur-sm z-30 flex items-center justify-center p-4">
+            <LoadingIndicator
+              size="md"
+              variant="dark"
+              message={calendarSyncStatus || (existingBooking ? 'Saving Changes & Syncing' : 'Confirming Direct Booking')}
+              subtext="Persisting operational booking to cloud database & calendars..."
+            />
+          </div>
+        )}
         
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#26214F] mb-5">
