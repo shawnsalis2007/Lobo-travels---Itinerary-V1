@@ -257,15 +257,15 @@ export default function Home() {
       costDisplayType: 'total_only',
       currency: 'INR',
       currencySymbol: '₹',
-      totalCost: 49000,
+      totalCost: 0,
       costBreakdown: {
-        vehicle: 18000,
-        accommodation: 21000,
-        sightseeing: 5000,
-        guide: 5000
+        vehicle: 0,
+        accommodation: 0,
+        sightseeing: 0,
+        guide: 0
       },
       advancePaid: 0,
-      pendingAmount: 49000,
+      pendingAmount: 0,
       paymentStatus: 'Unpaid',
       inclusions: [...(settings?.defaultInclusions || [])],
       exclusions: [...(settings?.defaultExclusions || [])],

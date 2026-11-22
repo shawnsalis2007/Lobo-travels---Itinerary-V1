@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Compass, 
   PlusCircle, 
@@ -61,18 +61,40 @@ export default function Navbar({
   onLogout
 }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [desktopMoreOpen, setDesktopMoreOpen] = useState(false);
+  const desktopMoreRef = useRef<HTMLDivElement>(null);
   const syncStatus = useSyncStatus();
+
+  // Close desktop "More" dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (desktopMoreRef.current && !desktopMoreRef.current.contains(event.target as Node)) {
+        setDesktopMoreOpen(false);
+      }
+    };
+    if (desktopMoreOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [desktopMoreOpen]);
 
   const effectiveBrand = viewingAsBrand || currentBrand;
   const brandName = effectiveBrand?.name || settings?.companyName || "LOBO'S TRAVEL WIZARD";
   const brandLogo = effectiveBrand?.logoUrl || settings?.logoUrl || '/logo.png';
 
-  const navItems = [
+  // Primary navigation items (visible directly in header up through Direct Itinerary)
+  const primaryNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Compass },
     { id: 'itineraries', label: 'Itineraries', icon: FileText },
     { id: 'hotels', label: 'Hotels', icon: Building2 },
     { id: 'destinations', label: 'Destinations', icon: MapPin },
-    { id: 'direct-bookings', label: 'Direct Bookings', icon: CalendarCheck },
+    { id: 'direct-bookings', label: 'Direct Itinerary', icon: CalendarCheck },
+  ];
+
+  // Secondary navigation items (moved into hamburger menu)
+  const moreNavItems = [
     { id: 'reminders', label: 'Reminders', icon: CalendarClock },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
     { id: 'fleet', label: 'Fleet', icon: Truck },
@@ -82,11 +104,14 @@ export default function Navbar({
 
   // Additional Super Admin and Brand Admin tabs
   if (currentUser?.role === 'super_admin') {
-    navItems.push({ id: 'brands', label: 'Brands', icon: Building2 });
-    navItems.push({ id: 'users', label: 'Users', icon: Users });
+    moreNavItems.push({ id: 'brands', label: 'Brands', icon: Building2 });
+    moreNavItems.push({ id: 'users', label: 'Users', icon: Users });
   } else if (currentUser?.role === 'brand_admin') {
-    navItems.push({ id: 'users', label: 'Users', icon: Users });
+    moreNavItems.push({ id: 'users', label: 'Users', icon: Users });
   }
+
+  const allNavItems = [...primaryNavItems, ...moreNavItems];
+  const isMoreActive = moreNavItems.some(item => item.id === activeTab);
 
   const getRoleBadge = (role?: UserRole | string) => {
     switch (role) {
@@ -211,15 +236,18 @@ export default function Navbar({
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden xl:flex items-center space-x-1">
-            {navItems.map((item) => {
+          <nav className="hidden lg:flex items-center space-x-1">
+            {primaryNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    setDesktopMoreOpen(false);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
                     isActive
                       ? 'bg-[#26214F] text-amber-300 shadow-sm border border-amber-400/20'
                       : 'text-slate-300 hover:text-white hover:bg-white/5'
@@ -230,6 +258,60 @@ export default function Navbar({
                 </button>
               );
             })}
+
+            {/* Hamburger / More Menu for items after Direct Itinerary */}
+            <div className="relative" ref={desktopMoreRef}>
+              <button
+                type="button"
+                onClick={() => setDesktopMoreOpen(prev => !prev)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+                  isMoreActive || desktopMoreOpen
+                    ? 'bg-[#26214F] text-amber-300 shadow-sm border border-amber-400/20'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                }`}
+                title="More Navigation Modules"
+                aria-label="More Navigation Modules"
+                aria-expanded={desktopMoreOpen}
+              >
+                <Menu className={`w-4 h-4 ${isMoreActive ? 'text-amber-300' : 'text-[#9899A1]'}`} />
+                <span>More</span>
+                {isMoreActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 ml-0.5" />
+                )}
+              </button>
+
+              {desktopMoreOpen && (
+                <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[#151521] border border-[#26214F] shadow-2xl py-1.5 z-50 text-xs backdrop-blur-md">
+                  <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 border-b border-[#26214F]/60 tracking-wider">
+                    More Modules
+                  </div>
+                  <div className="py-1">
+                    {moreNavItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveTab(item.id);
+                            setDesktopMoreOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-left transition-colors cursor-pointer ${
+                            isActive
+                              ? 'bg-[#26214F] text-amber-300 border-l-2 border-amber-400 font-bold'
+                              : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                          }`}
+                        >
+                          <Icon className={`w-4 h-4 ${isActive ? 'text-amber-300' : 'text-[#9899A1]'}`} />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* User Account & Actions */}
@@ -284,7 +366,7 @@ export default function Navbar({
             {/* Mobile menu trigger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden p-1.5 sm:p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 flex-shrink-0 focus:outline-none"
+              className="lg:hidden p-1.5 sm:p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 flex-shrink-0 focus:outline-none"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -294,7 +376,7 @@ export default function Navbar({
 
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="xl:hidden py-3 border-t border-[#26214F] space-y-2 overflow-y-auto max-h-[75vh]">
+          <div className="lg:hidden py-3 border-t border-[#26214F] space-y-2 overflow-y-auto max-h-[75vh]">
             <div className="relative mb-3">
               <Search className="w-4 h-4 text-[#9899A1] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
@@ -366,7 +448,7 @@ export default function Navbar({
               </button>
             )}
 
-            {navItems.map((item) => {
+            {allNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               return (

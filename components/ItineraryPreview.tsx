@@ -363,6 +363,38 @@ export default function ItineraryPreview({
     return list;
   };
 
+  // Helper to retrieve destination description for tour overview
+  const getDestinationDescription = React.useCallback((destName: string): string => {
+    if (!destName) return '';
+    const lower = destName.trim().toLowerCase();
+
+    // 1. Check if any day has destinationDescription for this destination
+    for (const d of itinerary.days) {
+      if (d.destination && d.destination.trim().toLowerCase() === lower && d.destinationDescription?.trim()) {
+        return d.destinationDescription.trim();
+      }
+      if (d.isMultiCity && d.cities) {
+        for (const c of d.cities) {
+          if (c.destination && c.destination.trim().toLowerCase() === lower && c.destinationDescription?.trim()) {
+            return c.destinationDescription.trim();
+          }
+        }
+      }
+    }
+
+    // 2. Check activeDestinations and COMPREHENSIVE_DESTINATIONS
+    const found = activeDestinations.find(
+      d => d.name.trim().toLowerCase() === lower || d.id.trim().toLowerCase() === lower
+    ) || COMPREHENSIVE_DESTINATIONS.find(
+      d => d.name.trim().toLowerCase() === lower || d.id.trim().toLowerCase() === lower
+    );
+
+    return (found as any)?.shortDescription?.trim()
+      || (found as any)?.detailedDescription?.trim()
+      || (found as any)?.description?.trim()
+      || '';
+  }, [itinerary.days, activeDestinations]);
+
   // Strip bold tags and markdown asterisks from description text so it always renders in normal weight (400)
   const stripBoldFormatting = (text: string): string => {
     if (!text) return '';
@@ -508,8 +540,22 @@ export default function ItineraryPreview({
       }
     }
 
-    // Display ONLY explicitly selected attraction items (up to 4)
-    return list.slice(0, 4);
+    // Also include any day.images (custom photos or destination highlights) if present and not already added
+    if (Array.isArray(day.images)) {
+      day.images.forEach((imgUrl, imgIdx) => {
+        if (imgUrl && !seenUrls.has(imgUrl)) {
+          seenUrls.add(imgUrl);
+          list.push({
+            id: `day-img-${imgIdx}`,
+            name: day.destination || 'Destination Highlight',
+            image: imgUrl
+          });
+        }
+      });
+    }
+
+    // Render ALL destination and attraction photos for the day (no 4-photo cap)
+    return list;
   }, [activeAttractions]);
 
   // Main hero cover image for Page 1 of the itinerary proposal
@@ -860,16 +906,24 @@ export default function ItineraryPreview({
                 </p>
 
                 {tourDestinations.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <div className="space-y-1.5 pt-1.5">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-amber-600" />
+                      <MapPin className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
                       Destinations:
                     </span>
-                    {tourDestinations.map((dest, dIdx) => (
-                      <span key={dIdx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200/80 text-amber-950 text-[10px] font-semibold">
-                        {dest}
-                      </span>
-                    ))}
+                    <div className="space-y-1.5 pl-0.5">
+                      {tourDestinations.map((dest, dIdx) => {
+                        const desc = getDestinationDescription(dest);
+                        return (
+                          <div key={dIdx} className="text-xs text-slate-700 leading-relaxed font-normal">
+                            <strong className="font-bold text-slate-900">{dest}</strong>
+                            {desc ? (
+                              <span className="font-normal text-slate-700"> - {stripBoldFormatting(desc)}</span>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1198,10 +1252,6 @@ export default function ItineraryPreview({
 
                             return (
                               <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[10px]">
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-950 font-bold">
-                                  <MapPin className="w-3 h-3 text-amber-600 flex-shrink-0" />
-                                  <span>Destination: {dayDestText}</span>
-                                </span>
                                 {!isDepartureActive && day.overnightLocation && itinerary.includeHotels !== false && !day.excludeHotel && (
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">
                                     <Building2 className="w-3 h-3 text-slate-500 flex-shrink-0" />
@@ -1402,34 +1452,6 @@ export default function ItineraryPreview({
                         <span>Inter-City Transfer: {day.transfer.from} → {day.transfer.to}</span>
                       </div>
                     )}
-
-                    {/* Destination Overview Cards with Description */}
-                    {(() => {
-                      const dests = getDayDestinationDetails(day);
-                      if (dests.length === 0) return null;
-                      const destsWithDesc = dests.filter(d => Boolean(d.description && d.description.trim()));
-                      if (destsWithDesc.length === 0) return null;
-
-                      return (
-                        <div className="destination-descriptions-container space-y-1.5" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-                          {destsWithDesc.map((dest, idx) => (
-                            <div 
-                              key={dest.id || idx} 
-                              className="destination-overview-card p-2.5 rounded-lg bg-amber-50/50 border border-amber-200/80 text-xs"
-                              style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
-                            >
-                              <div className="flex items-center gap-1.5 font-bold text-amber-950 text-[11px] mb-1">
-                                <MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                                <span>Destination Overview: {dest.name}{dest.state ? ` (${dest.state})` : ''}</span>
-                              </div>
-                              <p className="destination-description font-normal text-slate-700 leading-relaxed text-[11px]">
-                                {stripBoldFormatting(dest.description || '')}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })()}
 
                     {/* Sights Covered Badges */}
                     {(() => {

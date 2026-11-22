@@ -308,17 +308,17 @@ export default function ItineraryBuilder({
       if (!copy.enabledHotelTiers) copy.enabledHotelTiers = { star3: true, star4: true, star5: true };
       if (!copy.selectedHotelTier) copy.selectedHotelTier = '4_star';
       if (!copy.pricingTiers) {
-        const baseCost = copy.totalCost || 45000;
+        const baseCost = copy.totalCost || 0;
         const baseTransport = copy.transportRate || Math.round(baseCost * 0.4);
         copy.pricingTiers = {
-          threeStar: { totalCost: Math.round(baseCost * 0.85), transportCost: baseTransport, accommodationCost: Math.round(baseCost * 0.85) - baseTransport },
-          fourStar: { totalCost: baseCost, transportCost: baseTransport, accommodationCost: baseCost - baseTransport },
-          fiveStar: { totalCost: Math.round(baseCost * 1.3), transportCost: baseTransport, accommodationCost: Math.round(baseCost * 1.3) - baseTransport },
+          threeStar: { totalCost: Math.round(baseCost * 0.85), transportCost: baseTransport, accommodationCost: Math.max(0, Math.round(baseCost * 0.85) - baseTransport) },
+          fourStar: { totalCost: baseCost, transportCost: baseTransport, accommodationCost: Math.max(0, baseCost - baseTransport) },
+          fiveStar: { totalCost: Math.round(baseCost * 1.3), transportCost: baseTransport, accommodationCost: Math.max(0, Math.round(baseCost * 1.3) - baseTransport) },
         };
       }
       if (copy.itemizedPriceSplit === undefined) copy.itemizedPriceSplit = false;
-      if (copy.transportRate === undefined) copy.transportRate = Math.round((copy.totalCost || 45000) * 0.4);
-      if (copy.accommodationRate === undefined) copy.accommodationRate = (copy.totalCost || 45000) - (copy.transportRate || 0);
+      if (copy.transportRate === undefined) copy.transportRate = Math.round((copy.totalCost || 0) * 0.4);
+      if (copy.accommodationRate === undefined) copy.accommodationRate = Math.max(0, (copy.totalCost || 0) - (copy.transportRate || 0));
       if (copy.flightRate === undefined) copy.flightRate = 0;
       if (!copy.lumpSumComponents) {
         copy.lumpSumComponents = {
@@ -395,13 +395,13 @@ export default function ItineraryBuilder({
       enabledHotelTiers: { star3: true, star4: true, star5: true },
       selectedHotelTier: '4_star',
       pricingTiers: {
-        threeStar: { totalCost: 38000, transportCost: 18000, accommodationCost: 20000 },
-        fourStar: { totalCost: 45000, transportCost: 18000, accommodationCost: 27000 },
-        fiveStar: { totalCost: 58000, transportCost: 18000, accommodationCost: 40000 },
+        threeStar: { totalCost: 0, transportCost: 0, accommodationCost: 0 },
+        fourStar: { totalCost: 0, transportCost: 0, accommodationCost: 0 },
+        fiveStar: { totalCost: 0, transportCost: 0, accommodationCost: 0 },
       },
       itemizedPriceSplit: false,
-      transportRate: 18000,
-      accommodationRate: 27000,
+      transportRate: 0,
+      accommodationRate: 0,
       flightRate: 0,
       lumpSumComponents: {
         hotel: true,
@@ -413,18 +413,18 @@ export default function ItineraryBuilder({
       costDisplayType: 'total_only',
       currency: 'INR',
       currencySymbol: '₹',
-      totalCost: 45000,
+      totalCost: 0,
       costBreakdown: {
-        vehicle: 18000,
-        accommodation: 22000,
-        sightseeing: 3000,
-        guide: 2000,
+        vehicle: 0,
+        accommodation: 0,
+        sightseeing: 0,
+        guide: 0,
         transfers: 0,
         taxes: 0
       },
-      advancePaid: 15000,
-      pendingAmount: 30000,
-      paymentStatus: 'Partially Paid',
+      advancePaid: 0,
+      pendingAmount: 0,
+      paymentStatus: 'Unpaid',
       inclusions: defaultInclusions,
       exclusions: defaultExclusions,
       specialNotes: 'Early check-in is subject to hotel availability. Valid government-issued photo ID is mandatory for all guests during check-in.',
@@ -2712,6 +2712,22 @@ export default function ItineraryBuilder({
         forCityIndex: cityIndex
       });
     }
+  };
+
+  const handleMoveInclusion = (fromIndex: number, toIndex: number) => {
+    const list = [...(Array.isArray(itinerary.inclusions) ? itinerary.inclusions : [])];
+    if (toIndex < 0 || toIndex >= list.length) return;
+    const [moved] = list.splice(fromIndex, 1);
+    list.splice(toIndex, 0, moved);
+    setItinerary(prev => ({ ...prev, inclusions: list }));
+  };
+
+  const handleMoveExclusion = (fromIndex: number, toIndex: number) => {
+    const list = [...(Array.isArray(itinerary.exclusions) ? itinerary.exclusions : [])];
+    if (toIndex < 0 || toIndex >= list.length) return;
+    const [moved] = list.splice(fromIndex, 1);
+    list.splice(toIndex, 0, moved);
+    setItinerary(prev => ({ ...prev, exclusions: list }));
   };
 
   const handleSaveDestinationModal = () => {
@@ -6978,8 +6994,28 @@ export default function ItineraryBuilder({
                 Tour Inclusions
               </span>
               <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                {(Array.isArray(itinerary.inclusions) ? itinerary.inclusions : []).map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 text-xs">
+                {(Array.isArray(itinerary.inclusions) ? itinerary.inclusions : []).map((item, idx, arr) => (
+                  <div key={idx} className="flex items-center gap-1.5 bg-white p-2 rounded-lg border border-slate-200 text-xs">
+                    <div className="flex flex-col gap-0.5 text-slate-400">
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={() => handleMoveInclusion(idx, idx - 1)}
+                        className="p-0.5 rounded hover:text-slate-700 hover:bg-slate-100 disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed"
+                        title="Move Up"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={idx === arr.length - 1}
+                        onClick={() => handleMoveInclusion(idx, idx + 1)}
+                        className="p-0.5 rounded hover:text-slate-700 hover:bg-slate-100 disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed"
+                        title="Move Down"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                     <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                     <input
                       type="text"
@@ -6997,7 +7033,8 @@ export default function ItineraryBuilder({
                         const copy = (Array.isArray(itinerary.inclusions) ? itinerary.inclusions : []).filter((_, i) => i !== idx);
                         setItinerary(prev => ({ ...prev, inclusions: copy }));
                       }}
-                      className="text-slate-300 hover:text-rose-600"
+                      className="text-slate-300 hover:text-rose-600 p-1"
+                      title="Remove inclusion"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -7019,8 +7056,28 @@ export default function ItineraryBuilder({
                 Tour Exclusions
               </span>
               <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                {(Array.isArray(itinerary.exclusions) ? itinerary.exclusions : []).map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 text-xs">
+                {(Array.isArray(itinerary.exclusions) ? itinerary.exclusions : []).map((item, idx, arr) => (
+                  <div key={idx} className="flex items-center gap-1.5 bg-white p-2 rounded-lg border border-slate-200 text-xs">
+                    <div className="flex flex-col gap-0.5 text-slate-400">
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={() => handleMoveExclusion(idx, idx - 1)}
+                        className="p-0.5 rounded hover:text-slate-700 hover:bg-slate-100 disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed"
+                        title="Move Up"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={idx === arr.length - 1}
+                        onClick={() => handleMoveExclusion(idx, idx + 1)}
+                        className="p-0.5 rounded hover:text-slate-700 hover:bg-slate-100 disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed"
+                        title="Move Down"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                     <X className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
                     <input
                       type="text"
@@ -7038,7 +7095,8 @@ export default function ItineraryBuilder({
                         const copy = (Array.isArray(itinerary.exclusions) ? itinerary.exclusions : []).filter((_, i) => i !== idx);
                         setItinerary(prev => ({ ...prev, exclusions: copy }));
                       }}
-                      className="text-slate-300 hover:text-rose-600"
+                      className="text-slate-300 hover:text-rose-600 p-1"
+                      title="Remove exclusion"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
