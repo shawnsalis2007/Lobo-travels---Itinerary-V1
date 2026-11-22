@@ -105,28 +105,28 @@ export default function Navbar({
   };
 
   return (
-    <header className="no-print sticky top-0 z-40 bg-[#151521] text-white border-b border-[#26214F]/80 shadow-md">
+    <header className="no-print sticky top-0 z-40 bg-[#151521] text-white border-b border-[#26214F]/80 shadow-md w-full overflow-x-hidden">
       
       {/* ── Super Admin Viewing-As Alert Banner ── */}
       {isViewingAs && viewingAsBrand && (
-        <div className="bg-gradient-to-r from-purple-900 to-indigo-900 text-purple-100 text-xs px-4 py-2 border-b border-purple-700/60 flex items-center justify-between animate-fadeIn">
-          <div className="flex items-center gap-2 max-w-4xl">
+        <div className="bg-gradient-to-r from-purple-900 to-indigo-900 text-purple-100 text-xs px-3 sm:px-4 py-2 border-b border-purple-700/60 flex items-center justify-between animate-fadeIn gap-2">
+          <div className="flex items-center gap-2 max-w-4xl min-w-0">
             <Eye className="w-4 h-4 text-purple-300 flex-shrink-0" />
-            <span>
-              <strong>Viewing as {viewingAsBrand.name}</strong> ({viewingAsBrand.code}) — All catalogs, itineraries, and settings are currently scoped to this brand.
+            <span className="truncate">
+              <strong>Viewing as {viewingAsBrand.name}</strong> ({viewingAsBrand.code}) — Scoped to this brand.
             </span>
           </div>
           <button
             onClick={onExitViewingAs}
-            className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-white font-semibold transition active:scale-95 whitespace-nowrap text-[11px]"
+            className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded bg-white/10 hover:bg-white/20 text-white font-semibold transition active:scale-95 whitespace-nowrap text-[10px] sm:text-[11px] flex-shrink-0"
           >
-            Exit View / Switch to Lobo's Travel Wizard
+            Exit View
           </button>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
+      <div className="w-full max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-1.5 sm:gap-4 w-full min-w-0">
           
           {/* Logo & Company Title */}
           <div 
@@ -134,9 +134,9 @@ export default function Navbar({
               setActiveTab('dashboard');
               setMobileMenuOpen(false);
             }}
-            className="flex items-center gap-3 cursor-pointer group flex-shrink-0"
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0 flex-1 sm:flex-initial"
           >
-            <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-white/10 p-1 flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-white/30 transition-colors">
+            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-white/10 p-1 flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-white/30 transition-colors flex-shrink-0">
               <img 
                 src={brandLogo} 
                 alt={brandName} 
@@ -146,12 +146,12 @@ export default function Navbar({
                 }}
               />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold tracking-tight text-white group-hover:text-amber-200 transition-colors">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-sm sm:text-base md:text-lg font-bold tracking-tight text-white group-hover:text-amber-200 transition-colors truncate max-w-[125px] min-[380px]:max-w-[165px] min-[440px]:max-w-[220px] sm:max-w-none block">
                   {brandName.toUpperCase()}
                 </span>
-                <span className="hidden md:inline-block text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded bg-[#26214F] text-amber-300 border border-amber-400/20">
+                <span className="hidden md:inline-block text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded bg-[#26214F] text-amber-300 border border-amber-400/20 flex-shrink-0">
                   {effectiveBrand?.code || 'Tour Operations'}
                 </span>
               </div>
@@ -233,7 +233,7 @@ export default function Navbar({
           </nav>
 
           {/* User Account & Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             
             {/* User Pill or Login Button */}
             {currentUser ? (
@@ -261,7 +261,7 @@ export default function Navbar({
               onOpenLogin && (
                 <button
                   onClick={onOpenLogin}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-[#26214F] hover:bg-[#26214F]/80 text-amber-300 border border-amber-400/20 transition"
+                  className="hidden sm:flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-[#26214F] hover:bg-[#26214F]/80 text-amber-300 border border-amber-400/20 transition flex-shrink-0"
                 >
                   <LogIn className="w-3.5 h-3.5" />
                   <span>Sign In</span>
@@ -274,17 +274,17 @@ export default function Navbar({
                 onNewItinerary();
                 setMobileMenuOpen(false);
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-sm transition active:scale-95"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-sm transition active:scale-95 flex-shrink-0"
             >
-              <PlusCircle className="w-4 h-4 text-slate-950" />
+              <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
               <span className="hidden sm:inline">Create Itinerary</span>
-              <span className="sm:hidden">New</span>
+              <span className="sm:hidden text-[11px]">New</span>
             </button>
 
             {/* Mobile menu trigger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10"
+              className="xl:hidden p-1.5 sm:p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 flex-shrink-0 focus:outline-none"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

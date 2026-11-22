@@ -25,8 +25,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="en">
-      <body suppressHydrationWarning>
+    <html lang="en" className="overflow-x-hidden">
+      <body suppressHydrationWarning className="overflow-x-hidden max-w-full">
         {/* Google Identity Services — required for Google Calendar OAuth */}
         <Script src="https://accounts.google.com/gsi/client" strategy="beforeInteractive" />
         {children}

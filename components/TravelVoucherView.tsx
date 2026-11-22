@@ -33,6 +33,36 @@ import { getRouteSubtitle, getDayMainHeading } from '@/lib/narrative-generator';
 import { Itinerary, AppSettings, OperationalBooking } from '@/types';
 import BookingCreationModal from '@/components/BookingCreationModal';
 
+function cleanTransitText(text?: string): string {
+  if (!text) return '';
+  return text
+    .replace(/flights?\s+booked\s+by\s+us/gi, 'Flight Details')
+    .replace(/trains?\s+booked\s+by\s+us/gi, 'Train Details')
+    .replace(/railway\s+booked\s+by\s+us/gi, 'Train Details')
+    .replace(/bus(?:es)?\s+booked\s+by\s+us/gi, 'Bus Details')
+    .replace(/outbound\s+booked\s+by\s+us/gi, 'Transfer / Outbound Details')
+    .replace(/\s*\(?booked\s+by\s+us\)?/gi, '')
+    .trim();
+}
+
+function getTransitHeaderTitle(flightBookings?: Itinerary['flightBookings']): string {
+  if (!flightBookings) return 'Flight & Transit Details';
+  const hasFlights = flightBookings.flightsBookedByUs || flightBookings.flights?.some(f => !f.transitType || f.transitType === 'flight');
+  const hasTrain = flightBookings.railwayBookedByUs || flightBookings.flights?.some(f => f.transitType === 'train');
+  const hasBus = flightBookings.busBookedByUs || flightBookings.flights?.some(f => f.transitType === 'bus');
+
+  const modesCount = (hasFlights ? 1 : 0) + (hasTrain ? 1 : 0) + (hasBus ? 1 : 0);
+  if (modesCount === 1) {
+    if (hasFlights) return 'Flight Details';
+    if (hasTrain) return 'Train Details';
+    if (hasBus) return 'Bus Details';
+  }
+  if (flightBookings.outboundBookedByUs && !hasFlights && !hasTrain && !hasBus) {
+    return 'Transfer / Outbound Details';
+  }
+  return 'Flight & Transit Details';
+}
+
 interface TravelVoucherViewProps {
   itinerary: Itinerary;
   settings: AppSettings;
@@ -237,7 +267,7 @@ export default function TravelVoucherView({
                     {itinerary.flightBookings.flightsBookedByUs && <Plane className="w-3.5 h-3.5 text-sky-600" />}
                     {itinerary.flightBookings.railwayBookedByUs && <Train className="w-3.5 h-3.5 text-emerald-600" />}
                     {itinerary.flightBookings.busBookedByUs && <Bus className="w-3.5 h-3.5 text-amber-600" />}
-                    Confirmed Travel Tickets & Transit Logistics
+                    {getTransitHeaderTitle(itinerary.flightBookings)}
                   </h3>
                   <div className="rounded-lg border border-sky-200 overflow-hidden shadow-2xs">
                     <table className="w-full text-left text-xs">
@@ -254,12 +284,13 @@ export default function TravelVoucherView({
                       <tbody className="divide-y divide-sky-100 text-slate-700 text-[10px] bg-sky-50/20">
                         {itinerary.flightBookings.flights.map((fl) => {
                           const mode = fl.transitType || 'flight';
+                          const cleanSector = cleanTransitText(fl.sectorTitle);
                           return (
                             <tr key={fl.id} className="hover:bg-sky-50/50">
                               <td className="py-1.5 px-3 font-semibold text-slate-900">
                                 <span className="inline-flex items-center gap-1">
                                   {mode === 'bus' ? <Bus className="w-3 h-3 text-amber-600" /> : mode === 'train' ? <Train className="w-3 h-3 text-emerald-600" /> : <Plane className="w-3 h-3 text-sky-600" />}
-                                  <span>{fl.sectorTitle}</span>
+                                  <span>{cleanSector || `${fl.departureCity} ➔ ${fl.arrivalCity}`}</span>
                                 </span>
                               </td>
                               <td className="py-1.5 px-3 font-bold text-slate-900">
@@ -306,6 +337,9 @@ export default function TravelVoucherView({
                             </span>
                           )}
                           <span>— {getDayMainHeading(day)}</span>
+                          <span className="text-[10px] font-semibold text-amber-900 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded">
+                            Destination: {day.isMultiCity && day.cities && day.cities.length > 0 ? day.cities.map(c => c.destination).join(' ➔ ') : (day.destination || day.overnightLocation)}
+                          </span>
                         </span>
                         {day.departureDetails?.enabled ? (
                           <span className="text-[10px] text-sky-700 font-semibold bg-sky-100/70 px-1.5 py-0.5 rounded">
@@ -353,11 +387,29 @@ export default function TravelVoucherView({
                       })()}
 
                       {/* Sights */}
-                      {day.attractionNames && day.attractionNames.length > 0 && (
-                        <div className="text-slate-600 text-[10px] mb-0.5">
-                          <strong>Sights:</strong> {day.attractionNames.join(', ')}
-                        </div>
-                      )}
+                      {(() => {
+                        const sights: string[] = [];
+                        if (day.attractionNames && day.attractionNames.length > 0) {
+                          day.attractionNames.forEach(n => {
+                            if (!sights.includes(n)) sights.push(n);
+                          });
+                        }
+                        if (day.isMultiCity && day.cities) {
+                          day.cities.forEach(c => {
+                            if (c.attractionNames) {
+                              c.attractionNames.forEach(n => {
+                                if (!sights.includes(n)) sights.push(n);
+                              });
+                            }
+                          });
+                        }
+                        if (sights.length === 0) return null;
+                        return (
+                          <div className="text-slate-600 text-[10px] mb-0.5">
+                            <strong>Sightseeing Spots:</strong> {sights.join(', ')}
+                          </div>
+                        );
+                      })()}
 
                       {/* Multi-city or inter-city transits (Car, Flight, Train, Bus, Cruise, Ferry, Toy Train, Seaplane) */}
                       {day.isMultiCity && day.cities && day.cities.length > 1 && (

@@ -138,18 +138,114 @@ export default function ItineraryPreview({
     return cities.join(' • ');
   }, [itinerary.days]);
 
-  // Helper to render clean bullet points and indented sub-bullet attractions
+  // Derived unique tour destinations covered across all days
+  const tourDestinations = React.useMemo(() => {
+    const list: string[] = [];
+    itinerary.days.forEach(d => {
+      if (d.isMultiCity && d.cities) {
+        d.cities.forEach(c => {
+          if (c.destination && !list.includes(c.destination)) list.push(c.destination);
+        });
+      } else if (d.destination && !list.includes(d.destination)) {
+        list.push(d.destination);
+      }
+      if (d.overnightLocation && !list.includes(d.overnightLocation)) {
+        list.push(d.overnightLocation);
+      }
+    });
+    return list;
+  }, [itinerary.days]);
+
+  // Helper to remove any internal agency or "booked by us" wording from client-facing text
+  const cleanTransitText = (text?: string): string => {
+    if (!text) return '';
+    return text
+      .replace(/flights?\s+booked\s+by\s+us/gi, 'Flight Details')
+      .replace(/trains?\s+booked\s+by\s+us/gi, 'Train Details')
+      .replace(/railway\s+booked\s+by\s+us/gi, 'Train Details')
+      .replace(/bus(?:es)?\s+booked\s+by\s+us/gi, 'Bus Details')
+      .replace(/outbound\s+booked\s+by\s+us/gi, 'Transfer / Outbound Details')
+      .replace(/\s*\(?booked\s+by\s+us\)?/gi, '')
+      .trim();
+  };
+
+  // Helper to get clean client-facing transit section header
+  const getTransitHeaderTitle = (flightBookings?: Itinerary['flightBookings']): string => {
+    if (!flightBookings) return 'Flight & Transit Details';
+    const hasFlights = flightBookings.flightsBookedByUs || flightBookings.flights?.some(f => !f.transitType || f.transitType === 'flight');
+    const hasTrain = flightBookings.railwayBookedByUs || flightBookings.flights?.some(f => f.transitType === 'train');
+    const hasBus = flightBookings.busBookedByUs || flightBookings.flights?.some(f => f.transitType === 'bus');
+
+    const modesCount = (hasFlights ? 1 : 0) + (hasTrain ? 1 : 0) + (hasBus ? 1 : 0);
+    if (modesCount === 1) {
+      if (hasFlights) return 'Flight Details';
+      if (hasTrain) return 'Train Details';
+      if (hasBus) return 'Bus Details';
+    }
+    if (flightBookings.outboundBookedByUs && !hasFlights && !hasTrain && !hasBus) {
+      return 'Transfer / Outbound Details';
+    }
+    return 'Flight & Transit Details';
+  };
+
+  // Helper to format day destination(s)
+  const getDayDestinationsText = (day: ItineraryDay): string => {
+    if (day.isMultiCity && day.cities && day.cities.length > 0) {
+      const cityNames = day.cities.map(c => c.destination).filter(Boolean);
+      if (cityNames.length > 0) return cityNames.join(' ➔ ');
+    }
+    return day.destination || day.overnightLocation || 'Destination';
+  };
+
+  // Helper to collect all sights/attractions for a day
+  const getDayAttractionNames = (day: ItineraryDay): string[] => {
+    const sights: string[] = [];
+    if (day.attractionNames && day.attractionNames.length > 0) {
+      day.attractionNames.forEach(n => {
+        if (!sights.includes(n)) sights.push(n);
+      });
+    }
+    if (day.isMultiCity && day.cities && day.cities.length > 0) {
+      day.cities.forEach(c => {
+        if (c.attractionNames && c.attractionNames.length > 0) {
+          c.attractionNames.forEach(n => {
+            if (!sights.includes(n)) sights.push(n);
+          });
+        }
+      });
+    }
+    if (sights.length === 0 && day.attractionIds && day.attractionIds.length > 0) {
+      day.attractionIds.forEach(id => {
+        const found = COMPREHENSIVE_ATTRACTIONS.find(a => a.id === id);
+        if (found && !sights.includes(found.name)) sights.push(found.name);
+      });
+    }
+    return sights;
+  };
+
+  // Strip bold tags and markdown asterisks from description text so it always renders in normal weight (400)
+  const stripBoldFormatting = (text: string): string => {
+    if (!text) return '';
+    return text
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      .replace(/<strong>([^<]+)<\/strong>/gi, '$1')
+      .replace(/<b>([^<]+)<\/b>/gi, '$1');
+  };
+
+  // Helper to render clean bullet points and indented sub-bullet attractions with normal font-weight (400)
   const renderFormattedDescription = (text: string) => {
     if (!text || !text.trim()) return null;
-    const lines = text.split('\n').map(l => l.trimEnd()).filter(Boolean);
+    const cleanText = stripBoldFormatting(text);
+    const lines = cleanText.split('\n').map(l => l.trimEnd()).filter(Boolean);
     const hasBullets = lines.some(l => l.trimStart().startsWith('•') || l.trimStart().startsWith('-') || l.trimStart().startsWith('*'));
 
     if (!hasBullets) {
-      return <p className="whitespace-pre-line">{text}</p>;
+      return <p className="whitespace-pre-line font-normal text-slate-700 leading-relaxed">{cleanText}</p>;
     }
 
     return (
-      <div className="space-y-1">
+      <div className="space-y-1 font-normal">
         {lines.map((line, idx) => {
           const trimmed = line.trimStart();
           const isSubBullet = line.startsWith('  -') || line.startsWith('    -') || line.startsWith('\t-') || (trimmed.startsWith('- ') && !line.startsWith('•'));
@@ -158,9 +254,9 @@ export default function ItineraryPreview({
           if (isSubBullet) {
             const content = trimmed.replace(/^[-*]\s*/, '');
             return (
-              <div key={idx} className="sub-bullet-point ml-5 flex items-start gap-1.5 text-slate-600">
-                <span className="text-amber-600 font-bold text-[11px] leading-tight select-none">•</span>
-                <span className="flex-1 font-medium">{content}</span>
+              <div key={idx} className="sub-bullet-point ml-5 flex items-start gap-1.5 text-slate-600 font-normal">
+                <span className="text-amber-600 font-bold text-[11px] leading-tight select-none flex-shrink-0">•</span>
+                <span className="flex-1 font-normal text-slate-600 leading-relaxed">{content}</span>
               </div>
             );
           }
@@ -168,15 +264,15 @@ export default function ItineraryPreview({
           if (isMainBullet) {
             const content = trimmed.replace(/^[•*]\s*/, '');
             return (
-              <div key={idx} className="bullet-point flex items-start gap-1.5 text-slate-800">
-                <span className="text-amber-500 font-bold text-sm leading-tight select-none">•</span>
-                <span className="flex-1">{content}</span>
+              <div key={idx} className="bullet-point flex items-start gap-1.5 text-slate-700 font-normal">
+                <span className="text-amber-500 font-bold text-sm leading-tight select-none flex-shrink-0">•</span>
+                <span className="flex-1 font-normal text-slate-700 leading-relaxed">{content}</span>
               </div>
             );
           }
 
           return (
-            <p key={idx} className="text-slate-700">
+            <p key={idx} className="text-slate-700 font-normal leading-relaxed">
               {line}
             </p>
           );
@@ -622,6 +718,20 @@ export default function ItineraryPreview({
                 <p className="text-xs font-semibold tracking-wider text-[#26214F] uppercase">
                   {routeSubtitle}
                 </p>
+
+                {tourDestinations.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-amber-600" />
+                      Destinations:
+                    </span>
+                    {tourDestinations.map((dest, dIdx) => (
+                      <span key={dIdx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200/80 text-amber-950 text-[10px] font-semibold">
+                        {dest}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Cover Hero Image - Dynamically selected from tour sights or starting destination */}
@@ -756,7 +866,7 @@ export default function ItineraryPreview({
                 </div>
               </div>
 
-              {/* Confirmed Travel Details & Tickets (Transit Logistics Booked by Us) */}
+              {/* Confirmed Travel Details & Tickets (Transit Logistics) */}
               {(itinerary.flightBookings?.flightsBookedByUs || itinerary.flightBookings?.railwayBookedByUs || itinerary.flightBookings?.busBookedByUs) && itinerary.flightBookings.flights?.length > 0 && (
                 <div className="p-3.5 rounded-xl bg-gradient-to-br from-sky-50 to-indigo-50/60 border border-sky-200 text-xs space-y-2 mb-3.5">
                   <div className="flex items-center justify-between border-b border-sky-200/80 pb-1.5">
@@ -764,16 +874,17 @@ export default function ItineraryPreview({
                       {itinerary.flightBookings.flightsBookedByUs && <Plane className="w-3.5 h-3.5 text-sky-600" />}
                       {itinerary.flightBookings.railwayBookedByUs && <Train className="w-3.5 h-3.5 text-emerald-600" />}
                       {itinerary.flightBookings.busBookedByUs && <Bus className="w-3.5 h-3.5 text-amber-600" />}
-                      Travel Details
+                      {getTransitHeaderTitle(itinerary.flightBookings)}
                     </span>
                     <span className="text-[10px] font-bold text-sky-800 bg-sky-200/60 px-2 py-0.5 rounded">
-                      Tickets Booked by {settings?.companyName || "Lobo's Travel Wizard"}
+                      Confirmed Tickets & Schedule
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                     {itinerary.flightBookings.flights.map((fl) => {
                       const mode = fl.transitType || 'flight';
+                      const cleanSector = cleanTransitText(fl.sectorTitle);
                       return (
                         <div key={fl.id} className="bg-white/95 p-2 rounded-lg border border-sky-100 shadow-2xs space-y-1">
                           <div className="flex items-center justify-between">
@@ -786,11 +897,11 @@ export default function ItineraryPreview({
                             }`}>
                               {mode === 'bus' ? <Bus className="w-2.5 h-2.5" /> : mode === 'train' ? <Train className="w-2.5 h-2.5" /> : <Plane className="w-2.5 h-2.5" />}
                               <span>
-                                {fl.type === 'arrival' 
+                                {cleanSector || (fl.type === 'arrival' 
                                   ? (mode === 'bus' ? 'Inbound Bus' : mode === 'train' ? 'Inbound Train' : 'Inbound Flight')
                                   : fl.type === 'departure' 
                                   ? (mode === 'bus' ? 'Outbound Bus' : mode === 'train' ? 'Outbound Train' : 'Outbound Flight')
-                                  : (mode === 'bus' ? 'Inter-City Bus' : mode === 'train' ? 'Train Sector' : 'Domestic Sector')}
+                                  : (mode === 'bus' ? 'Inter-City Bus' : mode === 'train' ? 'Train Sector' : 'Domestic Sector'))}
                               </span>
                             </span>
                             {fl.pnr && (
@@ -943,19 +1054,26 @@ export default function ItineraryPreview({
                             const cleanNum = rawNum.replace(/^(flight|train|bus)\s*/i, '').trim();
                             const numLabel = cleanNum ? (isTrain ? `Train ${cleanNum}` : isBus ? `Bus ${cleanNum}` : `Flight ${cleanNum}`) : rawNum;
 
+                            const dayDestText = getDayDestinationsText(day);
+
                             return (
-                              <div className="text-[10px] text-slate-500 font-medium">
+                              <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[10px]">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-950 font-bold">
+                                  <MapPin className="w-3 h-3 text-amber-600 flex-shrink-0" />
+                                  <span>Destination: {dayDestText}</span>
+                                </span>
                                 {!isDepartureActive && day.overnightLocation && itinerary.includeHotels !== false && !day.excludeHotel && (
-                                  <>
-                                    Overnight: <strong>{day.overnightLocation}</strong>
-                                  </>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">
+                                    <Building2 className="w-3 h-3 text-slate-500 flex-shrink-0" />
+                                    <span>Overnight: {day.overnightLocation}</span>
+                                  </span>
                                 )}
                                 {isDepartureActive && (
-                                  <>
-                                    Drop-off: <strong>{day.departureDetails?.point || 'Airport / Station'}</strong>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-sky-100 text-sky-900 font-medium">
+                                    <span>Drop-off: {day.departureDetails?.point || 'Airport / Station'}</span>
                                     {numLabel ? ` (${numLabel})` : ''}
                                     {day.departureDetails?.departureTime ? ` at ${day.departureDetails.departureTime}` : ''}
-                                  </>
+                                  </span>
                                 )}
                               </div>
                             );
@@ -1146,22 +1264,32 @@ export default function ItineraryPreview({
                     )}
 
                     {/* Sights Covered Badges */}
-                    {day.attractionNames && day.attractionNames.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {day.attractionNames.map((name, i) => (
-                          <span 
-                            key={i} 
-                            className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[10px] font-semibold border border-slate-200"
-                          >
-                            ✓ {name}
+                    {(() => {
+                      const daySights = getDayAttractionNames(day);
+                      if (daySights.length === 0) return null;
+                      return (
+                        <div className="space-y-1 pt-0.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                            <Compass className="w-3 h-3 text-amber-600" />
+                            Sightseeing Spots & Attractions:
                           </span>
-                        ))}
-                      </div>
-                    )}
+                          <div className="flex flex-wrap gap-1.5">
+                            {daySights.map((name, i) => (
+                              <span 
+                                key={i} 
+                                className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[10px] font-normal border border-slate-200 flex items-center gap-1"
+                              >
+                                <span className="text-amber-600 font-bold">✓</span> {name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Sightseeing Narrative Description */}
                     {day.description && day.description.trim() ? (
-                      <div className="text-xs text-slate-700 leading-relaxed font-sans">
+                      <div className="day-description text-xs text-slate-700 leading-relaxed font-sans font-normal">
                         {renderFormattedDescription(ensureOvernightStayText(day.description, day))}
                       </div>
                     ) : null}
