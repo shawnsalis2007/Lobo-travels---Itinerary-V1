@@ -11,7 +11,7 @@ export function formatArrivalLogisticsNarrative(arr: DayArrivalDetails, city: st
   if (isTransfer) {
     const loc = arr.pickupLocation?.trim() || (arr.point === 'Hotel Pickup' ? 'your designated hotel' : arr.point === 'City Center' ? 'the city center' : 'your specified pick-up location');
     const timeStr = arr.arrivalTime?.trim() ? ` at ${arr.arrivalTime.trim()}` : '';
-    return `• Meet and greet with our representative and private chauffeur upon pick-up from ${loc}${timeStr}.`;
+    return `• Meet and greet with private chauffeur upon pick-up from ${loc}${timeStr}.`;
   }
 
   const mode: 'flight' | 'train' | 'bus' =
@@ -37,7 +37,7 @@ export function formatArrivalLogisticsNarrative(arr: DayArrivalDetails, city: st
         trainDetails = cleanNum ? ` (Train ${cleanNum})` : '';
       }
     }
-    return `• Upon arrival at ${stationName}${trainDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
+    return `• Upon arrival at ${stationName}${trainDetails}${timeStr}, meet and greet with private chauffeur.`;
   }
 
   if (mode === 'bus') {
@@ -59,7 +59,7 @@ export function formatArrivalLogisticsNarrative(arr: DayArrivalDetails, city: st
         busDetails = cleanNum ? ` (Bus ${cleanNum})` : '';
       }
     }
-    return `• Upon arrival at ${busLocation}${busDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
+    return `• Upon arrival at ${busLocation}${busDetails}${timeStr}, meet and greet with private chauffeur.`;
   }
 
   // Default: Flight
@@ -79,7 +79,7 @@ export function formatArrivalLogisticsNarrative(arr: DayArrivalDetails, city: st
       flightDetails = cleanNum ? ` (Flight ${cleanNum})` : '';
     }
   }
-  return `• Upon arrival at ${airportName}${flightDetails}${timeStr}, meet and greet with our representative and private chauffeur.`;
+  return `• Upon arrival at ${airportName}${flightDetails}${timeStr}, meet and greet with private chauffeur.`;
 }
 
 /**
@@ -358,9 +358,9 @@ export function generateAutoDayDescription(
             const depPortStr = fl.departureAirport ? ` from ${fl.departureAirport}` : ` from ${city.destination}`;
             const arrPortStr = fl.arrivalAirport ? ` to ${fl.arrivalAirport} (${targetNext})` : ` to ${targetNext}`;
             const arrTimeStr = fl.arrivalTime ? `, arriving at ${fl.arrivalTime}` : '';
-            bullets.push(`• Later, transfer to the airport to board ${flightNumStr}${depPortStr}${depTimeStr}${arrPortStr}${arrTimeStr}. Upon arrival, our representative will receive you.`);
+            bullets.push(`• Later, transfer to the airport to board ${flightNumStr}${depPortStr}${depTimeStr}${arrPortStr}${arrTimeStr}. Upon arrival, our chauffeur will receive you.`);
           } else {
-            bullets.push(`• Later, transfer to the airport to board your domestic flight to ${targetNext}. Upon arrival, our representative will receive you.`);
+            bullets.push(`• Later, transfer to the airport to board your domestic flight to ${targetNext}. Upon arrival, our chauffeur will receive you.`);
           }
         } else if (transit === 'train') {
           const tr = city.trainToNext;
@@ -410,7 +410,7 @@ export function generateAutoDayDescription(
             const arrTime = fe.arrivalTime ? `, arriving at ${fe.arrivalTime}` : '';
             bullets.push(`• Later, transfer to the jetty / harbour to board ${opStr}${vesStr}high-speed ferry${depPort}${depTime}${arrPort}${arrTime}. Upon arrival, our chauffeur will receive you.`);
           } else {
-            bullets.push(`• Later, transfer to the harbour to board your high-speed ferry transfer to ${targetNext}. Upon arrival, meet our representative.`);
+            bullets.push(`• Later, transfer to the harbour to board your high-speed ferry transfer to ${targetNext}. Upon arrival, meet our chauffeur.`);
           }
         } else if (transit === 'toy_train') {
           const tt = city.toyTrainToNext;
@@ -461,7 +461,7 @@ export function generateAutoDayDescription(
       bullets.push(formatDepartureLogisticsNarrative(dep, finalCity, true));
     }
 
-    if (!day.departureDetails?.enabled && isHotelIncluded) {
+    if (!day.departureDetails?.enabled) {
       const stayCity = day.cities[day.cities.length - 1]?.destination || day.overnightLocation || day.destination;
       bullets.push(`• Overnight stay in ${stayCity}.`);
     }
@@ -529,7 +529,7 @@ export function generateAutoDayDescription(
     bullets.push(formatDepartureLogisticsNarrative(dep, day.destination, false));
   }
 
-  if (!day.departureDetails?.enabled && isHotelIncluded) {
+  if (!day.departureDetails?.enabled) {
     const stayCity = day.overnightLocation || day.destination;
     bullets.push(`• Overnight stay in ${stayCity}.`);
   }
@@ -539,21 +539,21 @@ export function generateAutoDayDescription(
 
 /**
  * Standardizes day description text by ensuring "Overnight stay in [City Name]."
- * is appended at the end of each day's description, except when Departure is active or hotel is excluded.
+ * is appended at the end of each day's description, except when Departure is active.
  */
 export function ensureOvernightStayText(description: string, day: ItineraryDay): string {
   let desc = (description || '').trim();
   const stayCity = (day.isMultiCity && day.cities && day.cities.length > 0 ? day.cities[day.cities.length - 1]?.destination : day.overnightLocation) || day.destination || 'the destination';
 
-  if (day.departureDetails?.enabled || day.excludeHotel) {
-    // Departure is active or hotel is excluded for this day: completely remove any overnight stay line
+  if (day.departureDetails?.enabled) {
+    // Departure is active for this day: completely remove any overnight stay line
     desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+at\s+your\s+designated\s+hotel\s+in\s+[^\n.]*\.?/gi, '');
     desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+in\s+[^\n.]*\.?/gi, '');
     desc = desc.replace(/\n?\s*•?\s*Overnight\s+in\s+[^\n.]*\.?/gi, '');
     return desc.trim();
   }
 
-  // Departure is NOT active and hotel is NOT excluded: ensure "Overnight stay in [City Name]." is at the end
+  // Departure is NOT active: ensure "Overnight stay in [City Name]." is at the end
   desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+at\s+your\s+designated\s+hotel\s+in\s+[^\n.]*\.?/gi, '');
   desc = desc.replace(/\n?\s*•?\s*Overnight\s+stay\s+in\s+[^\n.]*\.?/gi, '');
   desc = desc.replace(/\n?\s*•?\s*Overnight\s+in\s+[^\n.]*\.?/gi, '');

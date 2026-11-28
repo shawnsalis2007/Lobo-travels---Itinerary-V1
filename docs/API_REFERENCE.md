@@ -111,7 +111,7 @@ curl -X GET "https://itinerary-builder.vercel.app/api/external/itineraries?limit
           "destination": "Delhi",
           "title": "Arrival in Delhi & Orientation Tour",
           "overnightLocation": "Delhi",
-          "description": "• Upon arrival at Delhi Airport, meet and greet with our representative and private chauffeur.\n• Check-in at your hotel.\n• Visit India Gate and Rashtrapati Bhavan.\n• Overnight stay in Delhi."
+          "description": "• Upon arrival at Delhi Airport, meet and greet with private chauffeur.\n• Check-in at your hotel.\n• Visit India Gate and Rashtrapati Bhavan.\n• Overnight stay in Delhi."
         }
       ]
     }

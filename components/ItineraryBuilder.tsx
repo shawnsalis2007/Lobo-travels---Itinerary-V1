@@ -341,7 +341,7 @@ export default function ItineraryBuilder({
       destination: 'Delhi',
       attractionIds: [],
       attractionNames: [],
-      description: '• Welcome to Delhi! Upon arrival at Delhi Airport, meet and greet with our representative and private chauffeur.\n• Transfer directly to your pre-booked hotel for check-in and leisure time to freshen up before commencing sightseeing.\n• The remainder of the day is at leisure to unwind at the hotel or explore the local surroundings at your own pace.\n• Overnight stay at your designated hotel in Delhi.',
+      description: '• Welcome to Delhi! Upon arrival at Delhi Airport, meet and greet with private chauffeur.\n• Transfer directly to your pre-booked hotel for check-in and leisure time to freshen up before commencing sightseeing.\n• The remainder of the day is at leisure to unwind at the hotel or explore the local surroundings at your own pace.\n• Overnight stay in Delhi.',
       isOvernightSameLocation: true,
       overnightLocation: 'Delhi',
       arrivalDetails: {
@@ -1725,8 +1725,12 @@ export default function ItineraryBuilder({
     setItinerary(prev => {
       const updatedDays = [...prev.days];
       const targetDay = { ...updatedDays[dayIndex], excludeHotel: excluded };
-      const autoDesc = generateAutoDayDescription(targetDay, dayIndex, updatedDays.length, prev.includeHotels);
-      targetDay.description = ensureOvernightStayText(autoDesc, targetDay);
+      if (targetDay.description && targetDay.description.trim()) {
+        targetDay.description = ensureOvernightStayText(targetDay.description, targetDay);
+      } else {
+        const autoDesc = generateAutoDayDescription(targetDay, dayIndex, updatedDays.length, prev.includeHotels);
+        targetDay.description = ensureOvernightStayText(autoDesc, targetDay);
+      }
       updatedDays[dayIndex] = targetDay;
       return { ...prev, days: updatedDays };
     });
@@ -2905,6 +2909,272 @@ export default function ItineraryBuilder({
       console.error('AI generation error', e);
     } finally {
       setAiLoadingDayId(null);
+    }
+  };
+
+  // Keyboard shortcut handler for Day Sightseeing Description:
+  // - Enter on bullet line (• ...) inserts new • bullet
+  // - Enter on sub-bullet line (  - ... or - ...) inserts matching sub-bullet
+  // - Enter on empty bullet/sub-bullet clears/outdents it
+  // - Tab indents bullet to sub-bullet (• ->   - )
+  // - Shift+Tab outdents sub-bullet (  - -> • )
+  // - Backspace on empty bullet/sub-bullet removes/outdents it
+  const handleDescriptionKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+    dayIndex: number
+  ) => {
+    const textarea = e.currentTarget;
+    const { selectionStart, selectionEnd, value } = textarea;
+
+    // Handle Tab and Shift+Tab for Indent / Outdent
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
+      const nextNewline = value.indexOf('\n', selectionStart);
+      const lineEnd = nextNewline === -1 ? value.length : nextNewline;
+      const currentLine = value.substring(lineStart, lineEnd);
+
+      if (e.shiftKey) {
+        // Shift+Tab: Outdent
+        // Case 1: Indented sub-bullet '  - ' -> main bullet '• '
+        if (/^\s{2,}[-*]\s*/.test(currentLine)) {
+          const newLine = currentLine.replace(/^\s{2,}[-*]\s*/, '• ');
+          const diff = newLine.length - currentLine.length;
+          const newValue = value.substring(0, lineStart) + newLine + value.substring(lineEnd);
+          const newCursor = Math.max(lineStart, selectionStart + diff);
+          textarea.value = newValue;
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+          handleUpdateDayField(dayIndex, 'description', newValue);
+          requestAnimationFrame(() => {
+            textarea.selectionStart = textarea.selectionEnd = newCursor;
+          });
+          return;
+        }
+        // Case 2: Indented bullet '  • ' -> '• '
+        if (/^\s{2,}•\s*/.test(currentLine)) {
+          const newLine = currentLine.replace(/^\s{2,}•\s*/, '• ');
+          const diff = newLine.length - currentLine.length;
+          const newValue = value.substring(0, lineStart) + newLine + value.substring(lineEnd);
+          const newCursor = Math.max(lineStart, selectionStart + diff);
+          textarea.value = newValue;
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+          handleUpdateDayField(dayIndex, 'description', newValue);
+          requestAnimationFrame(() => {
+            textarea.selectionStart = textarea.selectionEnd = newCursor;
+          });
+          return;
+        }
+        // Case 3: Leading 2 spaces or tab
+        if (/^(\t|\s{2})/.test(currentLine)) {
+          const newLine = currentLine.replace(/^(\t|\s{2})/, '');
+          const diff = newLine.length - currentLine.length;
+          const newValue = value.substring(0, lineStart) + newLine + value.substring(lineEnd);
+          const newCursor = Math.max(lineStart, selectionStart + diff);
+          textarea.value = newValue;
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+          handleUpdateDayField(dayIndex, 'description', newValue);
+          requestAnimationFrame(() => {
+            textarea.selectionStart = textarea.selectionEnd = newCursor;
+          });
+          return;
+        }
+      } else {
+        // Tab: Indent
+        // Case 1: Main bullet '• ' -> indented sub-bullet '  - '
+        if (/^•\s*/.test(currentLine)) {
+          const newLine = currentLine.replace(/^•\s*/, '  - ');
+          const diff = newLine.length - currentLine.length;
+          const newValue = value.substring(0, lineStart) + newLine + value.substring(lineEnd);
+          const newCursor = Math.max(lineStart, selectionStart + diff);
+          textarea.value = newValue;
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+          handleUpdateDayField(dayIndex, 'description', newValue);
+          requestAnimationFrame(() => {
+            textarea.selectionStart = textarea.selectionEnd = newCursor;
+          });
+          return;
+        }
+        // Case 2: Unindented dash '- ' -> '  - '
+        if (/^[-*]\s*/.test(currentLine)) {
+          const newLine = currentLine.replace(/^[-*]\s*/, '  - ');
+          const diff = newLine.length - currentLine.length;
+          const newValue = value.substring(0, lineStart) + newLine + value.substring(lineEnd);
+          const newCursor = Math.max(lineStart, selectionStart + diff);
+          textarea.value = newValue;
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+          handleUpdateDayField(dayIndex, 'description', newValue);
+          requestAnimationFrame(() => {
+            textarea.selectionStart = textarea.selectionEnd = newCursor;
+          });
+          return;
+        }
+        // Case 3: Indent regular line with 2 spaces
+        const newLine = '  ' + currentLine;
+        const newValue = value.substring(0, lineStart) + newLine + value.substring(lineEnd);
+        const newCursor = selectionStart + 2;
+        textarea.value = newValue;
+        textarea.selectionStart = textarea.selectionEnd = newCursor;
+        handleUpdateDayField(dayIndex, 'description', newValue);
+        requestAnimationFrame(() => {
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+        });
+        return;
+      }
+    }
+
+    // Handle Backspace on an empty bullet/sub-bullet prefix
+    if (e.key === 'Backspace' && selectionStart === selectionEnd) {
+      const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
+      const nextNewline = value.indexOf('\n', selectionStart);
+      const lineEnd = nextNewline === -1 ? value.length : nextNewline;
+      const currentLine = value.substring(lineStart, lineEnd);
+      const beforeCursorInLine = value.substring(lineStart, selectionStart);
+
+      // Empty indented sub-bullet (e.g. '  - ') -> outdent to main bullet '• '
+      const indentedEmptyMatch = currentLine.match(/^(\s{2,})[-*•]\s*$/);
+      if (indentedEmptyMatch && beforeCursorInLine === currentLine) {
+        e.preventDefault();
+        const newLine = '• ';
+        const newValue = value.substring(0, lineStart) + newLine + value.substring(lineEnd);
+        const newCursor = lineStart + newLine.length;
+        textarea.value = newValue;
+        textarea.selectionStart = textarea.selectionEnd = newCursor;
+        handleUpdateDayField(dayIndex, 'description', newValue);
+        requestAnimationFrame(() => {
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+        });
+        return;
+      }
+
+      // Empty main bullet (e.g. '• ') or unindented bullet ('- ') -> remove bullet completely (blank line)
+      const emptyMainMatch = currentLine.match(/^[•\-*]\s*$/);
+      if (emptyMainMatch && beforeCursorInLine === currentLine) {
+        e.preventDefault();
+        const newValue = value.substring(0, lineStart) + value.substring(lineEnd);
+        const newCursor = lineStart;
+        textarea.value = newValue;
+        textarea.selectionStart = textarea.selectionEnd = newCursor;
+        handleUpdateDayField(dayIndex, 'description', newValue);
+        requestAnimationFrame(() => {
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+        });
+        return;
+      }
+    }
+
+    // Handle Enter for bullet continuation
+    if (e.key === 'Enter' && !e.shiftKey) {
+      const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
+      const nextNewline = value.indexOf('\n', selectionStart);
+      const lineEnd = nextNewline === -1 ? value.length : nextNewline;
+      const currentLine = value.substring(lineStart, lineEnd);
+      const beforeCursorInLine = value.substring(lineStart, selectionStart);
+
+      // 1. Check if current line is an indented sub-bullet: e.g. '  - ...', '    - ...', '  • ...'
+      const indentedSubMatch = currentLine.match(/^(\s{2,})([•\-*])\s*/);
+      if (indentedSubMatch) {
+        const fullPrefix = indentedSubMatch[0];
+        const indent = indentedSubMatch[1];
+        const bulletChar = indentedSubMatch[2];
+        const contentAfterPrefix = currentLine.substring(fullPrefix.length).trim();
+
+        // If line is empty (just the prefix), pressing Enter outdents to main bullet '• '
+        if (!contentAfterPrefix && beforeCursorInLine.length >= fullPrefix.length) {
+          e.preventDefault();
+          const newLine = '• ';
+          const newValue = value.substring(0, lineStart) + newLine + value.substring(lineEnd);
+          const newCursor = lineStart + newLine.length;
+          textarea.value = newValue;
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+          handleUpdateDayField(dayIndex, 'description', newValue);
+          requestAnimationFrame(() => {
+            textarea.selectionStart = textarea.selectionEnd = newCursor;
+          });
+          return;
+        }
+
+        // If line has content, continue sub-bullet on next line
+        e.preventDefault();
+        const nextPrefix = bulletChar === '•' ? `${indent}• ` : `${indent}- `;
+        const insertText = '\n' + nextPrefix;
+        const newValue = value.substring(0, selectionStart) + insertText + value.substring(selectionEnd);
+        const newCursor = selectionStart + insertText.length;
+        textarea.value = newValue;
+        textarea.selectionStart = textarea.selectionEnd = newCursor;
+        handleUpdateDayField(dayIndex, 'description', newValue);
+        requestAnimationFrame(() => {
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+        });
+        return;
+      }
+
+      // 2. Check if current line is an unindented dash/star sub-bullet: e.g. '- ...' or '* ...'
+      const unindentedDashMatch = currentLine.match(/^([-*])\s*/);
+      if (unindentedDashMatch) {
+        const fullPrefix = unindentedDashMatch[0];
+        const contentAfterPrefix = currentLine.substring(fullPrefix.length).trim();
+
+        // If empty, exit bullet mode (clear line)
+        if (!contentAfterPrefix && beforeCursorInLine.length >= fullPrefix.length) {
+          e.preventDefault();
+          const newValue = value.substring(0, lineStart) + value.substring(lineEnd);
+          const newCursor = lineStart;
+          textarea.value = newValue;
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+          handleUpdateDayField(dayIndex, 'description', newValue);
+          requestAnimationFrame(() => {
+            textarea.selectionStart = textarea.selectionEnd = newCursor;
+          });
+          return;
+        }
+
+        // Continue matching sub-bullet '- '
+        e.preventDefault();
+        const insertText = '\n- ';
+        const newValue = value.substring(0, selectionStart) + insertText + value.substring(selectionEnd);
+        const newCursor = selectionStart + insertText.length;
+        textarea.value = newValue;
+        textarea.selectionStart = textarea.selectionEnd = newCursor;
+        handleUpdateDayField(dayIndex, 'description', newValue);
+        requestAnimationFrame(() => {
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+        });
+        return;
+      }
+
+      // 3. Check if current line is a main bullet: e.g. '• ...'
+      const mainBulletMatch = currentLine.match(/^[•]\s*/);
+      if (mainBulletMatch) {
+        const fullPrefix = mainBulletMatch[0];
+        const contentAfterPrefix = currentLine.substring(fullPrefix.length).trim();
+
+        // If empty, exit bullet mode (clear line)
+        if (!contentAfterPrefix && beforeCursorInLine.length >= fullPrefix.length) {
+          e.preventDefault();
+          const newValue = value.substring(0, lineStart) + value.substring(lineEnd);
+          const newCursor = lineStart;
+          textarea.value = newValue;
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+          handleUpdateDayField(dayIndex, 'description', newValue);
+          requestAnimationFrame(() => {
+            textarea.selectionStart = textarea.selectionEnd = newCursor;
+          });
+          return;
+        }
+
+        // Continue main bullet '• '
+        e.preventDefault();
+        const insertText = '\n• ';
+        const newValue = value.substring(0, selectionStart) + insertText + value.substring(selectionEnd);
+        const newCursor = selectionStart + insertText.length;
+        textarea.value = newValue;
+        textarea.selectionStart = textarea.selectionEnd = newCursor;
+        handleUpdateDayField(dayIndex, 'description', newValue);
+        requestAnimationFrame(() => {
+          textarea.selectionStart = textarea.selectionEnd = newCursor;
+        });
+        return;
+      }
     }
   };
 
@@ -6176,9 +6446,10 @@ export default function ItineraryBuilder({
                         </div>
 
                         <textarea
-                          rows={3}
+                          rows={4}
                           value={day.description}
                           onChange={(e) => handleUpdateDayField(dayIndex, 'description', e.target.value)}
+                          onKeyDown={(e) => handleDescriptionKeyDown(e, dayIndex)}
                           placeholder="Factual day narrative..."
                           className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500 leading-relaxed font-sans"
                         />

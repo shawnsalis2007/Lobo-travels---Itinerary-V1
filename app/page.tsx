@@ -297,7 +297,7 @@ export default function Home() {
           destination: 'Delhi',
           attractionIds: [],
           attractionNames: [],
-          description: 'Welcome to Delhi! Upon arrival, meet and greet with our representative and private chauffeur. Transfer to your hotel for check-in and leisure time to freshen up. The remainder of the day is at leisure to unwind or explore the local surroundings at your own pace.',
+          description: 'Welcome to Delhi! Upon arrival, meet and greet with private chauffeur. Transfer to your hotel for check-in and leisure time to freshen up. The remainder of the day is at leisure to unwind or explore the local surroundings at your own pace.',
           isOvernightSameLocation: true,
           overnightLocation: 'Delhi',
           arrivalDetails: {
